@@ -1,0 +1,67 @@
+@using System.Security.Claims
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject KANO.Core.Service.IUserSession UserSession
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+<nav class="sidebar sidebar-offcanvas" id="sidebar">
+    <ul class="nav">
+        <li class="nav-item nav-profile">
+            <a href="#" class="nav-link">
+                <div class="nav-profile-image">
+                    <div class="img" data-bind="attr:{style:'background:'+model.app.profilePicture()}"></div>
+                    <span class="login-status online"></span>
+                </div>
+                <div class="nav-profile-text d-flex flex-column">
+                    <span class="font-weight-bold mb-2 text-truncate username w-125-px">@UserSession.DisplayName()</span>
+                    <span class="text-secondary text-small">@UserSession.Id()</span>
+                </div>
+            </a>
+        </li>
+        <li class="nav-item kara-link">
+            <a class="nav-link" data-bind="click:model.app.action.launchkara" href="#">
+                <span class="menu-title" style="font-size: 13px;">Download ESS Attendance</span>
+                <i class="kara-icon"></i>
+            </a>
+        </li>
+        @{ bool hasSubordinate = @UserSession.HasSubordinate(); }
+        @foreach (var menu in UserSession.GetMenu())
+        {
+            if ((menu.ForWhomHasSubordinate && hasSubordinate) || (!menu.ForWhomHasSubordinate && (!hasSubordinate || hasSubordinate)))
+            {
+                if (menu.Submenus.Count == 0)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" href="@menu.Url">
+                            <span class="menu-title">@menu.Title</span>
+                            <i class="menu-icon @menu.Icon"></i>
+                        </a>
+                    </li>
+                }
+                else
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="collapse" href="#@menu.PageCode" aria-controls="@menu.PageCode" aria-expanded="false">
+                            <span class="menu-title">@menu.Title</span>
+                            <i class="menu-arrow"></i>
+                            <i class="menu-icon @menu.Icon"></i>
+                        </a>
+                        <div class="collapse" id="@menu.PageCode">
+                            <ul class="nav flex-column sub-menu">
+                                @foreach (var submenu in menu.Submenus)
+                                {
+                                    if ((submenu.ForWhomHasSubordinate && hasSubordinate) || (!submenu.ForWhomHasSubordinate && (!hasSubordinate || hasSubordinate)))
+                                    {
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="@submenu.Url">@submenu.Title</a>
+                                        </li>
+                                    }
+                                }
+                            </ul>
+                        </div>
+                    </li>
+                }
+            }
+        }
+
+    </ul>
+</nav>

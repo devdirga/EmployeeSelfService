@@ -1,0 +1,110 @@
+﻿
+<div id="OpenTicketModal" class="modal" role="dialog" data-bind="with: model">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-wallet-travel"></i>
+                    Ticket Request
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="with : data.Ticket">
+                <form>
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="col">
+                                <label for="Type" class="required">Type</label>
+                                <select class="form-control" data-bind="kendoDropDownList: {
+                                    value: TicketType,
+                                    data: model.list.TicketType,
+                                    dataTextField: 'text',
+                                    dataValueField: 'value',
+                                    optionLabel: 'Select Type',
+                                    }"></select>
+                            </div>
+                            <div class="col">
+                                <label for="Media" class="required">Media</label>
+                                <select class="form-control" data-bind="kendoDropDownList: {
+                            value: TicketMedia,
+                            data: model.list.TicketMedia,
+                            dataTextField: 'text',
+                            dataValueField: 'value',
+                            optionLabel: 'Select Media',
+                            }"></select>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">For Ticket Complain will request approval</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="EmailTo" class="required">Category</label><br>
+                        <select class="form-control" data-bind="kendoDropDownList: {
+                            value: Category.Id,
+                            data: model.list.TicketCategories(),
+                            dataTextField: 'Name',
+                            dataValueField: 'Id',
+                            optionLabel: 'Select Category',
+                            change:model.on.categoryChange
+                            }"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="Subject" class="required">Subject</label><br>
+                        <input class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="value: Subject" />
+                    </div>                    
+
+                    <div class="form-group">
+                        <label for="EmailCC">Email CC</label><br>
+                        @* <input class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="value: EmailCC" /> *@
+                        <select class="mb-md-xs-2 w-100" id="products" data-bind="kendoMultiSelect: {
+                                dataTextField: 'ProductName',
+                                dataValueField: 'ProductID',
+                                dataSource: {
+                                    data: EmailCC()
+                                },
+                                dataBound: model.action.onDataBound
+                                }"></select>
+                        <small id="resultEmail"></small>
+
+                    </div>                    
+
+                    <div class="form-group d-none">
+                        <label for="FullName" class="required">Fullname</label><br>
+                        <input class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="value: FullName" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Description" class="required">Description</label><br>
+                        <textarea type="text" cols="5" rows="3" class="form-control form-control-sm w-md-xs-100 mb-md-xs-2 w-100" data-bind="value:Description" placeholder="e.g. Complaint..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="required">Attachment</label>
+                        <input type="file" name="Filepath" id="Filepath" data-bind="kendoUpload: {
+                               multiple: false,
+                               template: kendo.template($('#fileTemplate').html()),
+                               validation: {
+                                    allowedExtensions: model.app.config.upload.allowedExtensions,
+                                    maxFileSize: model.app.config.upload.maxFileSize
+                                }
+                               }" />
+                        <div data-bind="value: Filepath"></div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="task-details">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-info" data-bind="click:model.action.TicketRequest">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    #products-list {
+        display: none !important;
+    }
+</style>

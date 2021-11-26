@@ -1,0 +1,167 @@
+﻿@{
+    //ViewData["Title"] = "Index";
+    Layout = "_Layout";
+}
+
+@using KANO.Core.Service
+@using KANO.ESS
+@using KANO.Core.Model
+@using Newtonsoft.Json
+
+<script async>
+    var viewBag = @Json.Serialize(ViewBag);
+    model.proto = {
+        Location: @Html.Raw(Json.Serialize(new Location())),
+    }
+</script>
+
+<link rel="stylesheet" href="~/assets/vendors/mapbox/mapbox-gl.css">
+<script src="~/assets/vendors/mapbox/mapbox-gl.js"></script>
+
+<link rel="stylesheet" href="~/assets/areas/ess/css/location.css?@(Startup.Tick??DateTime.Now.Ticks)" />
+<script src="~/assets/areas/ess/js/mobile-location.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+<link rel="stylesheet" href="~/assets/vendors/mapbox/mapbox-gl-geocoder.css" />
+<script src="~/assets/vendors/mapbox/mapbox-gl-geocoder.min.js"></script>
+
+<div class="row" data-bind="with:model">
+    <main class="col-lg-12" role="main">
+        <div class="row">
+            <div class="col-lg-12 mb-4">
+                <div class="card box">
+                    <div class="card-header clearfix pb-xs-0">
+                        <div class="float-left mb-md-xs-2 no-display">
+                        <a href="#" onclick="model.action.showModal()" class="btn btn-info float-md-right w-md-xs-100">Create</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="gridLocation"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="locationModal" class="modal fade" role="dialog" data-bind="with:model">
+    <div class="modal-dialog" role="document" data-bind="">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-bag-personal"></i>
+                    Location
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="with:data.location">
+                @*<div class="row">
+                        <div class="form-group col-md-6 col-sm-12">
+                            <label for="LocationName">Email address</label>
+                            <input type="text" class="form-control" id="LocationName" placeholder="Location Name">
+                        </div>
+                        <div class="form-group col-md-6 col-sm-12">
+                            <label for="LocationEntity">Email address</label>
+                            <input type="text" class="form-control" id="LocationEntity" placeholder="Location Name">
+                        </div>
+                    </div>*@
+                @*<div class="form-group">
+                        <label for="LocationName">Entity</label>
+                        <input type="text" class="form-control" id="Entity" data-bind="value: Entity" placeholder="Location Name" />
+                    </div>*@
+                <div class="form-group">
+                    <label for="LocationName">Location Code</label>
+                    <input type="text" class="form-control" id="LocationCode" data-bind="value: Code" maxlength="3" placeholder="Location Code" />
+                </div>
+
+                <div class="form-group">
+                    <label for="LocationName">Location Name</label>
+                    <input type="text" class="form-control" id="LocationName" data-bind="value: Name" placeholder="Location Name" />
+                </div>
+
+                <div class="form-group my-2">
+                    <label for="LocationName">Address</label>
+                    <input type="text" class="form-control" id="Address" data-bind="value: Address" placeholder="Address" />
+                </div>
+
+                <div class="row my-2">
+                    <div class="form-group col-md-6 col-sm-6">
+                        <label for="Tags">Tags</label>
+                        <input type="text" class="form-control" id="Tags" data-bind="value: Tags" placeholder="Tags">
+                    </div>
+                    <div class="form-group col-md-6 col-sm-6">
+                        <label for="ckVirtual">&nbsp;</label>
+                        <div class="form-check ml-4">
+                            <input class="form-check-input" type="checkbox" id="ckVirtual" data-bind="checked: IsVirtual" />
+                            <label class="form-check-label mx-2" for="ckVirtual">
+                                Virtual Location
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row my-2">
+                    <div class="form-group col-md-12 col-sm-12">
+                        <button class="btn btn-primary btn-xs-sm w-md-xs-100" data-bind="click: model.action.getLocation"><i class="mdi mdi-map-marker"></i> Current Position</button>
+                        <button class="btn btn-success btn-xs-sm w-md-xs-100" data-bind="click: model.action.showMap"><i class="mdi mdi-map"></i> Open Map</button>
+                    </div>
+                </div>
+
+                <div class="form-group" style="position:relative" data-bind="visible: model.map.visible">
+                    <div id='map' style='width: 100%; height: 400px;'></div>
+                    <pre id="coordinates" class="coordinates"></pre>
+                </div>
+
+                <div class="row mt-2">
+                    <div class="form-group col-md-6 col-sm-12">
+                        <label for="Latitude">Latitude</label>
+                        <input type="text" class="form-control" id="Latitude" data-bind="value: Latitude" placeholder="Latitude">
+                    </div>
+                    <div class="form-group col-md-6 col-sm-12">
+                        <label for="Longitude">Longitude</label>
+                        <input type="text" class="form-control" id="Longitude" data-bind="value: Longitude" placeholder="Longitude">
+                    </div>
+                </div>
+
+                <div class="row my-2">
+                    <div class="form-group col-md-6">
+                        <label for="Radius">Distance</label>
+                        <input type="number" class="form-control" id="Radius" data-bind="value: Radius" placeholder="Distance / Radius" />
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="Unit">Satuan</label>
+                        <select id="Unit" data-bind="kendoDropDownList: {
+                            autoWidth: true,
+                            filter: 'contains',
+                            value: model.data.unit,
+                            data: ['km', 'm'],
+                        }" class="w-md-xs-100 mb-md-xs-2 w-100"></select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info" data-bind="click: model.action.save">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*<div id="mapModal" class="modal fade" role="dialog" data-bind="with:model">
+    <div class="modal-dialog" role="document" data-bind="">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div id='map' style='width: 100%; height: 450px;'></div>
+                <pre id="coordinates" class="coordinates"></pre>
+            </div>
+        </div>
+    </div>
+</div>*@
+
+<script>
+    $(function () {
+        model.init.location();
+        model.init.map();
+    })
+</script>

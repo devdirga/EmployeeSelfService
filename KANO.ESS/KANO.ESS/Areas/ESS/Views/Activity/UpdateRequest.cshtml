@@ -1,0 +1,65 @@
+﻿<div class="card" data-bind="foreach:data.updateRequest">
+    <div class="card-header p-2 collapsed" data-toggle="collapse" aria-expanded="false" data-bind="attr:{
+                                'id':'requestHeading'+$index(),
+                                'data-target':'#request'+$index(),
+                                'aria-controls':'#request'+$index(),
+                                }">
+        <div class="d-flex w-100 justify-content-between">
+            <div class="flex-shrink-1 mt-1">
+                <i class="icon-size-notif status" data-bind="css:{
+                                            'status-in-review':TrackingStatus() == 0,
+                                            'status-approve':!Inverted() ? (TrackingStatus() == 1) : (TrackingStatus() == 3),
+                                            'status-cancel':TrackingStatus() == 2,
+                                            'status-reject':!Inverted() ? (TrackingStatus() == 3) : (TrackingStatus() == 1),
+                                            }"></i>
+            </div>
+            <div class="mb-1 w-75 pt-1 pl-0">
+                <div class="mb-1 ml-track notification-message" data-bind="text:Title"></div>
+            </div>
+            <!-- ko if: relativeDate(LastUpdated()) == "-" -->
+            <small class="humanized-request-tracking-time" data-bind="text:relativeDate(SubmitDateTime()), attr:{title: 'Last Update : '+standarizeDateTime(SubmitDateTime())}" class="mt-1"></small>
+            <!-- /ko -->
+            <!-- ko ifnot: relativeDate(LastUpdated()) == "-" -->
+            <small class="humanized-request-tracking-time" data-bind="text:relativeDate(LastUpdated()), attr:{title: 'Last Update : '+standarizeDateTime(LastUpdated())}" class="mt-1"></small>
+            <!-- /ko -->
+        </div>
+    </div>
+
+    <div class="collapse" data-parent="#updateRequestAccordion" data-bind="attr:{
+                                'id':'request'+$index(),
+                                'aria-labelledby':'requestHeading'+$index(),
+                                }">
+        <div class="card-body">
+            <ul class="timeline m-0" data-bind="foreach:WorkFlows">
+                <li data-bind="css:{
+                                            'status-draft':StepTrackingType() == 0,
+                                            'status-in-review':StepTrackingType() == 1,
+                                            'status-approve':!$parent.Inverted() ? (StepTrackingType() == 2) : (StepTrackingType() == 4),
+                                            'status-cancel':StepTrackingType() == 3,
+                                            'status-reject':!$parent.Inverted() ? (StepTrackingType() == 4) : (StepTrackingType() == 2),
+                                            }">
+                    <div class="date-agenda pb-1">
+                        <strong class="status" data-bind="text:StepName"></strong>
+                        <br />
+                        <small>
+                            <!-- ko if: StepTrackingType() >= 2 -->
+                            <span data-bind="text:model.app.parseStepTrackingStatus(StepTrackingType(), $parent.Inverted())">
+                            </span>
+                            &nbsp;|&nbsp;
+                            <!-- /ko -->
+                            <span data-bind="text:AssignToEmployeeName"></span>
+                            <!-- ko if: StepTrackingType() >= 2 && (ActionDateTime() || "").indexOf("1900-01-01") < 0 -->
+                            &nbsp;|&nbsp;
+                            <span data-bind="text:standarizeDateTime(ActionDateTime())"></span>
+                            <!-- /ko -->
+                        </small>
+                        <br />
+                        <!-- ko if: Comment() != "" -->
+                        <pre class="mt-2" data-bind="text:Comment"></pre>
+                        <!-- /ko -->
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

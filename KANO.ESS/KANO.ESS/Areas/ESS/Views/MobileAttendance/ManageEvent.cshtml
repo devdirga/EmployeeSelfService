@@ -1,0 +1,110 @@
+﻿@{
+    //ViewData["Title"] = "Index";
+    Layout = "_Layout";
+}
+
+@using KANO.Core.Service
+@using KANO.ESS
+@using KANO.Core.Model
+@using Newtonsoft.Json
+
+<script async>
+    const URL_GET_EVENT = "@Url.Action("GetEvent", "MobileAttendance")";
+    const URL_SAVE = "@Url.Action("SaveEvent", "MobileAttendance")";
+    const URL_GET_USER_MANAGEMENT = "@Url.Action("GetAttendance", "MobileAttendance")";
+
+    var viewBag = @Json.Serialize(ViewBag);
+    model.proto = {
+        Event: @Html.Raw(Json.Serialize(new Event())),
+    }
+</script>
+<script src="~/assets/areas/ess/js/mobile-event.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+<div class="row" data-bind="with:model">
+    <main class="col-lg-12" role="main">
+        <div class="row">
+            <div class="col-lg-12 mb-4">
+                <div class="card box">
+                    <div class="card-header clearfix pb-xs-0">
+                        <a href="#" onclick="model.action.showModal()" class="btn btn-sm btn-info float-md-right w-md-xs-100">Create</a>
+                    </div>
+                    <div class="card-body">
+                        <div id="gridEvent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="eventModal" class="modal fade" role="dialog" data-bind="with:model">
+    <div class="modal-dialog" role="document" data-bind="">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-bag-personal"></i>
+                    Event
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="with:data.event">
+                <div class="form-group">
+                    <label for="EventName" class="required">Event Name</label>
+                    <input type="text" class="form-control" id="EventName" data-bind="value:Name" placeholder="Event Name" />
+                </div>
+                <div class="form-group">
+                    <label for="LocationID" class="required">Location</label>
+                    <select id="LocationID" data-bind="kendoDropDownList: {
+                        autoWidth: true,
+                        filter: 'contains',
+                        data: model.list.locations,
+                        value: LocationID,
+                        dataTextField: 'Name',
+                        dataValueField: 'Id',
+                        optionLabel: 'Select...',
+                    }" class="w-md-xs-100 mb-md-xs-2 w-100"></select>
+                </div>
+                <div class="form-group">
+                    <label for="Attendees" class="required">Attendees</label>
+                    <select id="Attendees" data-bind="kendoMultiSelect: {
+                        autoWidth: true,
+                        data: model.list.user,
+                        dataTextField: 'FullName',
+                        dataValueField: 'UserID',
+                        placeholder: 'Select...',
+                        filter: 'contains',
+                        filtering: model.on.filtering,
+                        autoClose: false,
+                        minLength: 2
+                    }" class="w-md-xs-100 mb-md-xs-2 w-100"></select>
+                    @*<select id="Attendees" class="w-md-xs-100 mb-md-xs-2 w-100"></select>*@
+                </div>
+                <div class="form-group">
+                    <label for="StartTime" class="required">Start</label>
+                    <input class="form-control" id="StartTime" data-bind="kendoDateTimePicker: { value: StartTime }" placeholder="Start" />
+                </div>
+                <div class="form-group">
+                    <label for="EndTime" class="required">End</label>
+                    <input class="form-control" id="EndTime" data-bind="kendoDateTimePicker: { value: EndTime }" placeholder="End" />
+                </div>
+                <div class="form-group">
+                    <label for="Description" class="required">Description</label>
+                    <input type="text" class="form-control" id="Description" data-bind="value:Description" placeholder="Event Description" />
+                </div>
+            </div>
+            @*<div data-bind="visible: model.form.action() == 'edit' || model.form.action() == 'new'" class="modal-footer">*@
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info" data-bind="click: model.action.save">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.init.event();
+    })
+</script>

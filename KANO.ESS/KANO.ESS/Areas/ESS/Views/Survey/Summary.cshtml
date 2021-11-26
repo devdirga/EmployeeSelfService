@@ -1,0 +1,179 @@
+@{
+    Layout = "_Layout";
+}
+@using KANO.Core.Service
+@using KANO.ESS
+@using KANO.Core.Model
+@using Newtonsoft.Json
+@inject KANO.Core.Service.IUserSession UserSession
+
+<script>
+    var viewBag = @Json.Serialize(ViewBag);
+    @*Defining Model Prototype*@
+    model.proto = {
+        Survey: @Html.Raw(Json.Serialize(new Survey())),
+        SurveySummary: @Html.Raw(Json.Serialize(new SurveySummary())),
+        DateRange: @Html.Raw(Json.Serialize(new DateRange())),
+        SurveyRecurrent: @Html.Raw(Tools.EnumToJson2(typeof(SurveyRecurrent))),
+        ParticipantType: @Html.Raw(Tools.EnumToJson2(typeof(ParticipantType))),
+    };
+    model.showForm = ko.observable(false);
+    model.data.surveyid = ko.observable(viewBag.ID)
+    var f = async function () {
+        if(viewBag.StatusCode != 200){
+            swalAlert("Survey", `Error occured while fetching survey : ${viewBag.Message}`);
+            history.go(-1)
+        }else if(!viewBag.Data){
+            swalAlert("Survey", `Unable to find survey ${viewBag.ID} on ESS server`);
+            history.go(-1)
+        }else{
+            model.showForm(true);
+        }
+    }
+    //f()
+</script>
+<script src="~/assets/areas/ess/js/survey.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+<link rel="stylesheet" href="~/assets/areas/ess/css/survey.css?@(Startup.Tick??DateTime.Now.Ticks)">
+<div class="page-header" data-bind="with:model.data.surveysummary()">
+    <h3 class="page-title">
+        <span data-bind="text:Title" class="display-4">Survey Covid 19</span> <br>
+        <span class="text-muted text-center text-sm-left d-block d-sm-inline-block text-small" data-bind="text:standarizeDate(new Date(Schedule.Start ))"></span>
+        <span class="text-muted text-center text-sm-left d-block d-sm-inline-block text-small"> - </span>
+        <span class="text-muted text-center text-sm-left d-block d-sm-inline-block text-small" data-bind="text:standarizeDate(new Date(Schedule.Finish ))"></span> .
+        <span class="text-muted text-small" data-bind="text:$parent.list.surveyRecurrence()[Recurrent]">-</span>
+    </h3>
+    <input id="summaryDatePicker" class="w-md-xs-100 mb-md-xs-2" />
+</div>
+
+<div class="row" data-bind="with:model">
+    <main class="col-lg-12" role="main">
+        <ul class="nav nav-tabs d-nav-tabs-none" id="employeeTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="profile-tab" data-toggle="tab" href="#resume" role="tab" aria-controls="resume" aria-selected="false">Summary</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="family-tab" data-toggle="tab" href="#family" role="tab" aria-controls="family" aria-selected="false">Participant</a>
+            </li>
+        </ul>
+        <div class="dropdown d-hide-dropdown">
+            <button class="w-100 btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Menu
+            </button>
+            <div class="dropdown-menu p-0 m-0 w-100 border-radius-none" aria-labelledby="dropdownMenuButton" id="dropdownMenuButtons">
+                <a class="dropdown-item" id="profile-tab" data-toggle="tab" href="#resume" role="tab" aria-controls="resume" onclick="model.action.selectedDropdownMenu(this)">Summary</a>
+                <a class="dropdown-item" id="family-tab" data-toggle="tab" href="#family" role="tab" aria-controls="family" onclick="model.action.selectedDropdownMenu(this)">Participant</a>
+            </div>
+        </div>
+        <div class="tab-content" id="employeeTabContent">
+            @* Summary *@
+            <div class="tab-pane fade active show" id="resume" role="tabpanel" aria-labelledby="resume-tab">
+                <div class="row">
+                    <div class="col-lg-12 mb-4">
+                        <div class="card card-tab-content">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 stretch-card card-summary mb-3" data-bind="">
+                                        <div id="summaryContainer" class="card bg-gradient-danger card-img-holder text-white">
+                                            <div class="card-body p-max-1200-4 p-xl-4" data-bind="with:model.data.surveysummary()">
+                                                <img src="/assets/vendors/purple-admin/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image">
+                                                <h4 class="font-weight-normal mb-3">
+                                                    Survey <i class="mdi mdi-clock-fast mdi-24px float-right"></i>
+                                                </h4>
+                                                <div class="row">
+                                                    <div class="col-12 d-flex">
+                                                        <div class="col-12 p-0 mb-4">
+                                                            <div class="col-12 p-0 mb-2">
+                                                                <span class="display-1" data-bind="text:$parent.data.percentsurvey">-</span><span class="display-1">%</span>
+                                                            </div>
+                                                            <div class="col-12 p-0">
+                                                                <span class="" data-bind="text:TotalParticipantsTakenSurvey">30</span>/<span class="" data-bind="text:TotalParticipants">100</span> <span class=""> employee has taken survey</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div> 
+                                    <div class="col-md-4 stretch-card card-summary mb-3" data-bind="">
+                                        <div id="summaryContainer" class="card bg-gradient-success card-img-holder text-white">
+                                            <div class="card-body p-max-1200-4 p-xl-4" data-bind="with:model.data.surveysummary()">
+                                                <img src="/assets/vendors/purple-admin/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image">
+                                                <h4 class="font-weight-normal mb-3">
+                                                    Success <i class="mdi mdi-clock-fast mdi-24px float-right"></i>
+                                                </h4>
+                                                <div class="row">
+                                                    <div class="col-12 d-flex">
+                                                        <div class="col-12 p-0 mb-4">
+                                                            <div class="col-12 p-0 mb-2">
+                                                                <span class="display-1">0</span><span class="display-1">%</span>
+                                                            </div>
+                                                            <div class="col-12 p-0">
+                                                                <span class="">passed survey</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div> 
+                                    <div class="col-md-4 stretch-card card-summary mb-3" data-bind="">
+                                        <div id="summaryContainer" class="card bg-gradient-info card-img-holder text-white">
+                                            <div class="card-body p-max-1200-4 p-xl-4" data-bind="with:model.data.surveysummary()">
+                                                <img src="/assets/vendors/purple-admin/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image">
+                                                <h4 class="font-weight-normal mb-3">
+                                                    Sample Information <i class="mdi mdi-clock-fast mdi-24px float-right"></i>
+                                                </h4>
+                                                <div class="row">
+                                                    <div class="col-12 d-flex">
+                                                        <div class="col-12 p-0 mb-4">
+                                                            <div class="col-12 p-0 mb-2">
+                                                                <span class="display-1">0</span><span class="display-1">%</span>
+                                                            </div>
+                                                            <div class="col-12 p-0">
+                                                                <span class="">Sample information description</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 mb-3" data-bind="">
+                                        <form>
+                                            <div class="form-group">
+                                                <div class="form-group">
+                                                    <iframe id="survey-form-container" class="w-100" src="/odoo/survey/results/tps-covid-survey-5?employee_id=@UserSession.Id()" title="test"></iframe>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="family" role="tabpanel" aria-labelledby="family-tab">
+                @* Participant *@
+                <div class="row">
+                    <div class="col-lg-12 mb-4">
+                        <div class="card card-tab-content">
+                            <div class="card-body">
+                                <div id="gridParticipant"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.init.summary();
+    })
+</script>

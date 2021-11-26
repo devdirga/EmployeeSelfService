@@ -1,0 +1,101 @@
+﻿@using KANO.Core.Model;
+@using KANO.ESS
+@{
+    Layout = "_Layout";
+}
+
+<script>
+    const URL_GET_UNUSED_VOUCHER = "@Url.Action("GetUnusedVouchers","Benefit")";
+    const URL_GET_USED_VOUCHER = "@Url.Action("GetUsedVouchers", "Benefit")";
+    const URL_GET_NOT_APPLICABLE_VOUCHER = "@Url.Action("GetNotApplicableVoucher", "Benefit")";
+
+    @*Defining Model Prototype*@
+    model.proto = {
+        Redeem: @Html.Raw(Json.Serialize(new Redeem())),
+    };
+</script>
+<link href="~/assets/areas/ess/css/canteen.css?@(Startup.Tick??DateTime.Now.Ticks)" rel="stylesheet" />
+<script src="~/assets/areas/ess/js/canteen.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+<div class="row" data-bind="with:model.data.info">
+    <div class="col-12 p-0 d-md-flex d-md-xs-block mb-3">
+        <div class="col-md-xs-12 col-6 p-0 d-flex mb-md-xs-3">
+            <div class="col-6 p-r-md-xs-2 text-xs-center card-summary">
+                <div class="card bg-gradient-success card-img-holder h-100 text-white">
+                    <div class="card-body p-max-1200-4 p-xl-4">
+                        <h4 class="font-weight-normal mb-3">
+                            <span class="d-xs-none">Voucher Remaining</span> <i class="mdi mdi-ticket-account mdi-24px float-md-right float-sm-right float-lg-right float-xl-right float-xs-none"></i>
+                        </h4>
+                        <h1 class="mb-md-4" data-bind="text:VoucherRemaining">-</h1>
+                        <strong class="card-text d-xs-block d-none text-small">Remaining</strong>
+                        <h6 class="card-text d-xs-none text-small">You got new voucher <strong>an hour ago</strong></h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 p-l-md-xs-2 text-xs-center card-summary">
+                <div class="card bg-gradient-info card-img-holder h-100 text-white">
+                    <div class="card-body p-max-1200-4 p-xl-4">
+                        <h4 class="font-weight-normal mb-3">
+                            <span class="d-xs-none">Voucher Used</span> <i class="mdi mdi-ticket-percent mdi-24px float-md-right float-sm-right float-lg-right float-xl-right float-xs-none"></i>
+                        </h4>
+                        <h1 class="mb-md-4" data-bind="text:VoucherUsed">-</h1>
+                        <strong class="card-text d-xs-block d-none text-small">Used</strong>
+                        <h6 class="card-text d-xs-none text-small">Last time you used yours <strong>an hour ago</strong></h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-xs-12 col-6 p-0 d-flex">
+            <div class="col-6 p-r-md-xs-2 text-xs-center card-summary">
+                <div class="card bg-gradient-warning card-img-holder h-100 text-white">
+                    <div class="card-body p-max-1200-4 p-xl-4">
+                        <h4 class="font-weight-normal mb-3">
+                            <span class="d-xs-none">Almost Expired</span> <i class="mdi mdi-alert mdi-24px float-md-right float-sm-right float-lg-right float-xl-right float-xs-none"></i>
+                        </h4>
+                        <h1 class="mb-md-4" data-bind="text:VoucherAlmostExpired">-</h1>
+                        <strong class="card-text d-xs-block d-none text-small">Almost Expired</strong>
+                        <h6 class="card-text d-xs-none text-small">Voucher that will be expired in 7 days</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 p-l-md-xs-2 text-xs-center card-summary">
+                <div class="card bg-gradient-danger card-img-holder h-100 text-white">
+                    <div class="card-body p-max-1200-4 p-xl-4">
+                        <h4 class="font-weight-normal mb-3">
+                            <span class="d-xs-none">Voucher Expired</span> <i class="mdi mdi-timer-off mdi-24px float-md-right float-sm-right float-lg-right float-xl-right float-xs-none"></i>
+                        </h4>
+                        <h1 class="mb-md-4" data-bind="text:VoucherExpired">-</h1>
+                        <strong class="card-text d-xs-block d-none text-small">Expired</strong>
+                        <h6 class="card-text d-xs-none text-small">Your voucher will be expired after 30 days</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12 grid-margin">
+        <div class="card">
+            <div class="card-header clearfix">
+                <strong class="float-left p-2">Voucher History</strong>
+                <div class="float-right ml-2">
+                    <button class="btn btn-sm btn-info float-md-right w-md-xs-100" onclick="model.app.action.openRedeem()">Redeem Voucher</button>
+                </div>
+                <div class="float-right">
+                    <button class="btn btn-sm btn-success float-md-right w-md-xs-100" onclick="model.action.requestVoucher()">Request Voucher</button>
+                </div>
+            </div>
+            <div class="card-body p-max-1200-4">
+                <div class="table-responsive" id="gridHistory"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("ModalRedeem.cshtml")
+
+<script type="text/javascript">
+$(document).ready(function () {
+    model.init.canteen();
+})
+</script>

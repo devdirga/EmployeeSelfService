@@ -1,0 +1,44 @@
+﻿@using KANO.Core.Model
+@using KANO.Core.Service
+@using KANO.ESS
+@using Newtonsoft.Json;
+@{
+    Layout = "_Layout";
+}
+
+<script>
+    const URL_GET_USER_MANAGEMENT = "@Url.Action("GetData", "Page")";
+    const URL_SAVE_USER_MANAGEMENT = "@Url.Action("Save", "Group")";
+    const URL_GET_PAGE = "@Url.Action("FindTiered", "Page")";
+    const URL_GET_GROUP_MANAGEMENT = "@Url.Action("GetData", "Group")"
+    model.proto = {
+        EmptyData: @Json.Serialize(new Group()),
+        Data: ko.observable([@Json.Serialize(new Group())]),
+        Detail: ko.mapping.fromJS(@Json.Serialize(new Group())),
+        PageDetail: ko.observable(@Json.Serialize(new Page())),
+    }
+</script>
+<link rel="stylesheet" href="~/assets/areas/ess/css/groupmanagement.css?@(Startup.Tick??DateTime.Now.Ticks)">
+<script src="~/assets/areas/ess/js/groupmanagement.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+
+<div class="col-md-12 p-0">
+    <div class="card box">
+        <div class="card-header clearfix">
+            <a href="#" onclick="model.form.Add()" class="btn btn-info btn-sm btn-primary float-right">Create</a>
+        </div>
+        <div class="card-body">
+            <div id="GridGroups"></div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("ModalGroup.cshtml")
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.form.Get();
+        model.form.GetPage();
+    });
+</script>

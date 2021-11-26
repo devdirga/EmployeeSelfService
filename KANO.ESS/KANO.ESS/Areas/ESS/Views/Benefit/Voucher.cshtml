@@ -1,0 +1,96 @@
+﻿@using KANO.Core.Model
+@{
+    Layout = "_Layout";
+}
+
+<script>
+    const URL_GET_UNUSED_VOUCHER = "@Url.Action("GetUnusedVouchers","Benefit")";
+    const URL_GET_USED_VOUCHER = "@Url.Action("GetUsedVouchers", "Benefit")";
+    const URL_GET_NOT_APPLICABLE_VOUCHER = "@Url.Action("GetNotApplicableVoucher", "Benefit")";
+
+    @*Defining Model Prototype*@
+    model.proto = {
+        Voucher: @Html.Raw(Json.Serialize(new Voucher())),
+    };
+</script>
+<link href="~/assets/areas/ess/css/benefit.css" rel="stylesheet" />
+<script src="~/assets/areas/ess/js/benefit.js"></script>
+
+@*<div class="row voucher-information" data-bind="with: model">
+    <main class="col-lg-12" role="main">
+        <div class="row">
+            <div class="col-lg-12 mb-4">
+                <div class="card box transparent">
+                    <div class="card-body">
+                        <nav>
+                            <ul class="nav nav-tabs d-nav-tabs-none" id="employeeTab" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="nav-unused-tab" data-toggle="tab" href="#nav-unused" role="tab" aria-controls="nav-unused" aria-selected="false">Unused</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="nav-used-tab" data-toggle="tab" href="#nav-used" role="tab" aria-controls="nav-used" aria-selected="false">Used</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="nav-not-applicable-tab" data-toggle="tab" href="#nav-not-applicable" role="tab" aria-controls="nav-not-applicable" aria-selected="false">Not Applicable</a>
+                                </li>
+                            </ul>
+                            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                                    <a class="nav-item nav-link active" id="nav-unused-tab" data-toggle="tab" href="#nav-unused" role="tab" aria-controls="nav-unused" aria-selected="true">unused</a>
+                                    <a class="nav-item nav-link" id="nav-used-tab" data-toggle="tab" href="#nav-used" role="tab" aria-controls="nav-used" aria-selected="false">used</a>
+                                    <a class="nav-item nav-link" id="nav-not-applicable-tab" data-toggle="tab" href="#nav-not-applicable" role="tab" aria-controls="nav-not-applicable" aria-selected="false">not applicable</a>
+                                </div>
+                        </nav>
+                        <div class="tab-content" id="nav-tabContent">
+                            <div class="tab-pane fade show active" id="nav-unused" role="tabpanel" aria-labelledby="nav-unused-tab">
+                                @await Html.PartialAsync("VoucherTabUnused.cshtml")
+                            </div>
+                            <div class="tab-pane fade" id="nav-used" role="tabpanel" aria-labelledby="nav-used-tab">
+                                @await Html.PartialAsync("VoucherTabUsed.cshtml")
+                            </div>
+                            <div class="tab-pane fade" id="nav-not-applicable" role="tabpanel" aria-labelledby="nav-not-applicable-tab">
+                                @await Html.PartialAsync("VoucherTabNotApplicable.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>*@
+
+
+<div class="row" data-bind="with: model">
+    <main class="col-lg-12" role="main">
+        <ul class="nav nav-tabs d-nav-tabs-none" id="employeeTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="nav-unused-tab" data-toggle="tab" href="#nav-unused" role="tab" aria-controls="nav-unused" aria-selected="false">Unused</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="nav-used-tab" data-toggle="tab" href="#nav-used" role="tab" aria-controls="nav-used" aria-selected="false">Used</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="nav-not-applicable-tab" data-toggle="tab" href="#nav-not-applicable" role="tab" aria-controls="nav-not-applicable" aria-selected="false">Not Applicable</a>
+            </li>
+        </ul>
+        <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade show active" id="nav-unused" role="tabpanel" aria-labelledby="nav-unused-tab">
+                @await Html.PartialAsync("VoucherTabUnused.cshtml")
+            </div>
+            <div class="tab-pane fade" id="nav-used" role="tabpanel" aria-labelledby="nav-used-tab">
+                @await Html.PartialAsync("VoucherTabUsed.cshtml")
+            </div>
+            <div class="tab-pane fade" id="nav-not-applicable" role="tabpanel" aria-labelledby="nav-not-applicable-tab">
+                @await Html.PartialAsync("VoucherTabNotApplicable.cshtml")
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.render.UnusedList();
+        model.render.UsedList();
+        model.render.NAList();
+    })
+</script>

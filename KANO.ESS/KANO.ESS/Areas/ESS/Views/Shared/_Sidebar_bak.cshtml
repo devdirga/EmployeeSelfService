@@ -1,0 +1,149 @@
+@using System.Security.Claims
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject KANO.Core.Service.IUserSession UserSession
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+<nav class="sidebar sidebar-offcanvas" id="sidebar">
+    <ul class="nav">
+        <li class="nav-item nav-profile">
+            <a href="#" class="nav-link">
+                <div class="nav-profile-image">
+                    <div class="img" data-bind="attr:{style:'background:'+model.app.profilePicture()}"></div>
+                    <span class="login-status online"></span>
+                </div>
+                <div class="nav-profile-text d-flex flex-column">
+                    <span class="font-weight-bold mb-2 text-truncate username w-125-px">@UserSession.DisplayName()</span>
+                    <span class="text-secondary text-small">@UserSession.Id()</span>
+                </div>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="@Url.Action("Index", "Dashboard")">
+                <span class="menu-title">Dashboard</span>
+                <i class="mdi mdi-home menu-icon"></i>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="collapse" href="#employment" aria-expanded="false" aria-controls="employment">
+                <span class="menu-title">Employment</span>
+                <i class="menu-arrow"></i>
+                <i class="mdi mdi-account-box menu-icon"></i>
+            </a>
+            <div class="collapse" id="employment">
+                <ul class="nav flex-column sub-menu">
+                    <li class="nav-item"> <a class="nav-link" href="@Url.Action("Profile","Employee")">Profile</a></li>
+                    <li class="nav-item"> <a class="nav-link" href="@Url.Action("DocumentRequest","Employee")">Document Request</a></li>
+                    <li class="nav-item"> <a class="nav-link" href="@Url.Action("Applications","Employee")">Applications</a></li>
+                </ul>
+            </div>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="collapse" href="#payroll" aria-expanded="false" aria-controls="payroll">
+                <span class="menu-title">Payroll</span>
+                <i class="menu-arrow"></i>
+                <i class="mdi mdi-coins menu-icon"></i>
+            </a>
+            <div class="collapse" id="payroll">
+                <ul class="nav flex-column sub-menu">
+                    <li class="nav-item"> <a class="nav-link" href="@Url.Action("Payslip","Payroll")">Payslip</a></li>
+                    <li class="nav-item"> <a class="nav-link" href="@Url.Action("LoanRequest","Payroll")">Loan Request</a></li>
+                </ul>
+            </div>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="collapse" href="#timeManagement" aria-expanded="false" aria-controls="timeManagement">
+                <span class="menu-title">Time Management</span>
+                <i class="menu-arrow"></i>
+                <i class="mdi mdi-calendar-clock menu-icon"></i>
+            </a>
+            <div class="collapse" id="timeManagement">
+                <ul class="nav flex-column sub-menu">
+                    <li class="nav-item"> <a class="nav-link" href="@Url.Action("MyTimeAttendance","TimeManagement")">My Attendance</a></li>
+                    <li class="nav-item"> <a class="nav-link" href="@Url.Action("SubordinateAttendance","TimeManagement")" data-bind="visible:model.app.hasSubordinate()">Subordinate Attendance</a></li>
+                </ul>
+            </div>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="@Url.Action("Index", "Leave")">
+                <span class="menu-title">Leave</span>
+                <i class="mdi mdi-bag-personal menu-icon"></i>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="@Url.Action("Index", "Travel")">
+                <span class="menu-title">Travel</span>
+                <i class="mdi mdi-wallet-travel menu-icon"></i>
+            </a>
+        </li>
+        <li class="nav-item">
+            @*<a class="nav-link" href="@Url.Action("Reimburse", "Benefit")">
+                <span class="menu-title">Medical Benefit</span>
+                <i class="mdi mdi-medical-bag menu-icon"></i>
+            </a>*@
+            <a class="nav-link" data-toggle="collapse" href="#benefits" aria-expanded="false" aria-controls="benefit">
+                <span class="menu-title">Benefit</span>
+                <i class="menu-arrow"></i>
+                <i class="mdi mdi-code-array menu-icon"></i>
+            </a>
+            <div class="collapse" id="benefits">
+                <ul class="nav flex-column sub-menu">
+                    <li class="nav-item"> <a class="nav-link" href="@Url.Action("Reimburse", "Benefit")">Medical</a></li>
+                    <li class="nav-item"> <a class="nav-link" href="@Url.Action("Index", "Canteen")">Canteen</a></li>
+                </ul>
+            </div>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="@Url.Action("Index", "Training")">
+                <span class="menu-title">Training</span>
+                <i class="mdi mdi-run menu-icon"></i>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="collapse" href="#complaints" aria-expanded="false" aria-controls="complaints">
+                <span class="menu-title">Complaint & Request</span>
+                <i class="menu-arrow"></i>
+                <i class="mdi mdi-zip-box menu-icon"></i>
+            </a>
+            <div class="collapse" id="complaints">
+                <ul class="nav flex-column sub-menu">
+                    <li class="nav-item"> <a class="nav-link" href="@Url.Action("Index", "Complaint")">Tickets</a></li>
+                    <li class="nav-item"> <a class="nav-link" href="@Url.Action("Resolution", "Complaint")">Resolution</a></li>
+                </ul>
+            </div>            
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="@Url.Action("Index", "Retirement")">
+                <span class="menu-title">Retirement</span>
+                <i class="mdi mdi-calendar-clock menu-icon"></i>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="collapse" href="#recruitment" aria-expanded="false" aria-controls="recruitment">
+                <span class="menu-title">Recruitment</span>
+                <i class="menu-arrow"></i>
+                <i class="mdi mdi-library-books menu-icon"></i>
+            </a>
+            <div class="collapse" id="recruitment">
+                <ul class="nav flex-column sub-menu">
+                    <li class="nav-item"> <a class="nav-link" href="@Url.Action("Index", "Recruitment")">Request</a></li>
+                    <li class="nav-item"> <a class="nav-link" href="@Url.Action("Application", "Recruitment")">Applications</a></li>
+                </ul>
+            </div>            
+        </li>    
+
+        @*<li class="nav-item">
+            <a class="nav-link" data-toggle="collapse" href="#administtration" aria-expanded="false" aria-controls="administtration">
+                <span class="menu-title"> Administration</span>
+                <i class="menu-arrow"></i>
+                <i class="mdi mdi-settings menu-icon"></i>
+            </a>
+            <div class="collapse" id="administtration">
+                <ul class="nav flex-column sub-menu">
+                    <li class="nav-item"> <a class="nav-link" href="@Url.Action("Manage", "Canteen")">Canteen</a></li>
+                </ul>
+            </div>
+        </li>*@
+
+    </ul>
+</nav>

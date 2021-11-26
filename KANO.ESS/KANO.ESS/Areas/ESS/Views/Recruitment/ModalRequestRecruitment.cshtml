@@ -1,0 +1,104 @@
+﻿<div id="modalRequestRecruitment" class="modal" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Request Recruitment</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="with: data.recruitment">
+                <form>
+                    <div class="form-group">
+                        <label for="recruitmentType" class="required">Recruitment Type</label>                        
+                        <select id="recruitmentType" class="form-control w-100" data-bind="kendoDropDownList: {
+                                            value:RecruitmentType,
+                                            dataTextField: 'text',
+                                            dataValueField: 'value',
+                                            data: model.list.recruitmentTypes,                                            
+                                            optionLabel: 'Select Recruitment Type', 
+                                            change:model.on.recruitmentTypeChange                                           
+                                            }">
+                        </select>
+                    </div>
+                    <!-- ko if:!RecruitmentType()-->
+                    <div class="form-group">
+                        <label for="position" class="required">Job/Position</label>                        
+                        <select id="position" class="form-control w-100" data-bind="kendoDropDownList: {                                        
+                                        optionLabel: 'Select Job/Position',
+                                        enable:false,
+                                        }">
+                        </select>
+                    </div>
+                    <!-- /ko -->
+                    <!-- ko if:!!RecruitmentType() -->
+                    
+                    <!-- ko if:RecruitmentType()==1 -->
+                    <div class="form-group">
+                        <label for="job" class="required">Job</label>                        
+                        <select id="job" class="form-control w-100" data-bind="kendoDropDownList: {
+                                        value:JobID,
+                                        data:model.list.jobs,
+                                        dataTextField: 'Description',
+                                        dataValueField: 'JobID',
+                                        data: model.list.jobs,
+                                        filter: 'contains',
+                                        optionLabel: 'Select Job',
+                                        change:model.on.jobOrPositionChange
+                                        }">
+                        </select>
+                    </div> 
+                    <!-- /ko -->
+
+                    <!-- ko if:RecruitmentType()==2 -->
+                    <div class="form-group">
+                        <label for="position" class="required">Position</label>                        
+                        <select id="position" class="form-control w-100" data-bind="kendoDropDownList: {
+                                        value:PositionID,
+                                        dataTextField: 'Description',
+                                        dataValueField: 'PositionID',
+                                        data: model.list.positions,
+                                        filter: 'contains',
+                                        optionLabel: 'Select Position',
+                                        change:model.on.jobOrPositionChange
+                                        }">
+                        </select>
+                    </div>
+                    <!-- /ko -->
+
+                    <!-- /ko -->
+                    <div class="form-group">
+                        <label for="startingdate" class="required">Estimation Starting Date</label>                        
+                        <input type="text" id="startingdate" class="form-control" data-bind="kendoDatePicker: { value: EstimationStartedDate, min: model.data.today(), format: 'dd MMM yyyy'}">
+                    </div>                    
+
+                    <div class="form-group">
+                        <label for="openings" class="required">Number of Openings</label>                        
+                        <input type="number" class="form-control" id="openings" data-bind="value: NumberOfOpenings, attr:{max: model.data.maximumOpenings,min:1}, disable:model.data.maximumOpenings()==0">
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Description</label>                        
+                            <textarea class="form-control" id="notes" rows="5" data-bind="value:Description, valueUpdate:'keyup'"></textarea>                        
+                    </div>
+                    <div class="form-group">
+                        <label>Document</label>                        
+                            <input type="file" name="Filepath" id="Filepath" data-bind="kendoUpload: {
+                                   multiple: false,
+                                   template: kendo.template($('#fileTemplate').html()),
+                                   select: model.on.documentSelect,
+                                   }" />
+                            <!-- ko if:!!HTMLFile() -->
+                            <div data-bind="html:HTMLFile"></div>
+                            <!-- /ko -->
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="task-details">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-info" data-bind="click:model.action.request">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

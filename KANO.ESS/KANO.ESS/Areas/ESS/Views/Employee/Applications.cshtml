@@ -1,0 +1,38 @@
+﻿@using KANO.Core.Model
+@using KANO.ESS
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Employee";
+}
+
+<script>
+    @*Defining Model Prototype*@
+    model.proto = {
+        Employee: @Html.Raw(Json.Serialize(new Employee())),
+        Applications: @Html.Raw(Json.Serialize(new Application())),
+    };
+</script>
+<link href="~/assets/areas/ess/css/employee.css?@(Startup.Tick??DateTime.Now.Ticks)" rel="stylesheet" />
+<script src="~/assets/areas/ess/js/employee.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+<div class="row">
+    <main class="col-lg-12" role="main">
+        <div class="col-lg-12 mb-4 p-0">
+                <div class="card box">
+                    <div class="card-header clearfix">
+                        <strong class="float-left p-2">Applications</strong>
+                    </div>
+                    <div class="card-body">
+                        <div id="gridApplication"></div>
+                    </div>
+                </div>
+            </div>
+    </main>
+</div>
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.render.gridApplication();
+    })
+</script>

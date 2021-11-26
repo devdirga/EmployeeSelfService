@@ -1,0 +1,81 @@
+﻿@using KANO.Core.Lib.Helper;
+@using KANO.ESS
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>ESS | @ViewBag.Title</title>
+
+    <script src="~/assets/vendors/platform.js-master/platform.js"></script>
+    <script>
+        var Browsername = platform.name;
+        var BrowserVersion = parseFloat(platform.version);
+        //console.log(Browsername, BrowserVersion)
+        if (Browsername == 'Opera' && BrowserVersion < 60) {
+            location.href = "@Url.Action("NotSupported", "Auth")";
+        } else if (Browsername == 'Firefox' && BrowserVersion < 70){
+            location.href = "@Url.Action("NotSupported", "Auth")";
+        } else if (Browsername == 'IE'){
+            location.href = "@Url.Action("NotSupported", "Auth")";
+        }
+    </script>
+
+    <!-- plugins:css -->
+    <link rel="stylesheet" href="~/assets/vendors/mdi/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="~/assets/vendors/purple-admin/css/vendor.bundle.base.css">
+    <!-- endinject -->
+    <!-- Plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- Layout styles -->
+    <link rel="stylesheet" href="~/assets/vendors/purple-admin/css/style.css">
+    <link rel="stylesheet" href="~/assets/app.css">
+    <link rel="stylesheet" href="~/assets/areas/auth/css/auth.css">
+    <link rel="stylesheet" href="~/assets/vendors/bootstrap/dist/css/bootstrap-xs.css">
+    <!-- End layout styles -->
+    <!-- plugins:js -->
+    <script src="~/assets/vendors/purple-admin/js/vendor.bundle.base.js"></script>
+    <script src="~/assets/vendors/knockoutjs/knockout-3.4.2.js"></script>
+    <script src="~/assets/vendors/knockoutjs/knockout.mapping-2.4.1.js"></script>
+    <script src="~/assets/vendors/sweetalert/sweetalert2.all.min.js"></script>
+    <script src="~/assets/areas/ectools.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+    <script src="~/assets/vendors/jquery/dist/jquery.js"></script>
+    <script src="~/assets/vendors/kendoui/js/kendo.all.min.js"></script>
+    <!-- endinject -->
+
+    <link rel="shortcut icon" href="~/assets/img/favicon.png">
+
+    <script>
+        var model = {
+            breadcrumbs: ko.observableArray( @Html.Raw(Json.Serialize(ViewBag.Breadcrumbs))),
+            proto: {},
+            redirectTo:"@((!string.IsNullOrWhiteSpace(Context.Request.Query["m"]))?Hasher.Decrypt(Context.Request.Query["m"]) : "/ESS/Dashboard")",
+        };
+    </script>
+</head>
+<body class="bg-images">    
+    @await Html.PartialAsync("_Loading.cshtml")
+    <div class="container-scroller">
+        <div class="container-fluid page-body-wrapper full-page-wrapper">
+            <div class="content-wrapper d-flex align-items-center auth p-4 p-xs-1">
+                @RenderBody()
+            </div>
+            <!-- content-wrapper ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- inject:js -->
+    <script src="~/assets/vendors/purple-admin/js/off-canvas.js"></script>
+    <script src="~/assets/vendors/purple-admin/js/hoverable-collapse.js"></script>
+    <script src="~/assets/vendors/purple-admin/js/misc.js"></script>
+    <script src="~/assets/areas/auth/js/auth.js?@DateTime.Now"></script>
+    <!-- endinject -->
+
+    <script>
+        ko.applyBindings(model);
+    </script>
+</body>
+</html>

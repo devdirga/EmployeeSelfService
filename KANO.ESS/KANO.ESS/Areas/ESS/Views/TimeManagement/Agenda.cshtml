@@ -1,0 +1,108 @@
+﻿@using KANO.Core.Model
+@using KANO.ESS
+@{
+    Layout = "_Layout";
+}
+
+<script>
+    @*Defining Model Prototype*@
+    model.proto = {
+        TimeAttendance: @Html.Raw(Json.Serialize(new TimeAttendance())),
+        IdentificationForm: @Html.Raw(Json.Serialize(new AbsenceRecommendation()))
+    };
+</script>
+<script src="~/assets/areas/ess/js/timemanagement.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+<link rel="stylesheet" href="~/assets/areas/ess/css/timemanagement.css?@(Startup.Tick??DateTime.Now.Ticks)">
+
+<div class="row">
+    <main class="col-lg-12" role="main">
+        <div class="col-lg-12 mb-4 p-0">
+            <div class="card box">
+                <div class="card-header clearfix">
+                    <strong class="float-left p-2">Agenda</strong>
+                    <div class="float-right filter-attendance">
+                        <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.StartDate, max : model.data.todaymin1, format: 'dd MMM yyyy' } " />
+                        <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.EndDate, max : model.data.todaymin1, format: 'dd MMM yyyy' } " />
+
+                        <a href="#" class="w-md-xs-100 btn btn-primary" onclick="model.action.refreshAgenda(); return false;">Filter</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="gridAgenda"></div>
+                </div>
+            </div>
+            @*</div>*@
+    </main>
+</div>
+
+<div id="ModalDetailAgenda" class="modal" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" data-bind="with:model">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-earth"></i>
+                    Agenda
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="with:data.DetailAgenda">
+                <div>
+                    <div class="form-group">
+                        <label for="input">Name</label>
+                        <div class="form-control-plaintext" data-bind="html:Name"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="input">Description</label>
+                        <div class="form-control-plaintext" data-bind="html:Description"></div>
+                        <!-- ko if: !!Notes -->
+                        <small class="form-text text-muted" data-bind="html:Notes"></small>
+                        <!-- /ko -->
+                    </div>
+                    <!-- ko if: !!Location -->
+                    <div class="form-group">
+                        <label for="input">Location</label>
+                        <div class="form-control-plaintext">
+                            <i class="mdi mdi-map-marker-circle"></i>
+                            <span data-bind="html:Location"></span>
+                        </div>
+                    </div>
+                    <!-- /ko -->
+                    <!-- ko if: !!_scheduleFull -->
+                    <div class="form-group">
+                        <label for="input">Schedule</label>
+                        <div class="form-control-plaintext">
+                            <i class="mdi mdi-calendar-clock"></i>
+                            <span data-bind="html:_scheduleFull"></span>
+                        </div>
+                    </div>
+                    <!-- /ko -->
+                    <div data-bind="if: !!Attachments && Attachments.length >0">
+                        <br />
+                        <div class="form-group">
+                            <label>Attachments</label>
+                            <br />
+                            <!-- ko foreach:Attachments -->
+                            <form target="_blank" name="download" action="/ESS/Agenda/Download" method="post">
+                                <input type="hidden" data-bind="value:encodeURIComponent(Filehash)" name="token" />
+                                <button type="submit" class="btn btn-sm mt-1" data-bind="attr:{'aria-disabled':!Accessible}, css:{'btn-info':Accessible, 'btn-outline-secondary':!Accessible}, disable:!Accessible">
+                                    <i class="mdi mdi-file-document"></i>
+                                    <span data-bind="html: Filename"></span>
+                                </button>
+                            </form>
+                            <!-- /ko -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.init.agenda();
+    })
+</script>

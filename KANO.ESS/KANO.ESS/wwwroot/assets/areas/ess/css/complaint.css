@@ -1,0 +1,10 @@
+﻿#products-list {
+    display: none !important;
+}
+.textarea-detail {
+    width:100%;
+    border:none;
+}
+.k-multiselect-wrap li.k-button {
+    padding-right: 25px;
+}

@@ -1,0 +1,35 @@
+﻿<div id="modalTemplate" class="modal fade" tabindex="-1" role="dialog" data-bind="with: model ">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="mdi mdi-email"></i>Configuration Email Template</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="with: data.configTemplate">
+                <form class="col-12">
+                    <div class="form-group mb-4">
+                        <label for="Subject">Subject</label>
+                        <input type="text" class="form-control form-control-sm" id="subject" data-bind="value: Subject" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Subject">Body</label>
+                        <textarea rows="12" cols="20" data-bind="kendoEditor: {
+                            value: Body,
+                            resizable: {
+                                content: true,
+                                toolbar: true
+                            }
+                        }"> </textarea>
+                    </div>
+                    <small class="form-text text-muted help-block">Parameters can be used: #NAMA#, #NIPP#, #NIAK#, #NILAIPINJAMAN#, #TYPE#, #JANGKAWAKTU#, #NILAIANGSURAN#</small>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-light" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm btn-info" onclick="model.action.saveConfigTemplate()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

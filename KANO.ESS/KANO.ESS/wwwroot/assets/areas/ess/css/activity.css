@@ -1,0 +1,170 @@
+﻿
+.color-date {
+    color: #72777d;
+}
+
+.icon-size-notif {
+    font-size: 30px;
+}
+
+.task-date ,
+.notification-date {
+    font-size: larger;
+    padding-top: 0.2em;
+}
+
+.list-task.undone ,
+.list-notification.unread {
+    font-weight:bolder !important;
+}
+
+.mark-as-done-single {
+    font-size:large;
+}
+
+.mark-as-read-single:hover::before {
+    content: "\F765" !important;
+}
+
+.task-day,
+.notification-day {
+    font-size: x-large;
+}
+
+#dateCalendarLeave.k-calendar .k-calendar-view .k-content.k-month{
+    pointer-events: none !important;
+}
+
+#dateCalendarLeave.k-calendar .k-content .k-state-disabled a {
+    color: var(--danger) !important;
+}
+
+#resumeModal .form-group {
+    margin-bottom:0!important;
+}
+
+#resumeModal .form-group label {
+    margin-bottom: 0 !important;
+    padding-bottom:0.5rem;
+}
+
+#resumeModal .input-group-text {
+    padding: 0;
+    background: none;
+    color: white;
+    border: none;
+}
+
+#modalSPPD .table-bordered th, .table-bordered td {
+    padding: 10px;
+}
+
+#modalSPPD .table-bordered tbody tr:not(:last-child) td, .table-bordered tbody tr:not(:last-child) th {
+    border-bottom-color: transparent !important;
+}
+
+#modalSPPD .list-attachment .list-group-item-action:not(.disabled) i.mdi {
+    color: var(--info) !important;
+}
+
+#modalSPPD .document .lang.en {
+    display: block;
+}
+
+#modalSPPD .document .lang.id {
+    display: none;
+}
+
+#modalSPPD .task-details {
+    display:none;
+}
+
+#modalSPPD thead th {
+    background:#ccc;
+}
+
+.input-group .form-control-plaintext {
+    padding-left: 1em;
+}
+
+li.task-filter{
+    position: absolute;
+    right: 0;
+    top: -20px;
+}
+
+li.task-filter .k-widget{
+	background: transparent;
+}
+
+li.task-filter .k-widget .k-textbox-container{	
+	width: 9em;
+}
+li.task-filter .k-widget .k-textbox-container .k-label{
+	color:#999;
+}
+
+.request-tracking .k-textbox-container{
+    width: 100% !important;
+}
+
+@media (max-width: 576px) {
+    div#filterTask {
+        display: flex;
+        margin-bottom: 0.5rem;
+    }
+
+    li.task-filter {
+        position: unset;
+        top: auto;
+        right: auto;
+        width: -webkit-fill-available;
+    }
+    /**/
+    .k-calendar-header {
+        padding: 0 !important;
+    }
+
+    .k-animation-container {
+        height: 70vh !important;
+    }
+
+    div#filterTask_dateview {
+        padding: 0 !important;
+        height: 100% !important;
+    }
+
+    div.k-footer {
+        display: none !important;
+    }
+
+    .k-calendar.k-calendar-range table.k-content {
+        padding: 0 !important;
+    }
+
+    .k-calendar .k-month th {
+        height: fit-content !important;
+        padding: 0 !important;
+    }
+
+    .k-calendar .k-calendar-monthview td, .k-calendar .k-month td {
+        height: 25px !important;
+    }
+
+    .k-calendar .k-calendar-monthview .k-link, .k-calendar .k-month .k-link {
+        height: 25px !important;
+        padding: 0 !important;
+    }
+
+    .k-calendar-monthview .k-content tbody tr {
+        height: fit-content !important;
+    }
+
+    .k-scheduler-header th:first-letter {
+        font-size: 13px;
+    }
+
+    .k-scheduler-header th {
+        font-size: 0px;
+    }
+}

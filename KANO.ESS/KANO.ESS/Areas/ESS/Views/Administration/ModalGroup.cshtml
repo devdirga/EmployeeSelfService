@@ -1,0 +1,133 @@
+<div class="modal fade" id="modalAddGroup" role="dialog" data-backdrop="static" aria-labelledby="exampleModalLabel1" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-group"></i>
+                    Group
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body " data-bind="with: model.form.Detail">
+                @* <ul class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#Menu-Group">Group</a></li>
+                    <li><a data-toggle="tab" href="#Menu-Access">Access</a></li>
+                </ul> *@
+                @*<nav>
+                    <ul class="nav nav-tabs" id="taskTab" role="tablist">
+                        <li class="nav-item active">
+                            <a class="nav-link border-none active" data-toggle="tab" href="#Menu-Group" role="tab" aria-controls="active" aria-selected="true">Group</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link border-none" data-toggle="tab" href="#Menu-Access" role="tab" aria-controls="all" aria-selected="false">Access</a>
+                        </li>
+                    </ul>
+                </nav>*@
+                <div class="tab-content padT" >
+                    @*<div id="Menu-Group" class="tab-pane fade in active show">
+                        <form id="form-Group">
+                            <div class="form-group row">
+                                <label for="group-Title" class="control-label text-right col-2">
+                                    Title :
+                                </label>
+                                <div class="col-4">
+                                    <input data-bind="value: Name" class="form-control" type="text" id="Name" name="group-Name" required validationMessage="Input Title" />
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="group-Enable" class="control-label text-right col-2">
+                                    Enable :
+                                </label>
+                                <div class="col-4">
+                                    <div class="form-check-inline">
+                                        <input class="" type="checkbox" id="Enable" data-bind="checked: Enable" />
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>*@
+                    <div id="Menu-Access" class="" >
+                        <form id="form-Group">
+                            <div class="form-group">
+                                <label for="group-Title" class="required">
+                                    Title
+                                </label>
+                                <input data-bind="value: Name" class="form-control w-100" type="text" id="Name" name="group-Name" required validationMessage="Input Title" />
+                            </div>
+                            <div class="form-check form-check-flat form-check-info">
+                                <label class="form-check-label">
+                                    <input type="checkbox" class="form-check-input" id="Enable" data-bind="checked: Enable"> Enable <i class="input-helper"></i>
+                                </label>
+                            </div>                            
+                            @* <div class="form-group row" data-bind="foreach:{data:model.form.PageDetail(), as:'pg'}">
+                                <div class="col-4">
+                                    <button type="button" class="btn btn-primary w-100">
+                                        <span data-bind="html: pg.BuiltTitle"></span>
+                                        <input class="form-check-inline cb-perm cbView" type="checkbox" data-bind="attr:{id: 'cbView_' + pg.Id, 'data-id': pg.Id}" onclick="model.checkIdv($(this).attr('data-id'))" />
+                                    </button>
+                                </div>
+                            </div>
+                            < *@
+                            @*table*@
+                            <div style="max-height:200px; overflow-x:auto">
+                            <table style="width:100%;border-top: 1px solid;">
+                                <tr>
+                                    <th width="20%">Access</th>
+                                    @* <th width="10%" class="text-center">All</th> *@
+                                    <th width="9%" class="text-center">View</th>
+                                    @* <th width="10%" class="text-center">Create</th>
+                                    <th width="10%" class="text-center">Update</th>
+                                    <th width="10%" class="text-center">Delete</th> *@
+                                    @*<th width="10%" class="text-center">Upload</th>
+                <th width="10%" class="text-center">Download</th>*@
+                                    @* <th width="20%" class="d-none">Special</th> *@
+                                </tr>
+                                <tbody data-bind="foreach:{data:model.form.PageDetail(), as:'pg'}">
+                                    <tr data-bind="attr:{id: 'row_' + pg.Id, 'data-id': pg.Id}">
+                                        <td data-bind="html: pg.BuiltTitle"></td>
+                                        @* <td class="text-center">
+                                            <input class="form-check-inline cbAll" type="checkbox" data-bind="attr:{id: 'cbAll_' + pg.Id, 'data-id': pg.Id}" onclick="model.checkAll($(this).attr('data-id'))" />
+                                        </td> *@
+                                        <td class="text-center">                                            
+                                            <input class="form-check-inline cb-perm cbView" type="checkbox" data-bind="attr:{id: 'cbView_' + pg.Id, 'data-id': pg.Id}" onclick="model.checkIdv($(this).attr('data-id'))" />
+                                        </td>
+                                        @* <td class="text-center">
+                                            <input class="form-check-inline cb-perm cbCreate" type="checkbox" data-bind="attr:{id: 'cbCreate_' + pg.Id, 'data-id': pg.Id}" onclick="model.checkIdv($(this).attr('data-id'))" />
+                                        </td>
+                                        <td class="text-center">
+                                            <input class="form-check-inline cb-perm cbUpdate" type="checkbox" data-bind="attr:{id: 'cbUpdate_' + pg.Id, 'data-id': pg.Id}" onclick="model.checkIdv($(this).attr('data-id'))" />
+                                        </td>
+                                        <td class="text-center">
+                                            <input class="form-check-inline cb-perm cbDelete" type="checkbox" data-bind="attr:{id: 'cbDelete_' + pg.Id, 'data-id': pg.Id}" onclick="model.checkIdv($(this).attr('data-id'))" />
+                                        </td> *@
+                                        @*<td class="text-center">
+                        <input class="form-check-inline cb-perm cbUpload" type="checkbox" data-bind="attr:{id: 'cbUpload_' + pg.Id, 'data-id': pg.Id}" onclick="model.checkIdv($(this).attr('data-id'))" />
+                    </td>
+                    <td class="text-center">
+                        <input class="form-check-inline cb-perm cbDownload" type="checkbox" data-bind="attr:{id: 'cbDownload_' + pg.Id, 'data-id': pg.Id}" onclick="model.checkIdv($(this).attr('data-id'))" />
+                    </td>*@
+                                        @* <td data-bind="foreach:{data: pg.SpecialActions, as: 'sa'}" class="d-none">
+                                            <div>
+                                                <input class="form-check-inline cbSA" type="checkbox" data-bind="attr:{id: 'cbSA_' + sa + pg.Id, 'data-sa': sa}" />
+                                                <label data-bind="attr:{for: 'cbSA_' + sa + pg.Id}, text: sa">
+                                                </label>
+                                            </div>
+                                        </td> *@
+                                    </tr>
+                                </tbody>
+                            </table>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="wbtn btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="model.form.Save()" class="wbtn btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

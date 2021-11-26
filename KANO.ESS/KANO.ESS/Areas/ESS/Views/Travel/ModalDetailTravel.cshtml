@@ -1,0 +1,86 @@
+﻿<div id="ModalDetailTravel" class="modal" role="dialog" data-bind="with:model">
+    <div class="modal-dialog" role="document" data-bind="">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-bag-personal"></i>
+                    Travel Expense Detail
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="LeaveForm">
+                    <section data-bind="with:data.Travel">
+                        <div class="form-group">
+                            <div class="form-row">
+                                <div class="col">
+                                    <label for="Date">Start Time</label><br>
+                                    <div class="form-control-plaintext" data-bind="html: standarizeDateTime(new Date(Schedule.Start()))"></div>
+                                </div>
+                                <div class="col">
+                                    <label for="Date">End Time</label><br>
+                                    <div class="form-control-plaintext" data-bind="html: standarizeDateTime(new Date(Schedule.Finish()))"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="input">TravelID</label>
+                            <div class="form-control-plaintext" data-bind="html:TravelID"></div>
+                        </div>
+                        <div class="form-group">
+                            <div class="form-row">
+                                <div class="col">
+                                    <label for="input">Origin</label>
+                                    <div class="form-control-plaintext" data-bind="html:Origin"></div>
+                                </div>
+                                <div class="col">
+                                    <label for="input">Destination</label>
+                                    <div class="form-control-plaintext" data-bind="html:Destination"></div>
+                                </div>
+                            </div>
+                        </div>
+                        @*<div class="form-group">
+            <label for="input">Travel Type</label>
+            <div class="form-control-plaintext" data-bind="html:TravelTypeDescription"></div>
+        </div>*@
+                        <div class="form-group">
+                            <label for="input">Transportation</label>
+                            <div class="form-control-plaintext" data-bind="html:model.map.transportationByID[Transportation()] || '-'"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="input">Purpose</label>
+                            <div class="form-control-plaintext" data-bind="html:(model.map.purpose[TravelPurpose()])?(model.map.purpose[TravelPurpose()].Description || '-'):'-'"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="type-leave">Note</label>
+                            <div class="form-control-plaintext" data-bind="html:Note() || '-' "></div>
+                        </div>
+                        <div class="form-group" data-bind="">
+                            <!-- ko if:DocumentList().length > 0 -->
+                            <!-- ko foreach : DocumentList -->
+                            <a href="#" class="btn btn-sm btn-block btn-info" target="_blank" data-bind="attr:{ href:`/ESS/Travel/Downloads/${model.data.Travel().AXID()}/${AXID()}/${Filename()}`}, css:{disabled:!Accessible()}"><span class="mdi mdi-download"></span> Download Document Verification <span data-bind="html:Filename()"></span></a>
+                            <!-- /ko -->
+                            <!-- /ko -->
+                        </div>
+                        <div class="form-group" data-bind="">
+                            <!-- ko if:SPPD().length > 0 -->
+                                <!-- ko foreach : SPPD -->
+                                    <!-- ko if:Attachments().length > 0 -->
+                                        <!-- ko foreach : Attachments -->
+                                        <a href="#" class="btn btn-sm btn-block btn-info" target="_blank" data-bind="attr:{ href:`/ESS/Travel/Downloads/${model.data.Travel().AXID()}/${AXID()}/${Filename()}`}, css:{disabled:!Accessible()}"><span class="mdi mdi-download"></span> Download Document Verification <span data-bind="html:Filename()"></span></a>
+                                        <!-- /ko -->
+                                    <!-- /ko -->
+                                <!-- /ko -->
+                            <!-- /ko -->
+                        </div>
+
+                    </section>
+                </form>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>

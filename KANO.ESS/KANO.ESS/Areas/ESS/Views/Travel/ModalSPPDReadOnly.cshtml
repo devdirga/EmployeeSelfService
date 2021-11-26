@@ -1,0 +1,260 @@
+﻿<div id="modalSPPD" class="modal" role="dialog" data-bind="with: model">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-file-document-outline"></i>  
+                    SPPD
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div id="SPPDPdf" class="modal-body document lang-en">                
+                <div class="row">
+                    <div class="col-lg-12">
+                        <table class="table-bordered w-100">
+                            <thead>
+                                <tr>
+                                    <th width="10%" class="text-center text-middle">
+                                        #
+                                    </th>
+                                    <th width="30%" class="text-middle">
+                                        Name
+                                    </th>
+                                    <th width="20%" class="text-center text-middle">                                        
+                                        Position
+                                    </th>
+                                    <th width="20%" class="text-center text-middle">
+                                        Grade
+                                    </th>
+                                    <th width="20%" class="text-center text-middle">NIPP</th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="with : detail.SPPD">
+                                <tr>
+                                    <th class="text-center text-middle">1</th>
+                                    <td data-bind="text:EmployeeName || '-'"></td>
+                                    <td class="text-center" data-bind="text:Position || '-'"></td>
+                                    <td class="text-center" data-bind="text:Grade || '-'"></td>
+                                    <td class="text-center" data-bind="text:model.detail.Travel().EmployeeID || '-'"></td>
+                                </tr>
+                            </tbody>
+                            <tbody data-bind="with : detail.Travel">
+                                <tr>
+                                    <th class="text-center text-middle">2</th>
+                                    <td>
+                                        Origin
+                                    </td>
+                                    <td colspan="4" data-bind="text:Origin || '-'"></td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        Destination
+                                    </td>
+                                    <td colspan="4" data-bind="text:Destination || '-'"></td>
+                                </tr>
+                            </tbody>
+
+                            <tbody>
+                                <!-- ko foreach: model.data.TransportationID -->
+                                <tr>
+                                    <!-- ko if: $index()==0 -->
+                                    <th class="text-center text-middle">3</th>
+                                    <td>
+                                        <span class="lang en">Transportation</span>
+                                        <span class="lang id">Angkutan Yang Dipergunakan</span>
+                                    </td>
+                                    <!-- /ko -->
+                                    <!-- ko ifnot: $index()==0 -->
+                                    <td></td>
+                                    <td></td>
+                                    <!-- /ko -->
+                                    <!-- ko if: $data != "" -->
+                                    <td colspan="4" data-bind="text: (model.map.transportation[$data]?(model.map.transportation[$data] || '-'):'-') "></td>
+                                    <!-- /ko -->
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if: model.data.TransportationID().length == 0 -->
+                                <tr>
+                                    <th class="text-center text-middle">3</th>
+                                    <td>
+                                        <span class="lang en">Transportation</span>
+                                        <span class="lang id">Angkutan Yang Dipergunakan</span>
+                                    </td>
+                                    <td colspan="4">-</td>
+                                </tr>
+                                <!-- /ko -->
+
+                            </tbody>
+                            <tbody data-bind="with : detail.Travel">
+                                <tr>
+                                    <th class="text-center text-middle">4</th>
+                                    <td>
+                                        Schedule Start
+                                    </td>
+                                    <td colspan="4" data-bind="text:kendo.toString(new Date(Schedule.Start), 'dddd, dd MMMM yyyy, H:mm', 'id-ID')"></td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        Schedule Finish
+                                    </td>
+                                    <td colspan="4" data-bind="text:kendo.toString(new Date(Schedule.Finish), 'dddd, dd MMMM yyyy, H:mm', 'id-ID')"></td>
+                                </tr>
+                            </tbody>
+                            <tbody data-bind="with : detail.Travel">
+                                <tr>
+                                    <th class="text-center text-middle">5</th>
+                                    <td>
+                                        Purpose
+                                    </td>
+                                    <td colspan="4" data-bind="text:(!!model.map.purpose[TravelPurpose])?(model.map.purpose[TravelPurpose].Description || '-'):'-'"></td>
+                                    
+                                </tr>
+                            </tbody>
+                            <tbody data-bind="with:detail.SPPD">
+                                <tr>
+                                    <th class="text-center text-middle">6</th>
+                                    <th class="text-middle">
+                                        Cost Detail
+                                    </th>
+                                    <th class="text-middle" colspan="2">
+                                        Amount
+                                    </th>
+                                    <th class="text-middle text-center">
+                                        Note
+                                    </th>
+                                </tr>
+                                <!-- ko if:Ticket > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        Ticket
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(Ticket, 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->                                
+                                <!-- ko if:AirportTransportation > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        Airport Transportation
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(AirportTransportation, 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:LocalTransportation > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        Local Transportation
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(LocalTransportation, 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:Highway > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        Highway
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(Highway, 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:Parking > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        Parking
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(Parking, 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:Fuel > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        Fuel
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(Fuel, 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:Rent > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        Rent Car
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(Rent, 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:PocketMoney > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        Allowance
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(PocketMoney, 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:MealAllowance > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        Meal Allowance
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(MealAllowance, 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:Laundry > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        Laundry
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(Laundry, 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                            </tbody>
+                            <tbody>
+                                <tr>
+                                    <td></td>
+                                    <th class="text-middle">
+                                        Total Cost
+                                    </th>
+                                    <td class="text-right no-border-right" colspan="2">
+                                        <strong data-bind="text:kendo.toString(model.detail.TravelTotal(), 'c2')"></strong>
+                                        <br />
+                                        <small data-bind="text:terbilang(model.detail.TravelTotal())+' Rupiah'"></small>
+                                    </td>
+                                    <td class="text-center"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12" data-bind="with:detail.Travel">
+                        <!-- ko foreach : DocumentList -->
+                        <a href="#" class="btn btn-sm btn-block btn-info" target="_blank" data-bind="attr:{title:Filename, href:`/ESS/Travel/Downloads/${model.detail.Travel().AXID}/${AXID}/${Filename}`}, css:{disabled:false}"><span class="mdi mdi-download"></span> Download <span data-bind="html:Filename"></span></a>
+                        <!-- /ko -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">                
+            </div>
+        </div>
+    </div>
+</div>

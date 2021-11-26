@@ -1,0 +1,69 @@
+﻿@using KANO.Core.Model;
+@using KANO.ESS
+@{
+    Layout = "_Layout";
+}
+<script>
+    @*Defining Model Prototype*@
+    model.proto = {
+        RedeemGroup: @Html.Raw(Json.Serialize(new RedeemGroup())),
+        ClaimCanteen: @Html.Raw(Json.Serialize(new ClaimCanteen())),
+    };
+</script>
+<link href="~/assets/areas/ess/css/canteen.css?@(Startup.Tick??DateTime.Now.Ticks)" rel="stylesheet" />
+<script src="~/assets/vendors/jszip/3.1.5/jszip.min.js"></script>
+<script src="~/assets/areas/ess/js/canteen.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+<div class="row">
+    <div class="col-md-12 grid-margin">
+        <div class="card">
+            <div class="card-header clearfix">                
+                @*<div class="col-12 p-0 align-right mb-2">
+                    <button class="btn btn-success w-md-xs-100 mb-md-xs-2" onclick="model.action.savePaid()" data-bind="enable: model.is.btnSavePaid">Pay claim</button>
+                </div>*@
+                <div class="col-12 p-0 align-right">                    
+                    <button class="btn padding-btn-payment btn-success w-md-xs-100 mb-md-xs-2 float-left" onclick="model.action.savePaid()" data-bind="enable: model.is.btnSavePaid">Pay claim</button>
+                    <div id="filterCanteen" class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDropDownList: {
+                            dataTextField: 'Name',
+                            dataTextValue: 'UserID',
+                            dataSource: model.list.canteen,
+                            optionLabel: 'All Canteen',
+                        }"></div>
+                    <div id="filterStatus" class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDropDownList: {
+                            dataTextField: 'Name',
+                            dataTextValue: 'Value',
+                            dataSource: model.list.statusClaim
+                        }"></div>
+                    <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.StartDate, max : new Date(), format: 'dd MMM yyyy' } " />
+                    <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.EndDate, max : new Date(), format: 'dd MMM yyyy' } " />
+                    <a href="#" class="padding-btn-payment w-md-xs-100 btn btn-primary" onclick="model.action.refreshGridClaim(); return false;">Filter</a>
+                </div>
+            </div>
+            <div class="card-body p-max-1200-4">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active p-md-xs-2" href="#payment" role="tab" data-toggle="tab">Confirm Claim</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link p-md-xs-2" href="#buzz" role="tab" data-toggle="tab">Report Redeem</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane fade in active show" id="payment">
+                        <div class="mt-3" id="gridPaymentCanteen"></div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane fade" id="buzz">
+                        <div class="mt-3" id="gridRedeemCanteen"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        model.init.paymentClaim();
+    });
+</script>

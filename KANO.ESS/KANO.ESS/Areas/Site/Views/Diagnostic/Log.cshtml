@@ -1,0 +1,320 @@
+﻿@{
+    ViewData["Title"] = "Log";
+    Layout = "_Layout";
+}
+
+<div class="col-12">
+    <div id="gridLog"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalLog" tabindex="-1" role="dialog" aria-labelledby="modalLogLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLogLabel" data-bind="text:model.data.logTitle"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- ko if:model.data.isHTML() -->
+                <iframe id="iframeFatal" style="resize:none; width: 100%; border:solid thin; margin-top:10px" height="200" data-bind="attr:{srcdoc:model.data.logData}"></iframe>
+                <!-- /ko -->
+                <!-- ko ifnot:model.data.isHTML() -->
+                <pre id="logData"></pre>
+                <!-- /ko -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    model.data.logTitle = ko.observable("");
+    model.data.logData = ko.observable("");
+    model.data.isHTML = ko.observable(true);
+    model.render = {}
+    model.render.Log = function () {
+        let $el = $("#gridLog");
+        if (!!$el) {
+            let $grid = $el.getKendoGrid();
+
+            if (!!$grid) {
+                $grid.destroy();
+            }
+
+
+        $el.kendoGrid({
+            dataSource: {
+                //data: []
+                transport: {
+                    read: {
+                        url: "/Site/Diagnostic/GetLog",
+                        dataType: "json",
+                        type: "POST",
+                        contentType: "application/json",
+                    },
+                    parameterMap: function(data, type) {
+                        //viewModel.isLoading(true)
+                        return JSON.stringify(data);
+                    }
+                    //read: "/Site/Diagnostic/GetHealthCheck",
+                    //dataType: "json",
+                    //type: "POST",
+                    //contentType: "application/json",
+                },
+                schema: {
+                    data: function (res) {
+                        if (res.statusCode !== 200 && res.status !== '') {
+                            swalFatal("Fatal Error", `Error occured while fetching log(s)\n${res.Message}`)
+                            return []
+                        }
+                        var data = res.data || [];
+                        var x = data.map(rec => {
+                            for (var col in rec) {
+                                rec[titleCase(col)] = _.clone(rec[col], true);
+                                delete rec[col];
+                            }
+                            return rec;
+                        });
+                        return x;
+                    },
+                    total: "total",
+                },
+                pageSize: 10,
+                serverPaging: true,
+                serverFiltering: true,
+                sort: { field: "Timestamp", dir: "desc" },
+                serverSorting: true,
+                error: function (e) {
+                    swalFatal("Fatal Error", `Error occured while fetching log(s)\n${e.xhr.responseText}`)
+                }
+            },
+            pageable: {
+                input: false,
+                numeric: true,
+                previousNext: true,
+                butonCount: 5,
+                pageSizes: [10, 50, 100],
+                refresh: true,
+            },
+            sortable: true,
+            filterable: {
+                operators: {
+                  string: {
+                    eq: "Is Equal to",
+                    contains: "Contains",
+                  }
+                },
+                extra: false
+              },
+            noRecords: {
+                template: "No Log data available."
+            },
+            columns: [                
+                {
+                    title: "Date",
+                    template: function (d) {
+                        return moment(d.Timestamp).format("YYYY-MM-DD HH:mm:ss")
+                    },
+                    sortable:false,
+                },
+                {
+                    headerAttributes: {
+                        "class": "text-center",
+                    },
+                    attributes: {
+                        "class": "text-center",
+                    },
+                    field: "Identity",
+                    title: "Identity",
+                },
+                {     
+                    attributes: {
+                        "class": "break-word",
+                    },
+                    field: "Path",
+                    title: "Path",
+                    width:200
+                },
+                {
+                    headerAttributes: {
+                        "class": "text-center",
+                    },
+                    attributes: {
+                        "class": "text-center",
+                    },
+                    field: "Method",
+                    title: "Method",
+                    width: 100
+                },
+                {
+                    field: "RemoteIpAddress",
+                    title: "IP Address",
+                },
+                {
+                    headerAttributes: {
+                        "class": "text-center",
+                    },
+                    attributes: {
+                        "class": "text-center",
+                    },
+                    title: "User Agent",
+                    template: function (d) {
+                        var p = platform.parse(d.UserAgent);
+                        return (p.name) ? `${p.name || ''} ${p.version || ''}` : d.UserAgent;
+                    }
+                },
+                {
+                    headerAttributes: {
+                        "class": "text-center",
+                    },
+                    attributes: {
+                        "class": "text-center",
+                    },
+                    title: "OS",
+                    template: function (d) {
+                        var p = platform.parse(d.UserAgent);
+                        return (p.name) ? `${p.os.family || ''} ${p.os.version || ''} ${p.os.architecture || ''}`:'-';
+                    }
+                },
+                {
+                    headerAttributes: {
+                        "class": "text-center",
+                    },
+                    attributes: {
+                        "class": "text-center",
+                    },
+                    field: "StatusCode",
+                    title: "Status Code",
+                    template: function (d) {
+                        return `<span class="badge ${(d.StatusCode == 200) ? 'badge-success' : 'badge-danger'}">${d.StatusCode}</span>`;
+                    }
+                },
+                {
+                    headerAttributes: {
+                        "class": "text-center",
+                    },
+                    attributes: {
+                        "class": "text-center",
+                    },
+                    title: "Request",
+                    template: function (d) {
+                        if (d.Request != "") {
+                            return `<button type="button" class="btn btn-xs btn-info" onclick="model.openRequest('${d.uid}')">
+                                        <i class="mdi mdi-file-document-box"></i>
+                                    </button>`;
+                        }
+                        return "";
+                    },
+                    width:100
+                },
+                {
+                    headerAttributes: {
+                        "class": "text-center",
+                    },
+                    attributes: {
+                        "class": "text-center",
+                    },
+                    title: "Response",
+                    template: function (d) {
+                        if (d.Response != "") {
+                            return `<button type="button" class="btn btn-xs btn-info" onclick="model.openResponse('${d.uid}')">
+                                        <i class="mdi mdi-file-document-box"></i>
+                                    </button>`;
+                        }
+                        return "";
+                    },
+                    width:100
+                },
+
+            ]
+        })
+        }
+    }
+    model.openResponse = function (uid) {
+        var dataGrid = $("#gridLog").data("kendoGrid").dataSource.getByUid(uid);
+        if (dataGrid) {
+            model.data.logTitle("Response");            
+            $("#logData").html("");
+            model.data.logData("");
+            if (dataGrid.Response.indexOf("<!DOCTYPE html>") > -1) {                
+                model.data.isHTML(true);
+                model.data.logData(dataGrid.Response);                
+            } else if (data.Response.indexOf("----") > -1) {                
+                model.data.isHTML(false);
+                $("#logData").html(dataGrid.Response);    
+            } else {                
+                model.data.isHTML(false);
+                $("#logData").html(syntaxHighlight(dataGrid.Response));    
+            }
+            $('#modalLog').modal('show');
+            
+            return;
+        }
+        swalError("Log","Unable to find uid : "+uid);
+    };
+    model.openRequest = function (uid) {
+        var dataGrid = $("#gridLog").data("kendoGrid").dataSource.getByUid(uid);
+        if (dataGrid) {
+            model.data.logTitle("Request");            
+            model.data.logData("");
+            $('#modalLog').modal('show');
+            $("#logData").html("");
+            if (dataGrid.Request.indexOf("----") > -1) {                                
+                model.data.isHTML(false);
+                $("#logData").html(dataGrid.Request.substr(0,10000));    
+            } else {
+                model.data.isHTML(false);
+                $("#logData").html(syntaxHighlight(dataGrid.Request));    
+            }
+                        
+            return;
+        }
+        swalError("Log","Unable to find uid : "+uid);
+    };
+
+    function syntaxHighlight(json) {       
+        if (typeof json == "string") {            
+            try{
+                json = JSON.stringify(JSON.parse(json), undefined, 4);
+            }catch(e){
+                return json;
+            }
+            
+        } else {
+            json = JSON.stringify(json, undefined, 4);
+        }
+        
+        json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            var cls = 'number';            
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'key';
+                } else {
+                    cls = 'string';                    
+                    match = match.replace(/(?:\\r\\n|\r\n|\r|\n|\\r|\\n)/g, '<br/>'); 
+                    
+                }
+
+                if (match.length > 1000) {
+                    match = match.substr(0, 1000) + `<span class="more">...</span>`
+                }
+            } else if (/true|false/.test(match)) {
+                cls = 'boolean';
+            } else if (/null/.test(match)) {
+                cls = 'null';
+            }
+            return '<span class="' + cls + '">' + match + '</span>';
+        });
+    }
+
+    $(function () {
+        @*Render UI Components*@
+        model.render.Log();
+    })
+</script>

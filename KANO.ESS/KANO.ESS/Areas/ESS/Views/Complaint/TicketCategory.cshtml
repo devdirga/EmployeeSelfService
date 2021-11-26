@@ -1,0 +1,113 @@
+﻿
+@{
+    Layout = "_Layout";
+}
+@using KANO.Core.Model;
+@using Newtonsoft.Json;
+<script>
+    const URL_GET_TICKET_CATEGORIES = "@Url.Action("GetTicketCategories", "Complaint")";
+    const URL_SAVE_TICKET_CATEGORY = "@Url.Action("SaveTicketCategory", "Complaint")"
+    model.proto = {
+        TicketCategory:@Html.Raw(JsonConvert.SerializeObject(new TicketCategory(), Formatting.Indented)),
+        TicketCategoryContact:@Html.Raw(JsonConvert.SerializeObject(new TicketCategoryContact(), Formatting.Indented)),
+    }
+</script>
+<script src="~/assets/areas/ess/js/ticketcategory.js"></script>
+<style>
+    span.k-widget.k-dropdown.form-control {
+        width: 100%;
+    }
+</style>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card box">
+            <div class="card-header clearfix">
+                <a href="#" onclick="model.form.Add()" class="btn btn-md btn-info float-md-right w-md-xs-100">Create</a>
+            </div>
+            <div class="card-body">
+                <div id="gridMain"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="ModalTicketCategory" class="modal" tabindex="-1" role="dialog" data-bind="with:model">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-medical-bag"></i>
+                    Ticket Category
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form data-bind="with: form.TicketCategory()">
+                    <div class="form-group">
+                        <label for="Category" class="required">Category</label>
+                        <input class="form-control" data-bind="value: Name" placeholder="Name of category" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Description" class="required">Description</label>
+                        <input class="form-control" data-bind="value: Description" placeholder="Description of category" />
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Contact(s)</label>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th class="text-center text-middle" style="width:5%">#</th>
+                                    <th class="text-center text-middle" colspan="2" style="width:35%">Document</th>
+                                    <th class="text-center text-middle" style="width:10%">
+                                        <button type="button" class="btn btn-sm btn-success" data-bind="click: model.form.Action.AddContact">
+                                            <i class="mdi mdi-plus-box m-0"></i>
+                                        </button>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="ifnot: Contacts().length">
+                                <tr>
+                                    <td colspan="4" class="text-center p-4">No email added</td>
+                                </tr>
+                            </tbody>
+                            <tbody data-bind="foreach: Contacts">
+                                <tr data-bind="css:{'odd-row':$index()%2 == 1}">
+                                    <td class="text-center" data-bind="attr:{rowspan:'2'}">
+                                        <strong data-bind="text:$index() + 1"></strong>
+                                    </td>
+                                    <td>
+                                        <input class="form-control" data-bind="value: Name" placeholder="Name" />
+                                    </td>
+                                    <td>
+                                        <input class="form-control" data-bind="value: EmployeeID" placeholder="EmployeeID" />
+                                    </td>
+                                    <td class="text-center" data-bind="attr:{rowspan:'2'}">
+                                        <button class="btn btn-xs btn-outline-danger" data-bind="click: model.form.Action.DeleteContact"><i class="fa mdi mdi-delete"></i></button>
+                                    </td>
+                                </tr>
+                                <tr data-bind="css:{'odd-row':$index()%2 == 1}">
+                                    <td colspan="2">
+                                        <input class="form-control" data-bind="value: Description" placeholder="Description" />
+                                        <input class="form-control" data-bind="value: Email" placeholder="Email" />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info" data-bind="click:model.form.Save">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.form.GetDataGrid();
+       // model.form.getFilter();
+    })
+</script>

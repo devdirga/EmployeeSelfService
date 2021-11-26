@@ -1,0 +1,23 @@
+﻿{
+  "ProviderId": "Microsoft.VisualStudio.ConnectedService.Wcf",
+  "Version": "15.0.31022.994",
+  "GettingStartedDocument": {
+    "Uri": "https://go.microsoft.com/fwlink/?linkid=858517"
+  },
+  "ExtendedData": {
+    "inputs": [
+      "http://7.172.65.217:8888/DynamicsAx/Services/KESSMPPServices"
+    ],
+    "collectionTypes": [
+      "System.Array",
+      "System.Collections.Generic.Dictionary`2"
+    ],
+    "messageContract": true,
+    "namespaceMappings": [
+      "*, KESSMPPServices"
+    ],
+    "sync": true,
+    "targetFramework": "netcoreapp2.2",
+    "typeReuseMode": "All"
+  }
+}

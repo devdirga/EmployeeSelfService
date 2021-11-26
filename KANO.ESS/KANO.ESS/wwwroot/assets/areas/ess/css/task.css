@@ -1,0 +1,7 @@
+
+@media (max-width: 576px) {
+    .k-animation-container.k-animation-container-sm {
+        top: 140px !important;
+        left: 20px !important;
+    }
+}

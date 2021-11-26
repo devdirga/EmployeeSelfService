@@ -1,0 +1,231 @@
+﻿<div id="resumeModal" class="modal" role="dialog" data-bind="with:model">
+    <div class="modal-dialog modal-xl" role="document" data-bind="">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <span><i class="mdi mdi-clipboard-account"></i> Detail Employee Resume</span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="employeeResumeForm" data-bind="with: detail.resume">
+                    <fieldset>
+                        <legend>Personal</legend>
+                        <div class="row">
+                            <section class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="employeeID" class="col-form-label">Employee ID</label>
+                                    <div class="form-control-plaintext" id="EmployeeID" data-bind="text: EmployeeID"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="employeeName" class="col-form-label">Name</label>
+                                    <div class="form-control-plaintext" id="EmployeeName" data-bind="text: EmployeeName"></div>
+                                </div>
+
+                                <!-- ko if:Address -->
+                                <div class="form-group">
+                                    <label for="email" class="col-form-label">Address</label>
+                                    <div class="input-group">
+                                        <a href="#" class="input-group-prepend btn btn-sm btn-success" data-bind="attr:{href:`/ESS/Employee/DownloadAddressAttachment/${Address.Id()}/{${Address.Filename()}}`},visible:!!Address && !!Address.Filename()">
+                                            <div class="input-group-text">
+                                                <i class="mdi mdi-download"></i>
+                                            </div>
+                                        </a>
+
+                                        <div class="form-control-plaintext">
+                                            <!-- ko if:Address.Street -->
+                                            <del class="d-block text-muted" data-bind="text: Address.Street.OldData"></del>
+                                            <span data-bind="html: Address.Street.OldData"></span>
+                                            <!-- /ko -->
+                                            <!-- ko ifnot:Address.Street -->
+                                            -
+                                            <!-- /ko -->
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="religion" class="col-form-label">Religion</label>
+                                    <div class="form-control-plaintext" id="ReligionDescription" data-bind="text: ReligionDescription"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="email" class="col-form-label">City</label>
+                                    <div class="form-control-plaintext" id="AddressCity">
+                                        <!-- ko if:Address.City -->
+                                        <del class="d-block text-muted" data-bind="text: Address.City.OldData"></del>
+                                        <span data-bind="html: Address.City.OldData"></span>
+                                        <!-- /ko -->
+                                        <!-- ko ifnot:Address.City -->
+                                        -
+                                        <!-- /ko -->
+                                    </div>
+                                </div>
+                                <!-- /ko -->
+                            </section>
+
+                            <section class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="expartiate" class="col-form-label">Expartriate</label>
+                                    <div data-bind="css:{'input-group':!!IsExpartriateAttachment && !!IsExpartriateAttachment.Filename()}">
+                                        <a href="#" class="input-group-prepend btn btn-sm btn-success" data-bind="attr:{href:`/ESS/Employee/DownloadEmployeeFieldAttachment/IsExpartiarte/${Id()}/{${IsExpartriateAttachment.Filename()}}`},visible:!!IsExpartriateAttachment && !!IsExpartriateAttachment.Filename()">
+                                            <div class="input-group-text">
+                                                <i class="mdi mdi-download"></i>
+                                            </div>
+                                        </a>
+                                        <div class="form-control-plaintext">
+                                            <span data-bind="html: ExpatriateDescription"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="marital-status" class="col-form-label">Marital Status</label>
+                                    <div data-bind="css:{'input-group':!!MaritalStatusAttachment && !!MaritalStatusAttachment.Filename()}">
+                                        <a href="#" class="input-group-prepend btn btn-sm btn-success" data-bind="attr:{href:`/ESS/Employee/DownloadEmployeeFieldAttachment/MaritalStatus/${Id()}/{${MaritalStatusAttachment.Filename()}}`},visible:!!MaritalStatusAttachment && !!MaritalStatusAttachment.Filename()">
+                                            <div class="input-group-text">
+                                                <i class="mdi mdi-download"></i>
+                                            </div>
+                                        </a>
+                                        <div class="form-control-plaintext">
+                                            <span data-bind="html: MaritalStatusDescription"></span>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="form-group">
+                                    <label for="birthdate" class="col-form-label">Birth Date</label>
+                                    <div class="form-control-plaintext" id="Birthdate" data-bind="text: Birthdate"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="placeofbirth" class="col-form-label">Birthplace</label>
+                                    <div class="form-control-plaintext" id="Birthplace" data-bind="text: Birthplace"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="gender" class="col-form-label">Gender</label>
+                                    <div class="form-control-plaintext" id="Gender" data-bind="text: GenderDescription"></div>
+                                </div>
+                            </section>
+                            <!-- ko if:Reason() -->
+                            <section class="col-sm-12">
+                                <div class="form-group">
+                                    <label for="reason" class="col-form-label">Reason</label>
+                                    <pre id="reason" data-bind="text: Reason"></pre>
+                                </div>
+                            </section>
+                            <!-- /ko -->
+                        </div>
+                    </fieldset>
+
+                    <!-- ko if:Identifications().length > 0 -->
+                    <fieldset class="mt-5">
+                        <legend>Identifications</legend>
+                        <section class="row" data-bind="foreach: Identifications">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="col-form-label" data-bind="text: Label"></label>
+                                    <div data-bind="css:{'input-group':!!Filename()}">
+                                        <a href="#" class="input-group-prepend btn btn-sm btn-success" data-bind="attr:{href:`/ESS/Employee/DownloadIdentificationAttachment/${Id()}/${Filename()}`},visible:!!Filename()">
+                                            <div class="input-group-text">
+                                                <i class="mdi mdi-download"></i>
+                                            </div>
+                                        </a>
+                                        <div class="form-control-plaintext">
+                                            <del class="d-block text-muted" data-bind="html: OldData"></del>
+                                            <span data-bind="text: NewData"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- ko if:($index()+1)%2 == 0-->
+                            <div class="w-100"></div>
+                            <!-- /ko -->
+                        </section>
+                    </fieldset>
+                    <!-- /ko -->
+                    <!-- ko if:ElectronicAddresses().length > 0 -->
+                    <fieldset class="mt-5">
+                        <legend>Electronic Address</legend>
+                        <section class="row" data-bind="foreach: ElectronicAddresses">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="col-form-label" data-bind="text: Label"></label>
+                                    <div data-bind="css:{'input-group':!!Filename()}">
+                                        <a href="#" class="input-group-prepend btn btn-sm btn-success" data-bind="attr:{href:`/ESS/Employee/DownloadElectronicAddressAttachment/${Id()}/${Filename()}`},visible:!!Filename()">
+                                            <div class="input-group-text">
+                                                <i class="mdi mdi-download"></i>
+                                            </div>
+                                        </a>
+
+                                        <div class="form-control-plaintext">
+                                            <del class="d-block text-muted" data-bind="html: OldData"></del>
+                                            <span data-bind="text: NewData"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- ko if:($index()+1)%2 == 0-->
+                            <div class="w-100"></div>
+                            <!-- /ko -->
+                        </section>
+                    </fieldset>
+                    <!-- /ko -->
+                    <!-- ko if:BankAccounts().length > 0 -->
+                    <fieldset class="mt-5">
+                        <legend>Bank Account</legend>
+                        <section class="row" data-bind="foreach: BankAccounts">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="col-form-label" data-bind="text: Label"></label>
+                                    <div class="input-group form-control-plaintext">
+                                        <div class="input-group-prepend" data-bind="visible:!!Filename()">
+                                            <a href="#" class="input-group-sm btn btn-sm btn-success" data-bind="attr:{href:`/ESS/Employee/DownloadBankAccountAttachment/${Id()}/${Filename()}`},visible:!!Filename()">
+                                                <i class="mdi mdi-download"></i>
+                                            </a>
+                                        </div>                                                
+                                        <del class="d-block text-muted" data-bind="html: OldData"></del>
+                                        <span data-bind="text: NewData"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- ko if:($index()+1)%2 == 0-->
+                            <div class="w-100"></div>
+                            <!-- /ko -->
+                        </section>
+                    </fieldset>
+                    <!-- /ko -->
+                    <!-- ko if:Taxes().length > 0 -->
+                    <fieldset class="mt-5">
+                        <legend>Tax</legend>
+                        <section class="row" data-bind="foreach: Taxes">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="col-form-label" data-bind="text: Label"></label>
+                                    <div data-bind="css:{'input-group':!!Filename()}">
+                                        <div class="input-group-prepend" data-bind="visible:!!Filename()">
+                                            <a href="#" class="input-group-sm btn btn-sm btn-success" data-bind="attr:{href:`/ESS/Employee/DownloadTaxAttachment/${Id()}/${Filename()}`},visible:!!Filename()">
+                                                <i class="mdi mdi-download"></i>
+                                            </a>
+                                        </div>
+                                        <div class="form-control-plaintext">
+                                            <del class="d-block text-muted" data-bind="html: OldData"></del>
+                                            <span data-bind="text: NewData"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- ko if:($index()+1)%2 == 0-->
+                            <div class="w-100"></div>
+                            <!-- /ko -->
+                        </section>
+                    </fieldset>
+                    <!-- /ko -->
+                </form>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>    
+</div>

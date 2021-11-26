@@ -1,0 +1,87 @@
+﻿@using KANO.Core.Model;
+@using KANO.ESS;
+@{
+    Layout = "_Layout";
+}
+
+<script>
+    model.proto = {
+        Redeem: @Html.Raw(Json.Serialize(new Redeem())),
+    };
+</script>
+<link href="~/assets/areas/ess/css/canteen.css?@(Startup.Tick??DateTime.Now.Ticks)" rel="stylesheet" />
+<script src="~/assets/areas/ess/js/canteen.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header clearfix">
+                @*<strong class="float-left p-2">Report</strong>*@
+                <div class="float-right filter-attendance">
+                    <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.StartDate, max : new Date(), format: 'dd MMM yyyy' } " />
+                    <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.EndDate, max : new Date(), format: 'dd MMM yyyy' } " />
+                    @*<div class="btn-group w-md-xs-100 mb-md-xs-2" role="group" aria-label="Basic example">
+                        <button type="button" class="w-md-xs-100 btn btn-outline-secondary" onclick="model.action.filterTravelMonthly()">Monthly</button>
+                        <button type="button" class="w-md-xs-100 btn btn-outline-secondary" onclick="model.action.filterTravelYearly()">Yearly</button>
+                    </div>*@
+                    <a href="#" class="w-md-xs-100 btn btn-primary" onclick="model.action.refreshReport(); return false;">Filter</a>
+                </div>
+            </div>
+            <div class="card-body p-max-1200-4">
+                <div class="col-12 mb-2 p-0">
+                    <table class="col-12 table table-bordered canteen-summary">
+                        <thead class="d-xs-bock d-none">
+                            <th> Total Voucher </th>
+                            <th> Total Employee </th>
+                            <th> Total Transaction </th>
+                        </thead>
+                        <tbody>
+                            <tr class="d-xs-none">
+                                <th width="75"> Total Voucher </th>
+                                <td>
+                                    <span data-bind="text: model.data.TotalRedeemed">-</span>
+                                </td>
+                                <th width="75"> Total Employee </th>
+                                <td>
+                                    <span data-bind="text: model.data.TotalEmployee">-</span>
+                                </td>
+                                <th width="75"> Total Transaction </th>
+                                <td>
+                                    <span data-bind="text: model.data.TotalTransaction">-</span>
+                                </td>
+                            </tr>
+                            <tr class="d-xs-bock d-sm-none p-3">
+                                <th width="150"> Total Voucher </th>
+                                <td>
+                                    <span data-bind="text: model.data.TotalRedeemed">-</span>
+                                </td>
+                            </tr>
+                            <tr class="d-xs-bock d-sm-none p-3">
+                                <th width="150"> Total Employee </th>
+                                <td>
+                                    <span data-bind="text: model.data.TotalEmployee">-</span>
+                                </td>
+                            </tr>
+                            <tr class="d-xs-bock d-sm-none p-3">
+                                <th width="150"> Total Transaction </th>
+                                <td>
+                                    <span data-bind="text: model.data.TotalTransaction">-</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-12 mb-2 p-0">
+                    <div class="table-responsive" id="gridReportCanteen"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        model.init.report();
+    });
+</script>
+

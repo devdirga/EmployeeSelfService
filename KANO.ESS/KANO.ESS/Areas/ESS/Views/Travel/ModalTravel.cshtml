@@ -1,0 +1,170 @@
+﻿
+<div id="modalFormTravel" class="modal" role="dialog" data-bind="with: model">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-wallet-travel"></i>
+                    Travel
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="with : data.Travel">
+                <form>
+
+                    @*<div class="form-group">
+            <label for="dropdownType" class="required">Request For</label>
+            <select class="form-control w-md-xs-100 mb-md-xs-2 w-100" id="report" data-bind="kendoDropDownList: {
+                                    dataTextField: 'text',
+                                    dataValueField: 'value',
+                                    data: $parent.list.requestFor,
+                                    value: Intention,
+                                    change:$parent.on.intentionChange,
+                                    filter: 'contains',
+                                    optionLabel: 'Select Intention',
+                                    enabled: true
+                                    }">
+            </select>
+            <!-- ko if:Intention() == '1' -->
+            <select class="form-control w-md-xs-100 mb-md-xs-2 mt-2 w-100" id="demployee" data-bind="kendoDropDownList: {
+                                    dataTextField: 'EmployeeName',
+                                    dataValueField: 'EmployeeID',
+                                    data: $parent.list.employee,
+                                    value: RequestForID,
+                                    change:$parent.on.requestForChange,
+                                    filter: 'contains',
+                                    optionLabel: 'Select Employee',
+                                    enabled: true
+                                    }">
+            </select>
+            <!-- /ko -->
+            <!-- ko if:Intention() == '1' && IsGuest() -->
+            <input class="form-control w-md-xs-100 mb-md-xs-2 mt-2 w-100" data-bind="value: RequestForName" placeholder="Please input guest name" />
+            <!-- /ko -->
+        </div>*@
+
+                    <!-- ko if:TravelRequestStatus() == 1  -->
+                    <div class="alert alert-warning" role="alert" data-bind="attr:{title: standarizeDateTime(RevisionDate())}">
+                        <i class="mdi mdi-alert"></i>
+                        <strong>Revision Note</strong>
+                        <p class="mt-2 mb-3" data-bind="text:NoteRevision"></p>
+                        <div class="clearfix">
+                            <small class="float-left">
+                                by <i data-bind="text : RevisionBy"></i>
+                            </small>
+                            <small class="float-right" data-bind="text : relativeDate(RevisionDate())"> </small>
+                        </div>
+                    </div>
+                    @*<div class="form-group">
+            <label for="StatusNote">Revision Note</label><br>
+            <textarea readonly data-bind="value : NoteRevision" type="text" cols="5" rows="2" class="form-control form-control-sm w-md-xs-100 mb-md-xs-2 w-100 textarea-info"></textarea>
+        </div>*@
+                    <!-- /ko -->
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="col">
+                                <label for="Date" class="required">Start Time</label><br>
+                                <input class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="kendoDateTimePicker: { value: Schedule.Start, format: 'dd MMM yyyy HH:mm' }" />
+                            </div>
+                            <div class="col">
+                                <label for="Date" class="required">End Time</label><br>
+                                <input class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="kendoDateTimePicker: { value: Schedule.Finish, format: 'dd MMM yyyy HH:mm' }" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="Origin" class="required">Origin</label><br>
+                        <input id="Origin" class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="value: Origin" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Destination" class="required">Destination</label><br>
+                        <input id="Destination" class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="value: Destination" />
+                    </div>
+
+                    @*<div class="form-group">
+                        <label for="Date" class="required">Travel Type</label><br>
+                        <select class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="kendoDropDownList: {
+                                                dataTextField: 'text',
+                                                dataValueField: 'value',
+                                                data: $parent.list.travelType,
+                                                value: TravelType,
+                                                filter: 'contains',
+                                                optionLabel: 'Select Type',
+                                                enabled: true
+                                                }"></select>
+                    </div>*@
+
+                    <div class="form-group">
+                        <label for="Date" class="required">Transportation</label><br>
+                        <select class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="kendoDropDownList: {
+                                                dataTextField: 'Description',
+                                                dataValueField: 'AXID',
+                                                data: $parent.list.transportation,
+                                                value: Transportation,
+                                                filter: 'contains',
+                                                optionLabel: 'Select Transportation',
+                                                enabled: true
+                                                }"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Date" class="required">Purpose</label><br>
+                        <select class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="kendoDropDownList: {
+                                                dataTextField: 'Description',
+                                                dataValueField: 'AXID',
+                                                data: $parent.list.purpose,
+                                                value: TravelPurpose,
+                                                change:$parent.on.purposeChange,
+                                                filter: 'contains',
+                                                optionLabel: 'Select Purpose',
+                                                enabled: true
+                                                }"></select>
+                    </div>
+                    <!-- ko if:$parent.is.overseas() && false -->
+                    <div class="form-group mb-0">
+                        <label>Document Request</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" id="passport" type="checkbox" data-bind="checked: NeedPassportExtension">
+                        <label class="form-check-label" for="passport">Require passport extension</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" id="visa" type="checkbox" data-bind="checked: NeedVisaExtension">
+                        <label class="form-check-label" for="visa">Require Visa</label>
+                    </div>
+                    <!-- /ko -->
+                    <div class="form-group">
+                        <label for="Destination">Note</label><br>
+                        <textarea id="Description" type="text" cols="5" rows="3" class="form-control form-control-sm w-md-xs-100 mb-md-xs-2 w-100" data-bind="value:Note" placeholder="e.g. Saya ingin berangkat naik Kereta Api, pulang naik Pesawat
+        Saya ingin berangkat pagi pukul 07.00 WIB"></textarea>
+                    </div>
+                    <div class="task-details">
+                        <label class="required">Document</label>
+                        <input type="file" name="Filepath" id="Filepath" data-bind="kendoUpload: {
+                               multiple: false,
+                               select: model.on.travelDocumentSelect,
+                               remove: model.on.travelDocumentRemove,
+                               template: kendo.template($('#fileTemplate').html()),
+                               validation: {
+                                    allowedExtensions: model.app.config.upload.allowedExtensions,
+                                    maxFileSize: model.app.config.upload.maxFileSize
+                                }
+                         }" />
+                        @*<div data-bind="value: Filepath"></div>*@
+                        <!-- ko if:!!HTMLFile() -->
+                        <div data-bind="html:HTMLFile"></div>
+                        <!-- /ko -->
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="task-details">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-info" data-bind="click:model.action.request">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

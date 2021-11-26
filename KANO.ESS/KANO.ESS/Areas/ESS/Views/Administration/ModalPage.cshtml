@@ -1,0 +1,79 @@
+<div id="modalAddMenu" class="modal" role="dialog">
+    <div class="modal-dialog" role="document" >
+        <div class="modal-content" data-bind="with:model">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-settings"></i>
+                    Page
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body" data-bind="with: form.DetailData">
+                <form id="member-form">
+                    <input type="hidden" id="f-menu-uid" data-bind="Id" />
+                    <input type="hidden" id="f-menu-code" data-bind="PageCode" />
+                    <div class="form-group">
+                        <label for="menu-Title" class="required">Title</label>                        
+                        <input data-bind="value: Title" class="form-control" type="text" id="Title" name="menu-Title" required validationMessage="Input Title" />                        
+                    </div>
+                    <div class="form-group">
+                        <label for="menu-Url" class="required">URL</label>                        
+                       <input data-bind="value: Url" class="form-control" type="text" id="Url" name="menu-Url" required validationMessage="Input Url" />
+                    </div>
+                    <div class="form-group">
+                        <label for="menu-Icon">Icon</label>                        
+                        <div class="input-group mb-2">
+                            <!-- ko if:(typeof Icon == "function" && !!Icon()) || (typeof Icon != "function" && !!Icon) -->
+                            <div class="input-group-prepend">
+                                <div class="input-group-text">
+                                    <i data-bind="css:Icon"></i>
+                                </div>
+                            </div>
+                            <!-- /ko -->
+                            <input data-bind="value: Icon" class="form-control" type="text" id="Icon" name="menu-Icon" required validationMessage="Input Icon" />
+                        </div>
+                        
+                    </div>
+                    <div class="form-group">
+                        <label for="menu-Icon">Parent</label>                        
+                        <input type="text" id="ParentId" class="form-control" name="menu-ParentId" required validationMessage="Input Icon" data-bind="value: ParentId" />
+                    </div>
+                    <div class="form-group">
+                        <label for="menu-Icon">Index</label>                        
+                        <input data-bind="value: Index" class="form-control" type="text" id="Index" name="menu-Index" required validationMessage="Input Icon" />
+                    </div>
+                    <div class="form-row">
+                            <div class="col">
+                                <div class="form-check form-check-flat form-check-success">
+                                    <label class="form-check-label">
+                                        <input type="checkbox" class="form-check-input" id="Enable" data-bind="checked: Enabled"> Enable <i class="input-helper"></i>
+                                    </label>
+                                </div>                    
+                            </div>
+                            <div class="col">
+                                <div class="form-check form-check-flat form-check-info">
+                                    <label class="form-check-label">
+                                        <input type="checkbox" class="form-check-input" id="ShowAsMenu" data-bind="checked: ShowAsMenu"> Show As Menu <i class="input-helper"></i>
+                                    </label>
+                                </div>                    
+                            </div>
+                            <div class="col">
+                                <div class="form-check form-check-flat form-check-primary">
+                                    <label class="form-check-label">
+                                        <input type="checkbox" class="form-check-input" id="Subordinate" data-bind="checked: ForWhomHasSubordinate"> Only for who has Subordinate <i class="input-helper"></i>
+                                    </label>
+                                </div>                    
+                            </div>
+                    </div>                    
+                </form>
+            </div>
+            <div data-bind="visible: model.form.action() == 'edit'" class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal" >Cancel</button>
+                <button type="button" class="btn btn-info" data-bind="click: model.form.Save">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,39 @@
+﻿<div id="modalItenary" class="modal" role="dialog" data-bind="with: model">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-ticket"></i>
+                    Travel Attachments
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="with:data.SPPD">
+                <div class="list-group list-attachment" data-bind="foreach:TransportationDetails">
+                    <!-- ko if: Attachments().length == 0 && !!BookingCode() -->
+                    <a href="#" class="list-group-item list-group-item-action clearfix">
+                        Booking Code : <i data-bind="text:BookingCode() || '-'"></i>
+                        <i class="mdi mdi-ticket float-right"></i>
+                    </a>
+                    <!-- /ko -->
+                    <!-- ko foreach : Attachments -->
+                    <a href="#" class="list-group-item list-group-item-action clearfix" data-bind="css:{disabled:!Accessible()}, click:model.action.downloadAttachment">
+                        <!-- ko if: !!$parent.BookingCode() -->
+                        <i class="mt-2 mdi mdi-download float-right"></i>
+                        <!-- /ko -->
+                        <strong data-bind="text:Filename() || '-'"></strong>
+                        <!-- ko if: !!$parent.BookingCode() -->
+                        <br />
+                        <small>Booking Code : <i data-bind="text:$parent.BookingCode() || '-'"></i></small>
+                        <!-- /ko -->
+                    </a>
+                    <!-- /ko -->
+                </div>
+            </div>
+            <div class="modal-footer">                
+            </div>
+        </div>
+    </div>
+</div>

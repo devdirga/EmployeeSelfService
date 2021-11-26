@@ -1,0 +1,101 @@
+﻿
+@{
+    ViewData["Title"] = "Myleave";
+    Layout = "_Layout";
+}
+
+@using KANO.Core.Model
+@using Newtonsoft.Json
+<div class="row">
+    <main class="col-lg-12" role="main">
+        <div class="row">
+            <div class="col-lg-12 mb-4">
+                <div class="card box">
+                    <div class="card-header clearfix">
+                        <strong class="float-left">My Leave</strong>
+                        <div class="float-right">
+                            <label>Periode</label>
+                            <input data-bind="kendoDatePicker: model.StartDate" />
+                            <input data-bind="kendoDatePicker: model.EndDate" />
+                            <a href="#" class="btn btn-primary">Filter</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="gridMyleave"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<script>
+    model.data = {};
+    model.StartDate = ko.observable(new Date);
+    model.EndDate = ko.observable(new Date);
+    model.render = {};
+    model.data.Myleave= ko.observableArray([]);
+    model.getDataMyleave = function (callback) {
+        let param = {}
+        ajaxPost("@Url.Action("GetApiLeave", "Leave")", param, function (res) {
+            model.data.Myleave(res.Data)
+            callback();
+        });
+    }
+    model.render.gridMyleave= function () {
+        let $el = $("#gridMyleave");
+        if (!!$el) {
+            let $grid = $el.getKendoGrid();
+
+            if (!!$grid) {
+                $grid.destroy();
+            }
+
+            $el.kendoGrid({
+                dataSource: {
+                    type: "json",
+                    data: model.data.Myleave(),
+                },
+                filterable: true,
+                sortable: true,
+                pageable: true,
+                columns: [
+                    {
+                        field: "Schedule.Start",
+                        title: "Start Date",
+                        template: function (e) {
+                            return moment(e.Schedule.Start).format("DD MMM YYYY")
+                        }
+                    },
+                    {
+                        field: "Schedule.Finish",
+                        title: "End Date",
+                        template: function (e) {
+                            return moment(e.Schedule.Finish).format("DD MMM YYYY")
+                        }
+                    },
+                    {
+                        field: "Description",
+                        title: "Description",
+                    },
+                    {
+                        field: "Type",
+                        title: "Leave Type",
+                    },
+                ]
+            });
+        }
+    }
+    $(function () {
+        @*Render UI Components*@
+        model.getDataMyleave(function () {
+            model.render.gridMyleave();
+        });
+        @*ajaxPost('*/@Url.Action("GetApiLeave", "Leave"), {}, function (r) {
+            console.log(r);
+        });*@
+    })
+</script>
+
+
+
+

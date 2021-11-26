@@ -1,0 +1,118 @@
+﻿<div class="row">
+    <div class="col-lg-12 mb-4">
+        <div class="card card-tab-content">
+            <div class="card-body">
+                <h4 class="card-title clearfix">
+                    <i class="mdi mdi-human-male-female"></i> Family
+                    <button type="button" class="btn btn-sm btn-info float-right" data-bind="click:action.openFormFamily">Add</button>
+                </h4>
+                <form class="row">
+                    <div class="col-lg-12">
+                        <div id="gridFamily"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalFormFamily" class="modal" role="dialog" data-bind="with: model">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="mdi mdi-human-male-female"></i>  Familiy Information</h5>
+                <!-- ko if: (model.is.requestActive()) -->
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <!-- /ko -->
+            </div>
+            <div class="modal-body" data-bind="with: data.family">
+                <form>
+                    <div class="form-group">
+                        <label for="firstName" class="required">First Name</label>
+                        <input type="text" class="form-control" id="firstName" data-bind="value: FirstName">
+                    </div>
+                    <div class="form-group">
+                        <label for="middleName">Middle Name</label>
+                        <input type="text" class="form-control" id="middleName" data-bind="value: MiddleName">
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName" class="required">Last Name</label>
+                        <input type="text" class="form-control" id="lastName" data-bind="value: LastName">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="familyGender" class="required">Gender</label>
+                            <select class="form-control" id="familyGender" data-bind="kendoDropDownList: {
+                                                dataTextField: 'text',
+                                                dataValueField: 'value',
+                                                data: $parent.list.gender,
+                                                value: Gender,
+                                                filter: 'contains',
+                                                optionLabel: 'Select Gender'
+                                                }"></select>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="familyDropdownRelationship" class="required">Relationship</label>
+                            <select class="form-control" id="familyDropdownRelationship" data-bind="kendoDropDownList: {
+                                                dataTextField: 'Description',
+                                                dataValueField: 'TypeID',
+                                                data: $parent.list.familyRelationship,
+                                                value: Relationship,
+                                                filter: 'contains',
+                                                optionLabel: 'Select Relationship'
+                                                }"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="familyDropdownReligion" class="required">Religion</label>
+                        <select class="form-control" id="familyDropdownReligion" data-bind="kendoDropDownList: {
+                                                data: $parent.list.religion,
+                                                dataTextField: 'text',
+                                                dataValueField: 'value',
+                                                value: Religion,
+                                                filter: 'contains',
+                                                optionLabel: 'Select Religion'
+                                                }"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="familyNIK" class="required">NIK</label>
+                        <input type="text" class="form-control" id="familyNIK" data-bind="value: NIK">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="familyBirthdate" class="required">Birthdate</label>
+                            <input type="datetime" class="form-control" id="familyBirthdate" data-bind="kendoDatePicker: {value: Birthdate, format: 'dd MMM yyyy'}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="familyPlaceofBirth" class="required">Birthplace</label>
+                            <input type="text" class="form-control" id="familyPlaceofBirth" data-bind="value: Birthplace">
+                        </div>
+                    </div>                    
+                    <div class="form-group">
+                        <label class="required">Document Verification</label>
+                        <input type="file" name="familyDocumentVerification" id="familyDocumentVerification" data-bind="kendoUpload: {
+                               multiple: false,
+                               template: kendo.template($('#fileTemplate').html()),
+                               select: model.on.familyDocumentSelect,
+                               remove: model.on.familyDocumentRemove,
+                               validation: {
+                                    allowedExtensions: model.app.config.upload.allowedExtensions,
+                                    maxFileSize: model.app.config.upload.maxFileSize
+                                }
+                               }" />
+                        <!-- ko if:!!HTMLFile() -->
+                        <div data-bind="html:HTMLFile"></div>
+                        <!-- /ko -->
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info" data-bind="click:action.saveFamily">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

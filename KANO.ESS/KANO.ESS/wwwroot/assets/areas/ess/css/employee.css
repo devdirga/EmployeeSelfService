@@ -1,0 +1,139 @@
+﻿#resume .btn-group-attachment {
+    display: none;
+}
+
+#resume .btn-group-attachment .field-attachment-button .spinner-border{
+    width: 15px;
+    height: 15px;    
+}
+
+#resume .btn-group .field-attachment-button .spinner-border,
+#resume .btn-group-attachment .field-attachment-button .spinner-border {
+    display: none;
+}
+    
+#resume .form-group.row.loading .field-attachment-button {
+    background: var(--info) !important;
+    color: white !important;
+}
+
+#resume .form-group.row.loading .field-attachment-button .mdi {
+    display: none;
+}
+
+#resume .form-group.row.loading .spinner-border {
+    display: inherit;
+}
+
+#resume .form-group.row .field-attachment-download:hover {
+    color: var(--gray-dark);
+}
+
+#resume .form-group.row.empty.marked .btn-group-attachment,
+#resume .form-group.row.filled.marked .btn-group-attachment {
+    display: inherit;
+}
+
+#resume .form-group.row .field-attachment-button:disabled {
+    color: var(--success) !important;
+    background: #e9ecef !important;
+}
+#resume .form-group.row.error .field-attachment-button {
+    background: var(--danger) !important;
+    color: white !important;
+}
+
+#resume .form-group.row.empty .field-attachment-button {
+    background: var(--warning);
+    color: black;
+}
+
+#resume .form-group.row.empty .field-attachment-button:disabled {
+    color: var(--warning) !important;
+    background: #e9ecef !important;
+}
+
+#resume .form-group.row.filled .field-attachment-button {
+    background: var(--success);
+    color: white;
+}
+
+#resume .field-attachment-uploader,
+#resume .field-attachment-uploader
+{
+    display: none;
+}
+
+#resume .form-group.row.marked label.col-form-label::after {
+    content: "*";
+    font-weight: bold;
+    color: var(--success);
+    position: absolute;
+}
+
+#resume .marked .btn-group-attachment {
+    display:inherit;
+}
+
+#resume .form-control.render-loading {
+    animation: colorchange 1s infinite alternate-reverse;
+}
+
+#dropdownMenuButtons a.dropdown-item {
+    padding: .5rem 1rem !important;
+    border-bottom: solid thin #fafafa;
+}
+
+#dropdownMenuButtons a.dropdown-item:hover {
+    color:var(--info);
+}
+
+#dropdownMenuButtons a.dropdown-item:active {
+    color: var(--info);
+}
+
+@keyframes colorchange{
+    0% {
+        background: #e9ecef
+    }
+    100% {
+        background: #ddd
+    }
+}
+
+.remove-file {
+    color: #cccc;
+    cursor: pointer;
+    position: absolute;
+    top: 5px;
+    left: 93%;
+}
+
+.kendo-files-color {
+    color: #999;
+    border-color: #999;
+    width:33px;
+    height:40px;
+}
+
+.k-file-extension-wrapper:before {
+    background-color: #fff;
+    border-color: transparent transparent #999 #999;
+}
+td  del {
+    display:block;
+}
+
+.btn-request-update {
+    width:max-content;
+}
+
+#gridFamily > .k-grid-header > div > table,
+#gridFamily > .k-grid-content > table {
+    width: 100% !important;
+}
+
+ol.attachments {
+    list-style: none;
+    padding: 0;
+}

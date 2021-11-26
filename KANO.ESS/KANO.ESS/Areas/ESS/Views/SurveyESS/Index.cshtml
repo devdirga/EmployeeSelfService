@@ -1,0 +1,143 @@
+﻿@{
+    //ViewData["Title"] = "Index";
+    Layout = "_Layout";
+}
+@using KANO.Core.Service
+@using KANO.ESS
+@using KANO.Core.Model
+@using Newtonsoft.Json
+
+@inject KANO.Core.Service.IUserSession UserSession
+
+<script async>
+    var viewBag = @Json.Serialize(ViewBag);
+
+    model.proto = {
+        Recurrent: @Html.Raw(Tools.EnumToJson2(typeof(SurveyRecurrent))),
+    }
+</script>
+<script src="~/assets/vendors/iframe-resizer/iframeResizer.min.js"></script>
+<link rel="stylesheet" href="~/assets/areas/ess/css/survey.css?@(Startup.Tick??DateTime.Now.Ticks)">
+<script src="~/assets/areas/ess/js/survey-user.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+<div class="row" data-bind="with:model">
+    <main class="col-lg-12" role="main">
+        <ul class="nav nav-tabs d-nav-tabs-none" id="employeeTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link" id="survey-tab" data-toggle="tab" href="#survey" role="tab" aria-controls="survey" aria-selected="false">Survey</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="history-tab" data-toggle="tab" href="#history" role="tab" aria-controls="history" aria-selected="false">History</a>
+            </li>
+        </ul>
+        <div class="dropdown d-hide-dropdown">
+            <button class="w-100 btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Menu
+            </button>
+            <div class="dropdown-menu p-0 m-0 w-100 border-radius-none" aria-labelledby="dropdownMenuButton" id="dropdownMenuButtons">
+                <a class="dropdown-item" id="survey-tab" data-toggle="tab" href="#survey" role="tab" aria-controls="survey" onclick="model.action.selectedDropdownMenu(this)">Survey</a>
+                <a class="dropdown-item" id="history-tab" data-toggle="tab" href="#history" role="tab" aria-controls="history" onclick="model.action.selectedDropdownMenu(this)">History</a>
+            </div>
+        </div>
+        <div class="tab-content" id="employeeTabContent">
+            <div class="tab-pane fade" id="survey" role="tabpanel" aria-labelledby="survey-tab">
+                <div class="row">
+                    <div class="col-lg-12 mb-4">
+                        <div class="card box">
+                            <div class="card-header clearfix pb-xs-0">
+                                <div class="float-left mb-md-xs-2 no-display">
+                                    <strong class="float-left p-2 text-capitalize mt-1">@ViewBag.Action Survey Employee</strong>
+                                    @* <a href="/ESS/Survey" class="btn btn-md btn-default float-left w-md-xs-50 px-2" >
+                                        <i class="mdi mdi-arrow-left"></i>
+                                    </a> *@
+                                    @*@UserSession.OdooToken()*@
+                                    @*<div id="EmployeeEmail" data-bind="visible:false">@UserSession.Email()</div>*@
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                @*<iframe id="survey-form-container" class="w-100" src="/odoo/web?employee_id=@UserSession.Id()" title="Survey Form" style="height:800px"></iframe>*@
+                                @*<iframe id="survey-form-container" class="w-100" src="/odoo/web#action=142&model=survey.survey&view_type=kanban&cids=1&menu_id=99" title="Survey Form" style="height:800px"></iframe>*@
+                                @*<div data-bind="foreach: model.list.survey">
+
+                                </div>*@
+                                @*@UserSession.OdooToken()*@
+                                <div id="gridSurvey"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+                <div class="row">
+                    <div class="col-lg-12 mb-4">
+                        <div class="card box">
+                            <div class="card-header clearfix pb-xs-0">
+                                <div class="float-left mb-md-xs-2 no-display">
+                                    @*<strong class="float-left p-2 text-capitalize mt-1">@ViewBag.Action Survey History</strong>*@
+                                    <div class="float-right">
+                                        <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.StartDate, max : model.data.todaymin1, format: 'dd MMM yyyy' } " />
+                                        <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.EndDate, max : model.data.todaymin1, format: 'dd MMM yyyy' } " />
+                                        <a href="#" class="w-md-xs-100 btn btn-primary" onclick="model.action.filterHistory(); return false;">Filter</a>
+                                    </div>
+                                    @* <a href="/ESS/Survey" class="btn btn-md btn-default float-left w-md-xs-50 px-2" >
+            <i class="mdi mdi-arrow-left"></i>
+        </a> *@
+                                    @*@UserSession.OdooToken()*@
+                                    @*<div id="EmployeeEmail" data-bind="visible:false">@UserSession.Email()</div>*@
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                @*<iframe id="survey-form-container" class="w-100" src="/odoo/web?employee_id=@UserSession.Id()" title="Survey Form" style="height:800px"></iframe>*@
+                                @*<iframe id="survey-form-container" class="w-100" src="/odoo/web#action=142&model=survey.survey&view_type=kanban&cids=1&menu_id=99" title="Survey Form" style="height:800px"></iframe>*@
+                                @*<div data-bind="foreach: model.list.survey">
+
+                        </div>*@
+                                @*@UserSession.OdooToken()*@
+                                <div id="gridHistory"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="detailFillModal" class="modal" role="dialog">
+    <div class="modal-dialog" role="document" data-bind="with:model">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-bag-personal"></i>
+                    Answer
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="min-height: 200px;">
+                <div id="AnswerSurvey" class="mb-3">
+                    <h6 class="mb-1"><span data-bind="text: model.data.title"></span></h6>
+                    <h6><span data-bind="text: model.data.dateFill"></span></h6>
+                </div>
+                <ul class="list-group" data-bind="foreach: data.detailFill">
+                    <li class="list-group-item">
+                        <span data-bind="text: question_id[0]"></span>.<span data-bind="text: question_id[1]" class="ml-2"></span><span class="badge badge-primary badge-pill ml-4 float-right" data-bind="text: 'Score: ' + answer_score">12</span><br />
+                        <span data-bind="text: value_suggested[1]" class="ml-3"></span>
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn ml-xs-0 btn-light" data-bind="" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.init.surveyEmployee();
+        model.init.surveyHistory();
+    })
+</script>

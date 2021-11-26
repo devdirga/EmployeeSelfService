@@ -1,0 +1,85 @@
+@{
+    Layout = "_Layout";
+}
+@using KANO.Core.Service
+@using KANO.ESS
+@using KANO.Core.Model
+@using Newtonsoft.Json
+@inject KANO.Core.Service.IUserSession UserSession
+
+<script>
+    var viewBag = @Json.Serialize(ViewBag);
+    @*Defining Model Prototype*@
+    model.proto = {
+        Survey: @Html.Raw(Json.Serialize(new Survey())),
+        DateRange: @Html.Raw(Json.Serialize(new DateRange())),
+        SurveyRecurrent: @Html.Raw(Tools.EnumToJson2(typeof(SurveyRecurrent))),
+        ParticipantType: @Html.Raw(Tools.EnumToJson2(typeof(ParticipantType))),
+    };
+    
+    model.showForm = ko.observable(false);
+
+    var f = async function(){
+        if(viewBag.StatusCode != 200){
+            swalAlert("Survey", `Error occured while fetching survey : ${viewBag.Message}`);
+            history.go(-1)
+        }else if(!viewBag.Data){
+            swalAlert("Survey", `Unable to find survey ${viewBag.ID} on ESS server`);
+            history.go(-1)
+        }else{
+            model.showForm(true);
+        }    
+    };
+    f();
+</script>
+<script src="~/assets/areas/ess/js/survey.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+<link rel="stylesheet" href="~/assets/areas/ess/css/survey.css?@(Startup.Tick??DateTime.Now.Ticks)">
+<div class="row" data-bind="with:model">
+    <main class="col-lg-12" role="main">
+        <div class="row">
+            <div class="col-lg-12 mb-4">
+                <div class="card box">
+                    <div class="card-header clearfix pb-xs-0">
+                        <div class="float-left mb-md-xs-2 no-display">                            
+                            <h3 class="page-title">
+                                <span data-bind="text:Title" class="display-4">Survey Covid 19</span> <br>
+                                <span class="text-muted text-center text-sm-left d-block d-sm-inline-block text-small">03 Jul 2020</span>
+                                <span class="text-muted text-center text-sm-left d-block d-sm-inline-block text-small"> - </span>
+                                <span class="text-muted text-center text-sm-left d-block d-sm-inline-block text-small">15 Sep 2020</span> .
+                                <span class="text-muted text-small">Daily</span>
+                            </h3>
+                        </div>
+                        <div class="float-right">                            
+                            <button type="button" class="btn btn-md btn-info float-right w-md-xs-50" data-bind="click:model.action.saveSurvey">
+                                <!-- ko if :model.is.buttonLoading() -->
+                                <div class="spinner-border spinner-border-sm text-light" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <!-- /ko -->
+                                <!-- ko ifnot:model.is.buttonLoading() -->
+                                Save
+                                <!-- /ko -->
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form data-bind="with:data.survey, afterRender:model.on.renderForm">
+                            <div class="form-group">
+                                <div class="form-group">
+                                    <iframe id="survey-form-container" class="w-100" src="/odoo/survey/start/bc5babc6-80f3-4442-abed-78d69b4964ee?employee_id=@UserSession.Id()" title="Survey"></iframe>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.init.form();
+    })
+</script>

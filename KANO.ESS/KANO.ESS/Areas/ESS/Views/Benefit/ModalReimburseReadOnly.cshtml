@@ -1,0 +1,93 @@
+﻿<div id="modalBenefitReadonly" class="modal"  tabindex="-1" role="dialog" data-bind="with:model">
+    <div class="modal-dialog" role="document" >
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-medical-bag"></i>
+                    Medical Reimburse
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form data-bind="with: data.medicalBenefit">
+                    <div class="form-group">
+                        <label for="dropdownType">Request For</label>
+                        <div class="form-control-plaintext" data-bind="html: (!Family || (!!Family && Family.AXID() == -1))?'Self':Family.Name()"></div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="col">
+                                <label for="Date">Date</label><br>
+                                <div class="form-control-plaintext" data-bind="html: standarizeDate(RequestDate())"></div>
+                            </div>
+                            <div class="col">
+                                <label for="dropdownType">Type</label>
+                                <div class="form-control-plaintext" data-bind="html: camelToTitle(model.map.medicalType[TypeID()] || '') || '-'"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ko if:!!Reason() -->
+                    <div class="form-group">
+                        <label for="input">Notes</label>
+                        <div class="form-control-plaintext" data-bind="html: Reason() || '-'"></div>
+                    </div>
+                    <!-- /ko    -->
+                    <div class="form-group">
+                        <label>Attachment(s)</label>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th class="text-center text-middle" style="width:5%">#</th>
+                                    <th class="text-middle" style="width:35%">Document</th>
+                                    <th class="text-middle text-center" " style="width:35%">Amount</th>
+                                    <th class="text-center text-middle" style="width:10%"></th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="ifnot: $parent.data.medicalBenefitDetails().length">
+                                <tr>
+                                    <td colspan="4" class="text-center p-4">No document attached</td>
+                                </tr>
+                            </tbody>
+                            <tbody data-bind="foreach: $parent.data.medicalBenefitDetails()">
+                                <tr data-bind="css:{'odd-row':$index()%2 == 1}">
+                                    <td class="text-center" ">
+                                        <strong data-bind="text:$index() + 1"></strong>
+                                    </td>
+                                    <td class="py-3">
+                                        <div data-bind="html: (model.map.documentType[TypeID()] || {}).Description || '-'"></div>
+                                        <small class="text-muted" data-bind="text: Description"></small>
+                                    </td>
+                                    <td class="text-center py-3">
+                                        <div data-bind="text : kendo.toString(Amount(), 'c2')"></div>
+                                    </td>
+                                    <td class="text-center">
+                                        <!-- ko if:!Attachment.Accessible() -->
+                                        <button class="btn btn-xs btn-outline-secondary" disabled><i class="fa mdi mdi-download"></i></button>
+                                        <!-- /ko -->
+                                        <!-- ko ifnot:!Attachment.Accessible() -->
+                                        <button class="btn btn-xs btn-outline-success" type="button" data-bind="click: model.action.downloadMedicalAttachment"><i class="fa mdi mdi-download"></i></button>
+                                        <!-- /ko -->
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td class="py-2 px-2 text-center">
+                                        <h4 class="p-0 m-0" data-bind="text:kendo.toString(TotalAmount(), 'c2')"></h4>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+
+                        </table>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>

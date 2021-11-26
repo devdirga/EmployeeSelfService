@@ -1,0 +1,23 @@
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="survey_question_inherit_view">
+            <field name="inherit_id" ref="survey.survey_question_form"/>
+            <field name="model">survey.question</field>
+            <field name="arch" type="xml">
+                <xpath expr="/form/sheet/notebook/page/field[@name='labels_ids']" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|',('question_type','not in',['numeric_range_choice','simple_choice', 'multiple_choice', 'matrix'])]}</attribute>
+                </xpath>
+                <xpath expr="/form/sheet/group[2]/group[2]/div/div[7]" position="after">
+                    <!-- Numerical Value -->
+                    <div attrs="{'invisible': [('question_type', '!=', 'numeric_range_choice')]}">
+                        <i class="fa fa-2x" role="img" aria-label="Numeric" title="Numeric">123..</i>
+                    </div>
+                </xpath>
+                <xpath expr="/form/sheet/notebook/page/field[@name='labels_ids']/tree/field[@name='value']" position="after">
+                    <field name="value2" string="To" attrs="{'column_invisible': [('parent.question_type', 'not in', ['numeric_range_choice'])]}"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,357 @@
+﻿<style>
+    .page-template > * {
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        font-size: 80%;
+    }
+
+    .page-template .header {
+        top: 50px;
+    }
+
+    .page-template .footers {
+        bottom: auto;
+    }
+</style>
+<script type="x/kendo-template" id="page-template">
+    <div class="page-template">
+        <div class="header">
+            <div class="col-12">
+                <h3 class="text-center text-underline">
+                    <u>SURAT PERINTAH PERJALANAN DINAS</u>
+                </h3>
+                <h5 class="text-center mt-1">
+                    Nomor : <span id="nomorSPPD"> #: ko.mapping.toJS(model.data.SPPD().SPPDNumber) #</span>
+                </h5>
+                <p>
+                    Direksi PT.Terminal Petikemas Surabaya memerintahkan untuk melaksanakan perjalanan dinas kepada pegawai sebagai berikut :
+                </p>
+            </div>
+        </div>
+        <div class="footers">
+            <div class="col-12">
+                <div class="col-12 p-0 d-block">
+                    <br />
+                    <p class="col-12 p-0">Surat ini diterbitkan melalui sistem ESS, disetujui dan diterbitkan oleh Manajemen PT Terminal Petikemas Surabaya.</p>
+                    <p class="mb-1">Ttd</p>
+                    <p class="">Management PT Terminal Petikemas Surabaya</p>
+                </div>
+                @*<div class="col-12 p-0 ">
+                    <div class="col-6 p-0 float-right">
+                        <div class="col-12 p-0 text-center"><span>Surabaya, Januari 2020</span></div>
+                        <div class="col-12 p-0 text-center"><span>DIREKSI PT. TERMINAL PETIKEMAS SURABAYA</span></div>
+                        <div class="col-12 p-0 text-center mb-5"><span>DIREKTUR UTAMA</span></div>
+                        <span class="my-5">&nbsp;</span>
+                        <div class="col-12 p-0 text-center"><span>DOTHY</span></div>
+                    </div>
+                </div>*@
+
+                @*<div class="col-12 p-0 float-left">
+            <div class="col-12 p-0"><small>Tembusan  :</small></div>
+            <div class="col-12 p-0"><small>1. Finance Manager</small></div>
+            <div class="col-12 p-0"><small>2. Human Resources Manager</small></div>
+            <div class="col-12 p-0"><small>3. Yang Bersangkutan</small></div>
+        </div>*@
+            </div>
+        </div>
+    </div>
+</script>
+
+<div id="modalSPPD" class="modal" role="dialog" data-bind="with: model">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-file-document-outline"></i>  
+                    SPPD
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div id="SPPDPdf" class="modal-body document lang-en">
+                @*<div class="row d-none d-print-block">
+                    <div class="col-lg-12">
+                        <h3 class="text-center text-underline">
+                            <u>SURAT PERINTAH PERJALANAN DINAS</u>
+                        </h3>
+                        <p>
+                            Direksi PT.Terminal Petikemas Surabaya memerintahkan untuk melaksanakan perjalanan dinas kepada pegawai sebagai berikut :
+                        </p>
+                    </div>
+                </div>*@
+                @*<div class="row">*@
+                    <div class="col-lg-12 p-0 overflow-auto">
+                        <table class="table-bordered w-100">
+                            <thead>
+                                <tr>
+                                    <th width="10%" class="text-center text-middle">
+                                        <span class="lang en">#</span>
+                                        <span class="lang id">No.</span>
+                                    </th>
+                                    <th width="30%" class="text-middle">
+                                        <span class="lang en">Name</span>
+                                        <span class="lang id">Nama</span>
+                                    </th>
+                                    <th width="20%" class="text-center text-middle">                                        
+                                        <span class="lang en">Position</span>
+                                        <span class="lang id">Jabatan</span>
+                                    </th>
+                                    <th width="20%" class="text-center text-middle">
+                                        <span class="lang en">Grade</span>
+                                        <span class="lang id">Kelas<br />Jabatan</span>
+                                    </th>
+                                    <th width="20%" class="text-center text-middle">NIPP</th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="with : data.SPPD">
+                                <tr>
+                                    <th class="text-center text-middle">1</th>
+                                    <td data-bind="text:EmployeeName || '-'"></td>
+                                    <td class="text-center" data-bind="text:Position || '-'"></td>
+                                    <td class="text-center" data-bind="text:Grade || '-'"></td>
+                                    <td class="text-center" data-bind="text: model.data.Travel().EmployeeID() || '-'"></td>
+                                </tr>
+                            </tbody>
+                            <tbody data-bind="with : data.Travel">
+                                <tr>
+                                    <th class="text-center text-middle">2</th>
+                                    <td>
+                                        <span class="lang en">Origin</span>
+                                        <span class="lang id">Tempat Berangkat</span>
+                                    </td>
+                                    <td colspan="4" data-bind="text:Origin || '-'"></td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <span class="lang en">Destination</span>
+                                        <span class="lang id">Tempat Tujuan</span>
+                                    </td>
+                                    <td colspan="4" data-bind="text:Destination || '-'"></td>
+                                </tr>
+                            </tbody>
+                            <tbody data-bind="with : data.SPPD">
+                                <!-- ko foreach: model.data.TransportationID() -->
+                                <tr>
+                                    <!-- ko if: $index()==0 -->
+                                    <th class="text-center text-middle">3</th>
+                                    <td>
+                                        <span class="lang en">Transportation</span>
+                                        <span class="lang id">Angkutan Yang Dipergunakan</span>
+                                    </td>
+                                    <!-- /ko -->
+                                    <!-- ko ifnot: $index()==0 -->
+                                    <td></td>
+                                    <td></td>
+                                    <!-- /ko -->
+                                    <!-- ko if: $data != "" -->
+                                    <td colspan="4" data-bind="text: (model.map.transportation[$data]?(model.map.transportation[$data] || '-'):'-') "></td>
+                                    <!-- /ko -->
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if: TransportationDetails.Qb == 0 -->
+                                <tr>
+                                    <th class="text-center text-middle">3</th>
+                                    <td>
+                                        <span class="lang en">Transportation</span>
+                                        <span class="lang id">Angkutan Yang Dipergunakan</span>
+                                    </td>
+                                    <td colspan="4">-</td>
+                                </tr>
+                                <!-- /ko -->
+                            </tbody>
+                            <tbody data-bind="with : data.Travel">
+                                <tr>
+                                    <th class="text-center text-middle">4</th>
+                                    <td>
+                                        <span class="lang en">Schedule Start</span>
+                                        <span class="lang id">Tanggal Berangkat</span>
+                                    </td>
+                                    <td colspan="4" data-bind="text:kendo.toString(new Date(Schedule.Start()), 'dddd, dd MMMM yyyy, H:mm', 'id-ID')"></td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <span class="lang en">Schedule Finish</span>
+                                        <span class="lang id">Tanggal Kembali</span>                                        
+                                    </td>
+                                    <td colspan="4" data-bind="text:kendo.toString(new Date(Schedule.Finish()), 'dddd, dd MMMM yyyy, H:mm', 'id-ID')"></td>
+                                </tr>
+                            </tbody>
+                            <tbody data-bind="with : data.Travel">
+                                <tr>
+                                    <th class="text-center text-middle">5</th>
+                                    <td>
+                                        <span class="lang en">Purpose</span>
+                                        <span class="lang id">Maksud Perjalanan Dinas</span>
+                                    </td>
+                                    <td colspan="4" data-bind="text:(!!model.map.purpose[TravelPurpose()])?(model.map.purpose[TravelPurpose()].Description || '-'):'-'"></td>
+                                </tr>
+                            </tbody>
+                            <tbody data-bind="with:data.SPPD">
+                                <tr>
+                                    <th class="text-center text-middle">6</th>
+                                    <th class="text-middle">
+                                        <span class="lang en">Cost Detail</span>
+                                        <span class="lang id">Perincian Biaya</span>
+                                    </th>
+                                    <th class="text-middle" colspan="2">
+                                        <span class="lang en">Amount</span>
+                                        <span class="lang id">Jumlah</span>
+                                    </th>
+                                    <th class="text-middle text-center">
+                                        <span class="lang en">Note</span>
+                                        <span class="lang id">Keterangan</span>
+                                    </th>
+                                </tr>
+                                <!-- ko if:Ticket() > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <span class="lang en">Ticket</span>
+                                        <span class="lang id">Tiket</span>
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(Ticket(), 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                @*<!-- ko if:Accommodation > 0 -->*@
+                                @*<tr>
+                                    <td></td>
+                                    <td>
+                                        <span class="lang en">Hotel Accomodation</span>
+                                        <span class="lang id">Akomodasi Hotel</span>
+                                    </td>
+                                    <td colspan="2" data-bind="text:kendo.toString(Accommodation, 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>*@
+                                @*<!-- /ko -->*@
+                                <!-- ko if:AirportTransportation() > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <span class="lang en">Airport Transportation</span>
+                                        <span class="lang id">Transport Bandara</span>
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(AirportTransportation(), 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:LocalTransportation() > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <span class="lang en">Local Transportation</span>
+                                        <span class="lang id">Transport Lokal</span>
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(LocalTransportation(), 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:Highway() > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <span class="lang en">Highway</span>
+                                        <span class="lang id">Tol</span>
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(Highway(), 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:Parking() > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <span class="lang en">Parking</span>
+                                        <span class="lang id">Parkir</span>
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(Parking(), 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:Fuel() > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <span class="lang en">Fuel</span>
+                                        <span class="lang id">Bahan Bakar</span>
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(Fuel(), 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:Rent() > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <span class="lang en">Rent Car</span>
+                                        <span class="lang id">Sewa Kendaraan</span>
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(Rent(), 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:PocketMoney() > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <span class="lang en">Allowance</span>
+                                        <span class="lang id">Uang Saku</span>
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(PocketMoney(), 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:MealAllowance() > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <span class="lang en">Meal Allowance</span>
+                                        <span class="lang id">Uang Makan</span>
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(MealAllowance(), 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                                <!-- ko if:Laundry() > 0 -->
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        Laundry
+                                    </td>
+                                    <td class="text-right" colspan="2" data-bind="text:kendo.toString(Laundry(), 'c2')"></td>
+                                    <td class="text-center">-</td>
+                                </tr>
+                                <!-- /ko -->
+                            </tbody>
+                            <tbody>
+                                <tr>
+                                    <td></td>
+                                    <th class="text-middle">
+                                        <span class="lang en">Total Cost</span>
+                                        <span class="lang id">Total Biaya</span>
+                                    </th>
+                                    <td class="text-right no-border-right" colspan="2">
+                                        <strong data-bind="text:kendo.toString(model.data.Total(), 'c2')"></strong>
+                                        <br />
+                                        <small data-bind="text:terbilang(model.data.Total())+' Rupiah'"></small>
+                                    </td>
+                                    <td class="text-center"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                @*</div>*@
+            </div>
+            <div class="modal-footer">
+                <div class="task-details">
+                    <button type="button" class="btn btn-info" onclick="model.action.printSPPD()">Print</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,45 @@
+<div>
+<h1>Test External Page</h1>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent pharetra dui sit amet pellentesque vestibulum. Vivamus et arcu enim. Nulla dictum, orci quis tincidunt varius, libero metus luctus justo, lobortis lacinia diam felis non massa. Donec ac ultricies ligula. Ut pellentesque ut est eget tincidunt. Nunc pretium lectus eu leo vehicula congue. Nunc eleifend auctor accumsan. Nullam vulputate laoreet sem, non sagittis odio molestie sit amet. Suspendisse lacinia enim eget rhoncus lobortis. Maecenas sagittis mauris sed nisl convallis pulvinar. Morbi justo urna, efficitur non nulla posuere, faucibus maximus neque. Aenean id tortor sit amet urna euismod interdum. Pellentesque porttitor iaculis libero vel eleifend. Vestibulum nec rutrum augue.
+
+Aenean rhoncus et nunc a feugiat. Ut non ullamcorper mi, nec finibus purus. Integer eget ante purus. Vivamus imperdiet lacinia consequat. Pellentesque ac urna sodales lacus ullamcorper sagittis pulvinar sed lorem. Vestibulum non urna sem. Mauris eros augue, varius a libero in, pellentesque feugiat elit.
+
+Morbi commodo malesuada dui, et porta magna mollis vehicula. Nullam iaculis tellus mauris. Nullam et tortor in quam auctor condimentum. Quisque est metus, sodales sit amet tristique eget, laoreet sed mi. Proin et mauris nec velit dignissim scelerisque. Suspendisse eget tortor aliquam, dictum massa non, semper mauris. In sed tempor quam. Proin non magna arcu. Nulla facilisi. Praesent tristique nulla quis ipsum dictum accumsan. Nullam placerat diam ut sapien ullamcorper laoreet. Praesent eget enim tristique, faucibus diam at, auctor justo. Sed et pulvinar mauris. Nullam commodo ligula gravida tincidunt fringilla. Vivamus laoreet feugiat sollicitudin. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.
+
+Proin eget dui laoreet mi dapibus mattis id vulputate nulla. Donec id odio vel tortor porta rutrum a eu nisl. Maecenas eleifend leo nisi, eu tincidunt massa dapibus sit amet. Sed et mattis justo, in scelerisque orci. Sed in libero iaculis, rutrum ex id, sagittis elit. Nam eu massa lacinia, eleifend magna quis, imperdiet sapien. Nam pellentesque sodales diam, vel sodales elit volutpat id. Praesent condimentum velit vel felis tristique, sed pharetra sem luctus. Pellentesque finibus faucibus ullamcorper. Proin eget eleifend nibh, non tempus urna. Morbi dapibus sollicitudin magna, ut egestas metus scelerisque eu. Maecenas a tortor sed libero rhoncus malesuada. Morbi hendrerit diam turpis, eget gravida sapien sollicitudin non.
+</div>
+<hr/>
+<a class="btn btn-info" href="#" onclick="TestMessage()">click</a>
+
+<script type="text/javascript">
+
+// Receiver
+let receiverFunction = function(e){
+    console.log("✔ ess message received :",e);
+    let type = e.data.type, param=e.data.param, uid=e.data.uid;       
+    switch (type) {            
+        case "save":
+            // Reply message to ESS
+            sendESSMessage("test",{a:1,b:2, c:3, SurveyID: parseInt(Math.random() * 10000000000)},uid);
+        default:
+            console.log(param);
+            break;
+    }
+};
+
+removeEventListener("message", receiverFunction, false);
+addEventListener("message", receiverFunction, false);
+
+
+// Sender
+function sendESSMessage(type,param,uid = ""){
+    console.log("send message to ESS");
+    parent.postMessage({type:type, param:param, uid:uid},"*");
+}
+
+function TestMessage(){
+    sendESSMessage("test","test param");
+}
+</script>
+
+<script src="~/assets/vendors/iframe-resizer/iframeResizer.contentWindow.min.js"></script>

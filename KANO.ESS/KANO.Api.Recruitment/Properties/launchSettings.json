@@ -1,0 +1,41 @@
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:7015",
+      "sslPort": 7016
+    }
+  },
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": false,
+      "launchUrl": "api/recruitment",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "KANO.Api.Recruitment": {
+      "commandName": "Project",
+      "launchUrl": "api/recruitment",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:7016;http://localhost:7015"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchBrowser": false,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/api/recruitment",
+      "environmentVariables": {
+        "ASPNETCORE_URLS": "https://+:7016;http://+:7015",
+        "ASPNETCORE_HTTPS_PORT": "7016"
+      },
+      "httpPort": 7015,
+      "useSSL": true,
+      "sslPort": 7016
+    }
+  }
+}

@@ -1,0 +1,153 @@
+﻿@using KANO.Core.Model
+@using KANO.ESS
+@{
+    Layout = "_Layout";
+}
+
+<script>
+
+    @*Defining Model Prototype*@
+    model.proto = {
+        Leave: @Html.Raw(Json.Serialize(new Leave())),
+        LeaveInfo: @Html.Raw(Json.Serialize(new LeaveInfo())),
+        LeaveMaintenance: @Html.Raw(Json.Serialize(new LeaveMaintenance())),
+    };
+    model.proto.Leave.Schedule = @Html.Raw(Json.Serialize(new DateRange()));
+    model.proto.Leave.HTMLFile = "";
+</script>
+<script src="~/assets/vendors/kendoui/js/kendo.timezones.min.js"></script>
+<script src="~/assets/areas/ess/js/leave.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+<link rel="stylesheet" href="~/assets/areas/ess/css/leave.css?@(Startup.Tick??DateTime.Now.Ticks)">
+
+<div class="row">
+    <main class="col-lg-12" role="main">
+        <div class="row">
+            <div class="col-lg-12">
+
+                <div id="box-calendar" class="card box">
+                    <div class="card-header clearfix px-xs-1" data-bind="with: model">
+                        <div class="row" data-bind="with:data.info">
+                            <div class="col-md-4 col-12">
+                                <nav class="nav p-0 btn-group mb-md-xs-2 w-md-xs-100 leave-button-groups" role="group">
+                                    <!-- ko if: model.app.hasAccess('Leave') -->
+                                    <a class="nav-link btn btn-lg btn-outline-primary active" id="calendar-tab" data-toggle="tab" href="#calendar">Calendar</a>
+                                    <!-- /ko -->
+                                    <!-- ko if: model.app.hasAccess('LeaveHistory') -->
+                                    <a class="nav-link btn btn-lg btn-outline-primary" id="history-tab" data-toggle="tab" href="#history">History</a>
+                                    <!-- /ko -->
+                                    <!-- ko if: model.app.hasAccess('LeaveSubordinate') -->
+                                    <a class="nav-link btn btn-lg btn-outline-primary" id="subordinate-tab" data-toggle="tab" href="#subordinate" data-bind="visible:model.app.hasSubordinate()">Subordinate</a>
+                                    <!-- /ko -->
+                                </nav>
+                            </div>
+                            <div class=" col-md-8 pl-md-4">
+                                <button class="btn btn-md btn-info float-md-right w-md-xs-100" onclick="model.action.addRequestLeave()" data-bind="enable: model.is.requestEnable()">Request Leave</button>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <div class="card-body px-1 pb-2 pt-1">
+                        <div class="tab-content" id="myTabContent">
+                            @*<div class="col-md-12">
+                                    <strong class="mr-1">Leave Remainder :</strong>
+                                    <span class="mr-3" data-bind="text:Remainder">-</span>
+                                </div><br />*@
+                            <div class="tab-pane fade show active" id="calendar" role="tabpanel" aria-labelledby="calendar-tab">
+                                <div class="row mb-2">
+                                    <div class="col-md-12">
+                                        <table class="table table-bordered leave-summary d-xs-none">
+                                            <tr>
+                                                <th width="75"> Leave Remainder </th>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-success" data-bind="click:model.action.detailReminder, text: model.data.info().Remainder()">-</button>
+                                                </td>                                                
+                                                <th width="75"> Waiting for Approval </th>
+                                                <td>
+                                                    <span data-bind="text: model.data.pending()">-</span>
+                                                </td>
+                                            </tr>                                            
+                                        </table>
+                                        <table class="table table-bordered leave-summary border-0 d-xs-block hide">                                            
+                                            <tr>
+                                                <th width="100" class="w-100"> Leave Remainder </th>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-success" data-bind="click:model.action.detailReminder, text: model.data.info().Remainder()">-</button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th width="100" class="w-100"> Waiting for Approval </th>
+                                                <td class="text-center">
+                                                    <span data-bind="text: model.data.pending()">-</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <section class="panel col-md-12">
+                                        <div class="panel-body">
+                                            <div id="scheduler-leave" class="w-100"></div>
+                                        </div>
+                                    </section>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+                                <section class="panel col-md-12 p-md-xs-0">
+                                    <div class="panel-body">
+                                        @{
+                                            Html.RenderPartial("HistoryLeave");
+                                        }
+                                    </div>
+                                </section>
+                            </div>
+                            <div class="tab-pane fade" id="subordinate" role="tabpanel" aria-labelledby="subordinate-tab">
+                                <section class="panel col-md-12">
+                                    <div class="panel-body">
+                                        @{
+                                            Html.RenderPartial("SubordinateLeave");
+                                        }
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<div id="leaveReminder" class="modal" role="dialog" data-bind="with:model">
+    <div class="modal-dialog" role="document" data-bind="">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-bag-personal"></i>
+                    Reminder Leave
+                </h5>
+            </div>
+            <div class="modal-body">
+                <div id="table-detailReminder" data-bind="kendoGrid:{
+                     data: model.data.allreminder,
+                     columns: [{
+                        field: 'Year',
+                        title: 'Year'
+                     }, {
+                        field: 'Remainder',
+                        title: 'Remainder'
+                     }]
+                }"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn ml-xs-0 btn-sm btn-danger" data-bind="" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+@await Html.PartialAsync("ModalLeave.cshtml")
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.init.leave();
+    });
+</script>

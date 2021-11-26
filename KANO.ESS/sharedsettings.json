@@ -1,0 +1,99 @@
+{
+  "Path": {
+    "UploadDirectory": "D:\\Workspace\\.net\\ess\\files",
+    "MobileEmployeeImage": "D:\\Workspace\\.net\\ess\\files",
+    "AbsenceFilePath": "D:\\Absence",
+    "IpServer": "127.0.0.1"
+  },
+  "Auth": {
+    "Mode": "Cookie",
+    "Default": "esspsemployee"
+  },
+  "AuditLog": {
+    "Activated": true
+  },
+  "Request": {
+    "GatewayUrl": "http://localhost:8080/",
+    "NotificationUrl": "http://localhost:8080/api/notification-hub",
+    "NotificationHub": "/api/notification-hub",
+    "NotificationProxy":true, 
+    "PushNotificationPublicKey": "BCaip8rIdaLOm1nZTAOlLzMurxPOTketB1QpbL9GLw-Av3kjgXngcHHBjugvqYQDG3AUiIJfVbjbH33pHcm_McE",
+    "PushNotificationPrivateKey": "O-b6Sl0tUqFrOUeoMKOc3JCFtDFXocwB5cGI1ZMg9es",
+    "PushNotificationSubject": "mailto:no-reply@tps.co.id",
+    "Username": "<none>",
+    "Password": "<none>",
+    "UploadMaxFileSize": 10000000,
+    "UploadAllowedExtension": [ ".gif", ".jpg", ".png", ".pdf" ],
+    "Log": {
+      "Activated": false,
+      "Table": "Logs"
+    }
+  },
+  "MongoDB": {
+    "DefaultConnection": "Default",
+    "ConnectionLists": {
+      "Default": {
+        "ConnectionString": "mongodb://localhost:27017/ess"
+      },
+      "Production": {
+        "ConnectionString": "mongodb://tpsaxdbx:27017/ess"
+      }
+    }
+  },
+  "Odoo": {
+    "Url": "http://localhost:8069/",
+    "Username": "dzanurano@gmail.com",
+    "Password": "1234",
+    "DB": "odoo13",
+    "Domain": "http://localhost:8069/"
+  },
+  "AX": {
+    "DefaultConnection": "Default",
+    "ConnectionLists": {
+      "Default": {
+        "Domain": "TPS",
+        "_Host": "tpsaxappx",
+        "__Host": "172.19.154.81",
+        "Host": "7.172.65.217",
+        "Port": "8202",
+        "Username": "essadmin",
+        "Password": "admin_ess",
+        "Company": "TPS",
+        "UserPrincipalName": "essadmin@tps.co.id"
+      },
+      "Production": {
+        "Domain": "tps.co.id",
+        "Host": "tpsaxapp",
+        "Port": "8201",
+        "Username": "essadmin",
+        "Password": "admin_ess",
+        "Company": "TPS",
+        "UserPrincipalName": "axadmin@tps.co.id"
+      }
+    }
+  },
+  "SMTP": {
+    "_SMTP_Host_Default": "localhost",
+    "_SMTP_Port_Default": "2500",
+    "_SMTP_From_Default": "no-reply@kanosolution.com",
+    "_SMTP_UserName_Default": "no-reply@kanosolution.com",
+    "_SMTP_Password_Default": "",
+    "_SMTP_UseSSL_Default": "false",
+    "__SMTP_Host_Default": "smtp.office365.com",
+    "__SMTP_Port_Default": "587",
+    "__SMTP_From_Default": "no-reply@kanosolution.com",
+    "__SMTP_UserName_Default": "no-reply@kanosolution.com",
+    "__SMTP_Password_Default": "KnxNP5aO",
+    "__SMTP_UseSSL_Default": "True",
+    "SMTP_Host_Default": "localhost",
+    "SMTP_Port_Default": "2500",
+    "SMTP_From_Default": "no-reply@tps.co.id",
+    "SMTP_UserName_Default": "",
+    "SMTP_Password_Default": "",
+    "SMTP_UseSSL_Default": "false"
+  },
+  "Default": {
+    "EmployeeNonShiftRole": "CommonEmployeeNS",
+    "EmployeeShiftRole": "CommonEmployee"
+  }  
+}

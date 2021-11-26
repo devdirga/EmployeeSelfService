@@ -1,0 +1,52 @@
+﻿@using KANO.Core.Model
+@using KANO.Core.Service
+@using KANO.ESS
+@using Newtonsoft.Json;
+
+@{
+    Layout = "_Layout";
+}
+
+<script>
+    const URL_GET_USER_MANAGEMENT = "@Url.Action("GetData", "Page")";
+    const URL_GET_PAGE = "@Url.Action("FindTiered", "Page")";
+    const URL_SAVE_USER_MANAGEMENT = "@Url.Action("Save", "Page")";
+    const URL_GET_DETAIL_USER_MANAGEMENT = "@Url.Action("GetDetail", "Page")";
+    model.proto = {
+        DetailData: ko.observable(@Html.Raw(JsonConvert.SerializeObject(new Page(), Formatting.Indented))),
+        Detail: ko.mapping.fromJS(@Html.Raw(JsonConvert.SerializeObject(new Page(), Formatting.Indented))),
+    }
+</script>
+<script src="~/assets/areas/ess/js/pagemanagement.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+<style>
+    span.k-widget.k-dropdown.form-control {
+        width: 100%;
+    }
+    .icon-large i.mdi{
+        font-size:22px;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card box">
+            <div class="card-header clearfix">
+                <a href="#" onclick="model.form.Add()" class="btn btn-sm btn-info float-right">Create</a>
+            </div>
+            <div class="card-body">
+                <div id="gridMain"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("ModalPage.cshtml")
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.form.initGrid();
+
+    })
+</script>

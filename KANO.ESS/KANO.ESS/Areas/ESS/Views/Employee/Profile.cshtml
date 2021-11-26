@@ -1,0 +1,122 @@
+﻿@using KANO.Core.Model
+@using KANO.ESS
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Employee";
+}
+
+<script>       
+    @*Defining Model Prototype*@
+    model.proto = {
+        Employee: @Html.Raw(Json.Serialize(new Employee())),
+        EmployeeUpdateRequest: @Html.Raw(Json.Serialize(new Employee())),
+        Family: @Html.Raw(Json.Serialize(new Family())),
+        DateRange: @Html.Raw(Json.Serialize(new DateRange())),
+        Certificate: @Html.Raw(Json.Serialize(new Certificate())),
+        Document: @Html.Raw(Json.Serialize(new Document())),
+        UpdateRequest: @Html.Raw(Json.Serialize(new UpdateRequest())),
+        Identification: @Html.Raw(Json.Serialize(new Identification())),
+        Address: @Html.Raw(Json.Serialize(new Address())),
+        ElectronicAddress: @Html.Raw(Json.Serialize(new ElectronicAddress())),
+        FieldAttachment: @Html.Raw(Json.Serialize(new FieldAttachment())),
+    };
+    model.proto.Family.HTMLFile = "";
+    model.proto.Certificate.HTMLFile = "";
+    model.proto.Document.HTMLFile = "";
+    model.proto.Employee.Fields = [];
+</script>
+<link href="~/assets/areas/ess/css/employee.css?@(Startup.Tick??DateTime.Now.Ticks)" rel="stylesheet" />
+<script src="~/assets/areas/ess/js/employee.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+<div class="row" data-bind="with: model">
+    <main class="col-lg-12" role="main">
+        <ul class="nav nav-tabs d-nav-tabs-none" id="employeeTab" role="tablist">
+            <!-- ko if: app.hasAccess('EmployeeProfile') -->
+            <li class="nav-item">
+                <a class="nav-link" id="profile-tab" data-toggle="tab" href="#resume" role="tab" aria-controls="resume" aria-selected="false">Resume</a>
+            </li>
+            <!-- /ko -->
+            <!-- ko if: app.hasAccess('EmployeeFamily') -->
+            <li class="nav-item">
+                <a class="nav-link" id="family-tab" data-toggle="tab" href="#family" role="tab" aria-controls="family" aria-selected="false">Family</a>
+            </li>
+            <!-- /ko -->
+            <!-- ko if: app.hasAccess('EmployeeEmployment') -->
+            <li class="nav-item">
+                <a class="nav-link" id="employments-tab" data-toggle="tab" href="#employments" role="tab" aria-controls="employments" aria-selected="false">Employment</a>
+            </li>
+            <!-- /ko -->
+            <!-- ko if: app.hasAccess('EmployeeCertificate') -->
+            <li class="nav-item">
+                <a class="nav-link" id="certificate-tab" data-toggle="tab" href="#certificate" role="tab" aria-controls="certificate" aria-selected="false">Certificate</a>
+            </li>
+            <!-- /ko -->
+            @*<li class="nav-item">
+            <a class="nav-link" id="installment-tab" data-toggle="tab" href="#installment" role="tab" aria-controls="installment" aria-selected="false">Installment</a>
+        </li>*@
+            <!-- ko if: app.hasAccess('EmployeeWarningLetter') -->
+            <li class="nav-item">
+                <a class="nav-link" id="warning-letter-tab" data-toggle="tab" href="#warning-letter" role="tab" aria-controls="warning-letter" aria-selected="false">Warning Letter</a>
+            </li>
+            <!-- /ko -->
+            <!-- ko if: app.hasAccess('EmployeeMedicalRecord') -->
+            <li class="nav-item">
+                <a class="nav-link" id="medical-record-tab" data-toggle="tab" href="#medical-record" role="tab" aria-controls="medical-record" aria-selected="false">Medical Record</a>
+            </li>
+            <!-- /ko -->
+            <!-- ko if: app.hasAccess('EmployeeDocument') -->
+            <li class="nav-item">
+                <a class="nav-link" id="documents-tab" data-toggle="tab" href="#documents" role="tab" aria-controls="documents" aria-selected="false">Documents</a>
+            </li>
+            <!-- /ko -->
+        </ul>
+        <div class="dropdown d-hide-dropdown">
+            <button class="w-100 btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Menu
+            </button>
+            <div class="dropdown-menu p-0 m-0 w-100 border-radius-none" aria-labelledby="dropdownMenuButton" id="dropdownMenuButtons">
+                <a class="dropdown-item" id="profile-tab" data-toggle="tab" href="#resume" role="tab" aria-controls="resume" onclick="model.action.selectedDropdownMenu(this)">Resume</a>
+                <a class="dropdown-item" id="family-tab" data-toggle="tab" href="#family" role="tab" aria-controls="family" onclick="model.action.selectedDropdownMenu(this)">Family</a>
+                <a class="dropdown-item" id="employments-tab" data-toggle="tab" href="#employments" role="tab" aria-controls="employments" onclick="model.action.selectedDropdownMenu(this)">Employment</a>
+                <a class="dropdown-item" id="certificate-tab" data-toggle="tab" href="#certificate" role="tab" aria-controls="certificate" onclick="model.action.selectedDropdownMenu(this)">Certificate</a>
+                <a class="dropdown-item" id="installment-tab" data-toggle="tab" href="#installment" role="tab" aria-controls="installment" onclick="model.action.selectedDropdownMenu(this)">Installment</a>
+                <a class="dropdown-item" id="warning-letter-tab" data-toggle="tab" href="#warning-letter" role="tab" aria-controls="warning-letter" onclick="model.action.selectedDropdownMenu(this)">Warning Letter</a>
+                <a class="dropdown-item" id="medical-record-tab" data-toggle="tab" href="#medical-record" role="tab" aria-controls="medical-record" onclick="model.action.selectedDropdownMenu(this)">Medical Record</a>
+                <a class="dropdown-item" id="documents-tab" data-toggle="tab" href="#documents" role="tab" aria-controls="documents" onclick="model.action.selectedDropdownMenu(this)">Documents</a>
+            </div>
+        </div>
+        <div class="tab-content" id="employeeTabContent">
+            <div class="tab-pane fade" id="resume" role="tabpanel" aria-labelledby="resume-tab">
+                @await Html.PartialAsync("InformationTabResume.cshtml")
+            </div>
+            <div class="tab-pane fade" id="family" role="tabpanel" aria-labelledby="family-tab">
+                @await Html.PartialAsync("InformationTabFamily.cshtml")
+            </div>
+            <div class="tab-pane fade" id="employments" role="tabpanel" aria-labelledby="employments-tab">
+                @await Html.PartialAsync("InformationTabEmployment.cshtml")
+            </div>
+            <div class="tab-pane fade" id="certificate" role="tabpanel" aria-labelledby="certificate-tab">
+                @await Html.PartialAsync("InformationTabCertificate.cshtml")
+            </div>
+            @*<div class="tab-pane fade" id="installment" role="tabpanel" aria-labelledby="installment-tab">
+            @await Html.PartialAsync("InformationTabInstallment.cshtml")
+        </div>*@
+            <div class="tab-pane fade" id="warning-letter" role="tabpanel" aria-labelledby="warning-letter-tab">
+                @await Html.PartialAsync("InformationTabWarningLetter.cshtml")
+            </div>
+            <div class="tab-pane fade" id="medical-record" role="tabpanel" aria-labelledby="medical-record-tab">
+                @await Html.PartialAsync("InformationTabMedicalRecord.cshtml")
+            </div>
+            <div class="tab-pane fade" id="documents" role="tabpanel" aria-labelledby="documents-tab">
+                @await Html.PartialAsync("InformationTabDocument.cshtml")
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>   
+    $(function () {
+        @*Render UI Components*@
+        model.init.employee();     
+    })
+</script>

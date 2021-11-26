@@ -1,0 +1,49 @@
+﻿<div id="leaveModal" class="modal" role="dialog" data-bind="with:model">
+    <div class="modal-dialog" role="document" data-bind="">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-bag-personal"></i>
+                    View Leave
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="LeaveForm">
+                    <section data-bind="with:detail.leave">
+                        <div class="form-group">
+                            <label for="input">Employee</label>
+                            <div class="form-control-plaintext" data-bind="html:`${EmployeeName()}  (${EmployeeID()})`"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="input">Subtitute Employee</label>
+                            <div class="form-control-plaintext" data-bind="html:`${SubtituteEmployeeName()}  (${SubtituteEmployeeID()})`"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="type-leave">Type Leave</label>
+                            <div class="form-control-plaintext" data-bind="html:TypeDescription"></div>
+                        </div>
+                        <!-- ko if:Accessible -->
+                        <div class="form-group" data-bind="">
+                            <label for="input">Additional Document</label>
+                            <a href="" class="btn btn-sm btn-block btn-info" target="_blank" data-bind="attr:{title:Filename, href:`/ESS/Leave/Download/${EmployeeID()}/${AXRequestID()}/${Filename()}`}"><span class="mdi mdi-download"></span> Download Document</a>
+                        </div>
+                        <!-- /ko -->
+                        <div class="form-group">
+                            <label for="input">Leave Reason</label>
+                            <div class="form-control-plaintext" data-bind="html:Description"></div>
+                        </div>
+                    </section>
+                    <div class="form-group">
+                        <label for="input" class="col-md-12 p-0">Date(s)</label>
+                        <div id="dateCalendarLeave" class="w-100"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>

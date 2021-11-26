@@ -1,0 +1,36 @@
+{
+  "Auth": {
+    "Mode": "Cookie"
+  },
+  "Path": {
+    "UploadDirectory": "D:\\Workspace\\.net\\ess\\files"
+  },
+  "Request": {
+    "GatewayUrl": "http://kano.api.gateway:8080/",
+    "Username": "<none>",
+    "Password": "<none>"
+  },
+  "MongoDB": {
+    "DefaultConnection": "Default",
+    "ConnectionLists": {
+      "Default": {
+        "ConnectionString": "mongodb://localhost:27017/ess"
+      }
+    }
+  },
+  "AX": {
+    "Domain": "<none>",
+    "Username": "<none>",
+    "Password": "<none>",
+    "Company": "<none>"
+  },
+  "SMTP": {
+    "SMTP_Host_Default": "localhost",
+    "SMTP_Port_Default": "2500",
+    "SMTP_From_Default": "none@kanosolution.com",
+    "SMTP_UserName_Default": "no-reply@kanosolution.com",
+    "SMTP_Password_Default": "",
+    "SMTP_UseSSL_Default": false
+  },
+  "DummyData": {}
+}

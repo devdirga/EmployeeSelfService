@@ -1,0 +1,126 @@
+﻿<div id="leaveModal" class="modal" role="dialog" data-bind="with:model, visible:!model.app.config.readonly">
+    <div class="modal-dialog" role="document" data-bind="">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-bag-personal"></i>
+                    Leave
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="with:data.leave, afterRender: model.on.renderCalenderLeave">
+                <form id="LeaveForm">
+                    @*<div class="form-group">
+            <label for="input" class="required">Address During Leave</label>
+            <input type="text" class="form-control" data-bind="value:AddressDuringLeave" />
+        </div>
+        <div class="form-group">
+            <label for="input" class="required">Contact During Leave</label>
+            <input type="text" class="form-control" data-bind="value:ContactDuringLeave" />
+        </div>*@
+                    <div class="form-group">
+                        <label for="input" class="required">Subtitute Employee</label>
+                        <input type="text" class="form-control d-none" id="subtitution-name-leave" data-bind="value:SubtituteEmployeeName" readonly />
+                        <input type="text" class="form-control" id="subtitution-leave" data-bind="kendoDropDownList: {
+                            value: SubtituteEmployeeID,
+                            dataTextField: 'Name',
+                            dataValueField: 'ID',
+                            data: model.data.subtitution,
+                            filter: 'contains',
+                            optionLabel: 'Select Subtitute Employee',
+                            enable: !model.is.readonly(),
+                        }" required validationMessage="This field is required" />
+                        <span class="k-invalid-msg" data-for="subtitution-leave"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="type-leave" class="required">Type Leave</label>
+                        <input type="text" class="form-control d-none" id="type-name-leave" data-bind="value:TypeDescription" readonly />
+                        <input type="text" class="form-control" id="type-leave" data-bind="kendoDropDownList: {
+                            value: Type,
+                            dataTextField: 'Description',
+                            dataValueField: 'TypeId',
+                            data: model.data.typeleave,
+                            filter: 'contains',
+                            optionLabel: 'Select Type',
+                            change: model.on.leaveTypeChange,
+                            enable: !model.is.readonly(),
+                        }" required validationMessage="This field is required" />
+                        <small class="form-text text-muted" data-bind="text: model.data.infoTypeLeave()"></small>
+                        <span class="k-invalid-msg" data-for="type-leave"></span>
+                    </div>
+                    <!-- ko if: model.is.readonly() == true -->
+                    <div class="form-group">
+                        <label for="input" class="col-md-12 p-0 required">Date(s)</label>
+                        <div id="viewCalendarLeave" class="w-100"></div>
+                    </div>
+                    <!-- /ko -->
+                    <!-- ko if: model.is.readonly() == false -->
+                    <div class="form-group">
+                        <label for="input" class="col-md-12 p-0 required">Date(s)</label>
+                        <div id="dateCalendarLeave"></div>
+                        <!-- <div class="task-details text-muted" data-bind="visible: model.is.readonly()">* Press <code>shift</code> to select between date</div> -->
+                    </div>
+                    <!-- /ko -->
+
+                    <div class="form-group">
+                        <label for="input" class="required">Reason</label>
+                        <textarea id="Description" type="text" cols="5" rows="2" class="form-control form-control-sm" data-bind="value:Description, enable: !model.is.readonly()" required validationMessage="This field is required"></textarea>
+                        <span class="k-invalid-msg" data-for="Description"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Additional Document</label>
+                        <!-- ko ifnot:model.is.readonly() -->
+                        <input type="file" name="additionalDocument" id="additionalDocument" data-bind="kendoUpload: {
+                               multiple: false,
+                               template: kendo.template($('#fileTemplate').html()),
+                               select: model.on.documentSelect,
+                               @*remove: model.on.documentRemove,*@
+                               validation: {
+                                    allowedExtensions: model.app.config.upload.allowedExtensions,
+                                    maxFileSize: model.app.config.upload.maxFileSize
+                                }
+                               }" />
+                        <!-- /ko -->
+                        <!-- ko if:!!HTMLFile() -->
+                        <div data-bind="html:HTMLFile"></div>
+                        <!-- /ko -->
+                        <!-- ko if:model.is.readonly() -->
+                        <!-- ko if:!HTMLFile() -->
+                        <pre>No Document Attached</pre>
+                        <!-- /ko -->
+                        <!-- /ko -->
+                    </div>
+
+                    <!-- ko if:model.is.indicatorVisible() -->
+                    <hr />
+                    <div class="form-group">
+                        <div class="float-sm-left">
+                            <strong class="mr-1">Current Remainder :</strong>
+                            <span class="col-md-16 p-0" data-bind="text: model.data.remainder(), css:{'text-danger':model.data.remainder() < 0}">Date(s)</span>
+                        </div>
+                        <div class="float-sm-right">
+                            <strong class="mr-1">Waiting For Approval :</strong>
+                            <span class="col-md-16 float-sm-right" data-bind="text: model.data.pendingrequest()">Date(s)</span>
+                        </div>
+                    </div>
+                    <!-- /ko -->
+                </form>
+            </div>
+            <div class="modal-footer" data-bind="visible: !model.is.readonly()">
+                <div class="task-details">
+                    @*<button type="button" class="btn btn-sm btn-danger" data-bind="visible:model.is.cancelable() , click: model.action.deleteRequestLeave">Delete</button>*@
+                    <button type="button" class="btn ml-xs-0 btn-light" data-bind="" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn ml-xs-0 btn-info" data-bind="click:model.action.saveRequestLeave">Submit Form</button>
+                </div>
+                @*<div class="float-left">
+                </div>
+                <div class="float-right">
+                    <button type="button" class="btn btn-dark" data-bind="" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-info" data-bind="click:model.action.saveRequestLeave">Submit Form</button>
+                </div>*@
+            </div>
+        </div>
+    </div>    
+</div>

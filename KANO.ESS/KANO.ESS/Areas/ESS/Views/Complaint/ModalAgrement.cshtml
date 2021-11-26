@@ -1,0 +1,112 @@
+﻿<style>
+    .page-template > * {
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        font-size: 80%;
+    }
+
+    .page-template .header {
+        top: 50px;
+    }
+
+    .page-template .footers {
+        bottom: auto;
+    }
+</style>
+<script type="x/kendo-template" id="page-template">
+    <div class="page-template">
+        <div class="header">
+            <div class="col-12">
+                <h3 class="text-center text-underline">
+                    <u>SURAT PERSETUJUAN</u>
+                </h3>
+                
+            </div>
+        </div>
+        <div class="footers">
+            <div class="col-12">
+                
+              
+            </div>
+        </div>
+    </div>
+</script>
+
+<div id="modal" class="modal" role="dialog" data-bind="with: model">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-file-document-outline"></i>  
+                    SPPD
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div id="Pdf" class="modal-body document lang-en">
+              
+                    <div class="col-lg-12 p-0 overflow-auto">
+                        <table class="table-bordered w-100">
+                            <thead>
+                                <tr>
+                                    <th width="10%" class="text-center text-middle">
+                                        <span class="lang en">#</span>
+                                        <span class="lang id">No.</span>
+                                    </th>
+                                    <th width="30%" class="text-middle">
+                                        <span class="lang en">Name</span>
+                                        <span class="lang id">Nama</span>
+                                    </th>
+                                    <th width="20%" class="text-center text-middle">                                        
+                                        <span class="lang en">Position</span>
+                                        <span class="lang id">Jabatan</span>
+                                    </th>
+                                    <th width="20%" class="text-center text-middle">
+                                        <span class="lang en">Grade</span>
+                                        <span class="lang id">Kelas<br />Jabatan</span>
+                                    </th>
+                                    <th width="20%" class="text-center text-middle">NIPP</th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="with : data.SPPD">
+                                <tr>
+                                    <th class="text-center text-middle">1</th>
+                                    <td data-bind="text:EmployeeName || '-'"></td>
+                                    <td class="text-center" data-bind="text:Position || '-'"></td>
+                                    <td class="text-center" data-bind="text:Grade || '-'"></td>
+                                    <td class="text-center" data-bind="text: model.data.Travel().EmployeeID() || '-'"></td>
+                                </tr>
+                            </tbody>
+                            <tbody data-bind="with : data.Complaint">
+                                <tr>
+                                    <th class="text-center text-middle">2</th>
+                                    <td>
+                                        <span class="lang en">Origin</span>
+                                        <span class="lang id">Tempat Berangkat</span>
+                                    </td>
+                                    <td colspan="4" data-bind="text:Origin || '-'"></td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <span class="lang en">Destination</span>
+                                        <span class="lang id">Tempat Tujuan</span>
+                                    </td>
+                                    <td colspan="4" data-bind="text:Destination || '-'"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+              
+            </div>
+            <div class="modal-footer">
+                <div class="task-details">
+                    <button type="button" class="btn btn-info" onclick="model.action.print()">Print</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

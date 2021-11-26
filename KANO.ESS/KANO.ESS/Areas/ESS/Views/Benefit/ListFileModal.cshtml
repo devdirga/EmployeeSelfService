@@ -1,0 +1,55 @@
+﻿<div id="modalFilesAttachment" class="modal center-element-div"  tabindex="-1" role="dialog" data-bind="with:model">
+    <div class="modal-dialog" role="document" >
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Attachment(s)</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                    <div class="form-group">
+                        @*<button type="button" class="btn btn-info" data-bind="click: $parent.action.adddocument">Add Attachment</button>*@                        
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th class="w-70">Document type</th>
+                                    <th class="w-20">Amount</th>
+                                    <th class="w-10">Attachment</th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="ifnot: $parent.data.attachmentfiles().length">
+                                <tr>
+                                    <td colspan="3" class="table-body-header" >No attachment</td>
+                                </tr>
+                            </tbody>
+                            <tbody data-bind="foreach: $parent.data.attachmentfiles()">
+                                <tr data-bind="css:{'odd-row':$index()%2 == 1}">
+                                    <td>
+                                        <text data-bind="text: $parent.list.documentType()[TypeID].Description "></text>
+                                    </td>
+                                    <td>
+                                        <text data-bind="text : kendo.toString(Amount, 'c2')"></text>
+                                    </td>                                    
+                                    <td class="text-center">
+                                        <button class="btn btn-xs btn-outline-success" data-bind="click: model.action.downloadMedicalAttachment"><i class="fa mdi mdi-download"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            @*<tfoot>
+                                <tr>
+                                    <td></td>
+                                    <td class="py-2 px-2">
+                                        <h4 class="p-0 m-0" data-bind="text:kendo.toString(TotalAmount, 'c2')"></h4>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>*@
+                        </table>
+                    </div>
+               
+            </div>
+            
+        </div>
+    </div>
+</div>

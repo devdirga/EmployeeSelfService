@@ -1,0 +1,206 @@
+﻿@using KANO.Core.Model
+@using KANO.ESS;
+
+@{
+    Layout = "_Layout";
+}
+
+<script>
+    @*Defining Model Prototype*@
+    model.proto = {
+        ParamTask: @Html.Raw(Json.Serialize(new ParamTask())),
+        Leave: @Html.Raw(Json.Serialize(new Leave())),
+        LeaveInfo: @Html.Raw(Json.Serialize(new LeaveInfo())),
+        TimeAttendance: @Html.Raw(Json.Serialize(new TimeAttendance())),
+        IdentificationForm: @Html.Raw(Json.Serialize(new AbsenceRecommendation())),
+        Employee: @Html.Raw(Json.Serialize(new Employee())),
+        Address: @Html.Raw(Json.Serialize(new Address())),
+        FieldAttachment: @Html.Raw(Json.Serialize(new FieldAttachment())),
+        Travel: @Html.Raw(Json.Serialize(new Travel())),
+        DocumentRequest: @Html.Raw(Json.Serialize(new DocumentRequest())),
+    };
+
+    model.proto.Leave.Schedule = @Html.Raw(Json.Serialize(new DateRange()));
+    model.proto.Employee.GenderDescription = "";
+    model.proto.Employee.ExpatriateDescription = ""
+</script>
+
+<link href="~/assets/areas/ess/css/activity.css?@(Startup.Tick??DateTime.Now.Ticks)" rel="stylesheet" />
+<script src="~/assets/areas/ess/js/activity.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+
+<div class="row" data-bind="with:model">
+    <div class="col-md-7 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body p-xs-4">
+                <div class="col-12 p-0 d-xl-flex mb-3">
+                    <div class="col-xl-6 col-12 p-0 mb-2">
+                        <div class="btn-group btn-group-toggle w-lg-xs-100" data-toggle="buttons">
+                            <label class="btn btn-sm btn-outline-secondary active" onclick="model.data.filterNotification('all')">
+                                <input type="radio" name="options" id="all-notification" autocomplete="off" checked> All
+                            </label>
+                            <label class="btn btn-sm btn-outline-secondary" onclick="model.data.filterNotification('unread')">
+                                <input type="radio" name="options" id="unread-notification" autocomplete="off"> Unread
+                            </label>
+                            <label class="btn btn-sm btn-outline-secondary" onclick="model.data.filterNotification('read')">
+                                <input type="radio" name="options" id="read-notification" autocomplete="off"> Read
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-xl-6 col-12 align-right p-0">
+                        <button type="button" class="btn btn-sm btn-info float-left d-none d-lg-xs-block" data-bind="click:model.action.markAllNotificationAsRead">
+                            <i class="mdi mdi-check-all"></i>
+                        </button>
+                        <span class="mr-2" data-bind="text:data.counterNotification() +' of '+data.totalNotification() "></span>
+                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                            <label class="btn btn-sm btn-outline-secondary" data-bind="click:model.action.prevNotifcationPage">
+                                <input type="radio" name="options" id="prev-notification" autocomplete="off" checked>
+                                <i class="mdi mdi-chevron-left"></i>
+                            </label>
+                            <label class="btn btn-sm btn-outline-secondary" data-bind="click:model.action.nextNotifcationPage">
+                                <input type="radio" name="options" id="next-notification" autocomplete="off"> <i class="mdi mdi-chevron-right"></i>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                @*new*@
+                <div class="notification-container">
+                    <div class="text-center mb-3" data-bind="if:data.groupedNotifications().length == 0">No Notification data available.</div>
+                    <!-- ko ifnot: data.groupedNotifications().length == 0 -->
+                    <div class="mt-4" data-bind="foreach:data.groupedNotifications">
+                        @*header*@
+                        <div class="col-12 p-0 d-lg-flex mb-3">
+                            <div class="col-lg-9 col-12 p-0 d-flex mb-lg-xs-2">
+                                <strong class="notification-day" data-bind="text:Day"></strong>
+                                <span class="text-muted notification-date ml-3" data-bind="text:Date"></span>
+                            </div>
+                            <!-- ko if:$index()==0 -->
+                            <div class="col-lg-3 col-12 p-0 d-lg-xs-none">
+                                <button type="button" class="btn btn-sm btn-info float-xl-right" data-bind="click:model.action.markAllNotificationAsRead">
+                                    <i class="mdi mdi-check-all"></i>
+                                    <span>Mark as read</span>
+                                </button>
+                            </div>
+                            <!-- /ko -->
+                        </div>
+                        @*body*@
+                        <div class="list-group mb-4" data-bind="foreach:$data.Data">
+                            <div class="list-notification list-group-item list-group-item-action flex-column align-items-start p-xs-2" data-bind="css:{
+                                        'unread':!$data.Read(),
+                                        }">
+                                <div class="d-flex col-12 p-0 w-100 justify-content-between">
+                                    <div class="flex-shrink-1" data-bind="css:{
+                                                    'text-info': $data.Type()==0,
+                                                    'text-success': $data.Type()==1,
+                                                    'text-warning': $data.Type()==2,
+                                                    'text-danger': $data.Type()==3,
+                                                    }">
+                                        <i class="icon-size-notif" data-bind="css:model.app.parseIcon($data.Module)"></i>
+                                    </div>
+                                    <div class="w-95 w-lg-xs-80 pt-1 pl-2" data-bind="attr:{title:DateTime}">
+                                        <div class="mb-1 notification-message">
+                                            <span data-bind="text:Message"></span>
+                                        </div>
+                                        <small data-bind="text:HumanizedDateTime"></small>
+                                        <div class="mt-2">
+                                            <button class="btn btn-xs btn-outline-success" data-bind="css:{
+                                                    'd-none' : $data.Actions.indexOf('Approve') < 0}">Approve</button>
+                                            <button class="btn btn-xs btn-outline-danger" data-bind="css:{
+                                                    'd-none' : $data.Actions.indexOf('Reject') < 0}">Reject</button>
+                                        </div>
+                                    </div>
+                                    <small>
+                                        <i class="mdi mark-as-read-single" data-bind="css:{
+                                                'mdi-circle-outline': $data.Read(),
+                                                'mdi-circle': !$data.Read(),
+                                                'text-info': !$data.Read(),
+                                                'cursor-pointer': !$data.Read(),
+                                                }, click:model.action.markNotificationAsRead"></i>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /ko -->
+                    <div class="card-loading" data-bind="visible:model.is.renderingNotification()">
+                        <div class="d-flex justify-content-center h-100 align-items-center">
+                            <div class="spinner-border text-dark" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5 grid-margin stretch-card request-tracking">
+        <div class="card">
+            <div class="card-body p-xs-4">
+                <div class="row">
+                    <div class="col-12 p-0">
+                        <div class="col-12 d-xl-flex">
+                            <div class=" col-10 p-0">
+                                <h4 class="">
+                                    <span><i class="mdi mdi-package-variant"></i> Request Tracking</span>
+                                </h4>
+                            </div>
+                            <div class="align-right col-2 p-0">
+                                <button class="btn btn-sm btn-light" onclick="model.render.updateRequestList()"><i class="mdi mdi-refresh cursor-pointer"></i></button>
+                            </div>
+                            @*<div class="col-xl-6 col-12 align-right p-0">
+                                    <span class="mr-2 " data-bind="text:data.counterUpdateRequest() +' of '+ data.totalUpdateRequest() "></span>
+                                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                        <label class="btn btn-sm btn-outline-secondary" data-bind="click:model.action.prevUpdateRequestPage">
+                                            <input type="radio" name="options" id="prev-UpdateRequest" autocomplete="off" checked>
+                                            <i class="mdi mdi-chevron-left"></i>
+                                        </label>
+                                        <label class="btn btn-sm btn-outline-secondary" data-bind="click:model.action.nextUpdateRequestPage">
+                                            <input type="radio" name="options" id="next-UpdateRequest" autocomplete="off">
+                                            <i class="mdi mdi-chevron-right"></i>
+                                        </label>
+                                    </div>
+                                </div>*@
+                        </div>
+                        <div class="d-flex col-12 bg-transparent" id="filterRequestTracking" title="daterangepicker" data-bind="visible:true"></div>
+
+                            @*<div class="col-12 mt-3 d-none">
+                                <a href="#" class="w-100 btn btn-primary" onclick="">Filter</a>
+                            </div>*@
+                        <div class="col-12">
+                        
+                        
+                        <hr />
+                        <div class="accordion" id="updateRequestAccordion">
+                            <div class="text-center mb-3" data-bind="if:data.updateRequest().length == 0">No Request Tracking data available.</div>
+                            <!-- ko if: data.updateRequest().length > 0 -->
+                            @await Html.PartialAsync("UpdateRequest.cshtml")
+                            <!-- /ko -->
+                        </div>
+
+                        <div class="card-loading mt-2" data-bind="visible:model.is.renderingUpdateRequest()">
+                            <div class="d-flex justify-content-center h-100 align-items-center">
+                                <div class="spinner-border text-dark" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        $("#filterRequestTracking").kendoDateRangePicker({
+            range: {
+                start: new Date(),
+                end: new Date()
+            }
+        });
+        model.init.activity();
+    })
+</script>

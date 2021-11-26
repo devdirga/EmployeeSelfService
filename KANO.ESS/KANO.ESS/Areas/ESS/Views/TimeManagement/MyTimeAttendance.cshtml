@@ -1,0 +1,53 @@
+﻿@using KANO.Core.Model
+@using KANO.ESS
+@{
+    Layout = "_Layout";
+}
+<script>
+    @*Defining Model Prototype*@
+    model.proto = {
+        TimeAttendance: @Html.Raw(Json.Serialize(new TimeAttendance())),
+        IdentificationForm: @Html.Raw(Json.Serialize(new AbsenceRecommendation()))
+    };
+</script>
+<script src="~/assets/areas/ess/js/timemanagement.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+<link rel="stylesheet" href="~/assets/areas/ess/css/timemanagement.css?@(Startup.Tick??DateTime.Now.Ticks)">
+
+<div class="row">
+    <main class="col-lg-12" role="main">
+        <div class="col-lg-12 mb-4 p-0">
+            <div class="card box">
+                <div class="card-header clearfix">
+                    <strong class="float-left p-2">My Time Attendance</strong>
+                    @*<div class="float-left filter-attendance">
+                            <button type="button" class="btn btn-md btn-info float-left" data-bind="click:action.openFormAttendance">Update TimeAttendance</button>
+                        </div>*@
+                    <div class="float-right filter-attendance">
+
+                        @*<label class="d-md-xs-none">Periode</label>*@
+                        <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.StartDate, max : model.data.todaymin1, format: 'dd MMM yyyy' } " />
+                        <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.EndDate, max : model.data.todaymin1, format: 'dd MMM yyyy' } " />
+                        <div class="btn-group w-md-xs-100 mb-md-xs-2" role="group" aria-label="Basic example">
+                            <button type="button" class="w-md-xs-100 btn btn-outline-secondary px-3" onclick="model.action.refreshMyTimeAttendanceMonthly()">Monthly</button>
+                            <button type="button" class="w-md-xs-100 btn btn-outline-secondary px-3" onclick="model.action.refreshMyTimeAttendanceYearly()">Yearly</button>
+                        </div>
+                        <a href="#" class="w-md-xs-100 btn btn-primary" onclick="model.action.refreshMyTimeAttendance(); return false;">Filter</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="gridMyTimeAttendance"></div>
+                </div>
+            </div>
+        @*</div>*@
+    </main>
+</div>
+
+@await Html.PartialAsync("ModalTimeAttendance.cshtml")
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.init.myAttendace();
+    })
+</script>
+
+

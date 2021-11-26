@@ -1,0 +1,117 @@
+﻿@using KANO.Core.Model;
+@using KANO.ESS
+@{
+    Layout = "_Layout";
+}
+
+<script>
+    @*Defining Model Prototype*@
+    model.proto = {
+        Redeem: @Html.Raw(Json.Serialize(new Redeem())),
+        RedeemGroup: @Html.Raw(Json.Serialize(new RedeemGroup())),
+        Voucher: @Html.Raw(Json.Serialize(new Voucher())),
+    };
+</script>
+<link href="~/assets/areas/ess/css/canteen.css?@(Startup.Tick??DateTime.Now.Ticks)" rel="stylesheet" />
+<script src="~/assets/vendors/jszip/3.1.5/jszip.min.js"></script>
+<script src="~/assets/areas/ess/js/canteen.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+<div class="row" data-bind="with:model.data.infoClaim">
+    <div class="col-12 p-0 d-md-flex d-md-xs-block mb-3">
+        <div class="col-md-xs-12 col-12 p-0 d-flex mb-md-xs-3">
+            <div class="col-6 p-r-md-xs-2 text-xs-center card-summary">
+                <div class="card bg-gradient-success card-img-holder h-100 text-white">
+                    <div class="card-body p-max-1200-4 p-xl-4">
+                        <h4 class="font-weight-normal mb-3">
+                            <span class="d-xs-none">Request</span> <i class="mdi mdi-ticket-account mdi-24px float-md-right float-sm-right float-lg-right float-xl-right float-xs-none"></i>
+                        </h4>
+                        <h1 class="mb-md-4" data-bind="text:TotalClaimed">-</h1>
+                        <strong class="card-text d-xs-block d-none text-small">Remaining</strong>
+                        <h6 class="card-text d-xs-none text-small">Outstanding claim request</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 p-l-md-xs-2 text-xs-center card-summary">
+                <div class="card bg-gradient-info card-img-holder h-100 text-white">
+                    <div class="card-body p-max-1200-4 p-xl-4">
+                        <h4 class="font-weight-normal mb-3">
+                            <span class="d-xs-none">Paid</span> <i class="mdi mdi-ticket-percent mdi-24px float-md-right float-sm-right float-lg-right float-xl-right float-xs-none"></i>
+                        </h4>
+                        <h1 class="mb-md-4" data-bind="text:TotalPaid">-</h1>
+                        <strong class="card-text d-xs-block d-none text-small">Used</strong>
+                        <h6 class="card-text d-xs-none text-small">Paid claim request</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12 grid-margin">
+        <div class="card">
+            <div class="card-header clearfix">
+                <div class="float-md-left">
+                    @*<button class="w-md-xs-100 btn btn-success" onclick="model.action.claimVoucher()">Claim</button>*@
+                    <button id="btn-add" class="w-md-xs-100 btn btn-info mb-md-xs-2" data-bind="click:model.action.openClaim">Add Claim</button>
+                </div>
+                <div class="float-md-right">
+                    <div id="filterStatus" data-bind="kendoDropDownList: {
+                        dataTextField: 'Name',
+                        dataTextValue: 'Value',
+                        dataSource: model.list.statusClaim
+                    }" class="mb-md-xs-2 w-md-xs-100"></div>
+                    <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.StartDate, max : new Date(), format: 'dd MMM yyyy' } " />
+                    <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.EndDate, max : new Date(), format: 'dd MMM yyyy' } " />
+                    <button type="button" class="w-md-xs-100 btn btn-primary" onclick="model.action.refreshClaim()">Filter</button>
+
+                </div>
+            </div>
+            <div class="card-body p-max-1200-4">
+                <div class="table-responsive" id="gridClaim"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="Modal-Claim" class="modal" tabindex="-1" role="dialog" data-bind="with: model">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="mdi mdi-ticket-confirmation"></i>Claim Voucher</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="afterRender: model.on.preketek">
+                <div class="table-responsive" id="gridRedeem"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-xs-sm btn-outline-secondary mdi mdi-refresh float-left" data-bind="click:model.action.refreshClaimModal"></button>
+                <button type="button" class="btn btn-xs-sm btn-light" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-xs-sm btn-info" data-bind="click:model.action.saveClaim, enable: model.is.btnSaveClaim">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="Modal-Detail" class="modal" tabindex="-1" role="dialog" data-bind="with: model">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="mdi mdi-ticket-confirmation"></i>DetailClaim Voucher</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="afterRender: model.on.preketek">
+                <div class="table-responsive" id="gridDetailClaim"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        model.init.claimVoucher();
+    });
+</script>

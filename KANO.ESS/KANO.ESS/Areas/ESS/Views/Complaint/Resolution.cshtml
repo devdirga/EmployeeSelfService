@@ -1,0 +1,60 @@
+﻿@using KANO.Core.Model
+@using KANO.Core.Service
+@using KANO.ESS
+@{
+    Layout = "_Layout";
+}
+<script>
+@* Defining Model Prototype *@
+model.proto = {
+    Ticket: @Html.Raw(Json.Serialize(new TicketRequest())),
+    TicketCategory: @Html.Raw(Json.Serialize(new TicketCategory())),
+    TicketType: @Html.Raw(Tools.EnumToJson2(typeof(TicketType))),
+    TicketStatus: @Html.Raw(Tools.EnumToJson2(typeof(TicketStatus))),
+    TicketMedia: @Html.Raw(Tools.EnumToJson2(typeof(TicketMedia)))
+};
+</script>
+
+<script src="~/assets/areas/ess/js/hradministration.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+<link rel="stylesheet" href="~/assets/areas/ess/css/complaint.css?@(Startup.Tick??DateTime.Now.Ticks)">
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card box">
+            <div class="card-header clearfix">
+                @*<div class="float-left">
+                    <button type="button" class="btn btn-md btn-info float-left" data-bind="click:action.OpenTicket">Add</button>
+                </div>*@
+                <strong class="float-left"></strong>
+                <div class="float-md-right">
+
+                    @*<select data-bind="kendoDropDownList: {
+                                                value: model.data.TicketStatus,
+                                                data: model.list.TicketStatus,
+                                                dataTextField: 'text',
+                                                dataValueField: 'value',
+                                                optionLabel: 'Select Status',
+                                                }" class="w-md-xs-100 mb-md-xs-2"></select>*@
+
+                    @*<input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.StartDate, format: 'dd MMM yyyy' } " />*@
+                    @*<input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.EndDate, format: 'dd MMM yyyy' } " />*@
+                    <div class="btn-group w-md-xs-100 mb-md-xs-2" role="group" aria-label="Basic example">
+                        <button type="button" class="w-md-xs-100 btn btn-outline-secondary px-3" onclick="model.action.FilterTicketMonthly()">Monthly</button>
+                        <button type="button" class="w-md-xs-100 btn btn-outline-secondary px-3" onclick="model.action.FilterTicketYearly()">Yearly</button>
+                    </div>
+                    @*<a href="#" class="btn btn-primary">Filter</a>*@
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="gridListTicket"></div>
+            </div>
+        </div>
+    </div>
+</div>
+@await Html.PartialAsync("ModalTicketResolve.cshtml")
+<script>
+$(function () {
+    @* Render UI Components *@
+    model.init.Ticket();
+})
+</script>

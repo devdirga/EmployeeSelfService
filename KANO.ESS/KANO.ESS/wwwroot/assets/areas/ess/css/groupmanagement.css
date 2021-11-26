@@ -1,0 +1,57 @@
+﻿
+.padT {
+    padding-top: 10px;
+}
+.modal-size {
+    max-width: 800px;
+}
+.form-check-inline{
+    margin-right:0;
+    padding-left:5px;
+}
+
+.mt-0 {
+    margin-top: 0px;
+}
+
+.btn-modal-top {
+    padding: 3px 10px 3px 10px;
+    margin-left: 5px;
+    width: auto;
+}
+
+.btn-modal-top:hover {
+    width: auto;
+}
+
+.nav-tabs {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+.nav-tabs > li {
+    margin-bottom: -1px;
+}
+
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
+    color: #555;
+    cursor: default;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-bottom-color: transparent;
+}
+
+th, td {
+    border-bottom: 1px solid;
+    padding: 15px;
+}
+
+.form-check-input {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+}
+
+#modalTraining .k-grid-content {
+    max-height: 250px;
+}

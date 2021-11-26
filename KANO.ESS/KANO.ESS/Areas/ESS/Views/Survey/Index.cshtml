@@ -1,0 +1,67 @@
+﻿@{
+    Layout = "_Layout";
+}
+@using KANO.Core.Service
+@using KANO.ESS
+@using KANO.Core.Model
+@using Newtonsoft.Json
+
+<script>
+    @*Defining Model Prototype*@
+    model.proto = {
+        Survey: @Html.Raw(Json.Serialize(new Survey())),
+        DateRange: @Html.Raw(Json.Serialize(new DateRange())),
+        SurveyRecurrent: @Html.Raw(Tools.EnumToJson2(typeof(SurveyRecurrent))),
+        ParticipantType: @Html.Raw(Tools.EnumToJson2(typeof(ParticipantType))),
+    };
+
+    model.showForm = ko.observable(false);
+</script>
+<script src="~/assets/areas/ess/js/survey.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+<div class="row">
+    <main class="col-lg-12" role="main">
+        <div class="row">
+            <div class="col-lg-12 mb-4">
+                <div class="card box">
+                    <div class="card-header clearfix">
+                        @*Session Odoo: @ViewBag.OdooSession<br />
+                        @ViewBag.Domain<br />
+                        TokenOdoo: @ViewBag.TokenOdoo;<br />*@
+                        @*Url: @ViewBag.Url<br />
+                        User: @ViewBag.OdooEmail<br />
+                        Pass: @ViewBag.OdooPassword<br />
+                        DB: @ViewBag.OdooCompany<br />*@
+                        @*ErrorMessage: @ViewBag.ErrorMessage<br />*@
+                        @*StatusMessage: @ViewBag.StatusMessage<br />*@
+                        @*<div class="float-left filter-attendance mb-md-xs-2 no-display">
+                                <a class="btn btn-md btn-info float-left w-md-xs-100" href="@ViewBag.Domain" target="_blank">
+                                    Create Survey In Odoo
+                                </a>
+                                <a class="btn btn-md btn-info float-left w-md-xs-100" data-bind="disable:model.is.buttonLoading()" href="/ESS/Survey/New">
+                                    Create
+                                </a>
+                            </div>*@
+                        <div class="float-right filter-attendance">
+                            <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.StartDate, max : model.data.todaymin1, format: 'dd MMM yyyy' } " />
+                            <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.EndDate, max : model.data.todaymin1, format: 'dd MMM yyyy' } " />
+                            <a href="#" class="w-md-xs-100 btn btn-primary" onclick="model.action.refreshSurvey(); return false;">Filter</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="gridSurvey"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@await Html.PartialAsync("ModalSetting.cshtml")
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.init.survey();
+    })
+</script>

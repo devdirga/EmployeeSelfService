@@ -1,0 +1,97 @@
+﻿<div id="modalRedeemGlobal" class="modal slide" role="dialog">
+    <div class="modal-dialog modal-lg" role="document" data-bind="with:app">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-store"></i>
+                    Redeem Voucher
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- ko if:list.canteen().length > 0 -->
+
+                @*<div class="row" data-bind="foreach: list.canteen(), visible: model.app.is.canteenUnselect()">
+                    <div class="col-lg-6 col-md-6 mb-4 canteen">
+                        <div class="card border border-secondary round-0 border-radius-none">
+                            <div class="card-img-top" data-bind="attr:{
+                                alt:Name,
+                                style:`background: url('/ESS/Canteen/Image/${Id}/${Filename}') no-repeat, url('http://placehold.it/700x400') no-repeat; background-size:cover, cover;background-position: center, center; min-height:128px;`
+                                }"></div>
+                            <div class="card-body bg-light">
+                                <h4 class="card-title" data-bind="text: Name"></h4>
+                                <h5 data-bind="text: PICName"></h5>
+                            </div>
+                            <div class="card-footer">
+                                <button class="btn btn-outline-info btn-block" data-bind="click: model.app.action.canteenSelect">Select</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+
+                <div class="row" data-bind="foreach: list.canteen(), visible: model.app.is.canteenUnselect()">
+                    <div class="col-lg-3 col-md-3 mb-4 canteen d-flex align-items-stretch" data-bind="style:{
+                         opacity: Availability ? '1' : '0.5'
+                         }">
+                        <div class="card border border-secondary rounded">
+                            <ol class="list-canteen-menu disabled" data-bind="foreach:Menu">
+                                <li data-bind="text:Name"></li>
+                            </ol>
+                            <div class="card-body canteen-card-body">
+                                <h4 class="card-title canteen-card" data-bind="text: Name"></h4>
+                                <div class="canteen-img" data-bind="attr:{
+                                    alt:Name,
+                                    style:`background: url('/ESS/Canteen/Image/${Id}/${Filename}') no-repeat, url('http://placehold.it/700x400') no-repeat; background-size:cover, cover;background-position: center, center;`}">
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="card-footer">
+                                    <button class="btn btn-outline-info btn-block" data-bind="click: model.app.action.canteenSelect">Select</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12" data-bind="visible: model.app.is.canteenSelect()">
+                        <div class="text-center card border border-secondary round-0 border-radius-none" data-bind="with:data.redeem">
+                            <div class="card-body">
+                                <h5 class="card-title" data-bind="text: CanteenName"></h5>
+                                <h6 class="card-subtitle mb-2 text-muted" data-bind="text: PICName"></h6>
+                                <div class="input-group input-group-lg">
+                                    <div class="input-group-prepend">
+                                        <button class="btn btn-outline-danger" type="button" data-bind="click:model.app.action.substractReedemVoucher">-</button>
+                                    </div>
+                                    <input type="number" class="form-control" placeholder="Redeem Voucher(s)" data-bind="value: RedeemedVoucherTotal, attr:{max:CurrentTotal}" min="0">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text text-dark"> of &nbsp;<strong data-bind="text: CurrentTotal">0</strong></span>
+                                    </div>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-success" type="button" data-bind="click:model.app.action.addReedemVoucher">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer text-center">
+                                <button class="btn btn-light" onclick="model.app.action.cancelRedeem()">Cancel</button>
+                                <button class="btn btn-success" onclick="model.app.action.saveRedeem()" data-bind="enable:RedeemedVoucherTotal > 0 || RedeemedVoucherTotal <= CurrentTotal">Submit </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /ko -->
+                <!-- ko ifnot:list.canteen().length > 0 -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="alert alert-secondary" role="alert">
+                            <i class="mdi mdi-account-question"></i> Canteen merchant is not present right now</b>
+                        </div>
+                    </div>
+                </div>
+                <!-- /ko -->
+            </div>
+        </div>
+    </div>
+</div>

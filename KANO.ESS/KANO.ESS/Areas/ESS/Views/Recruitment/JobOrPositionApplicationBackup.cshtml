@@ -1,0 +1,70 @@
+﻿@{
+    Layout = "_Layout";
+}
+@using KANO.Core.Service
+@using KANO.ESS
+@using KANO.Core.Model
+@using Newtonsoft.Json
+
+<script>
+    @*Defining Model Prototype*@
+    model.proto = {
+        Recruitment: @Html.Raw(Json.Serialize(new Recruitment())),
+        Application: @Html.Raw(Json.Serialize(new Application())),
+        DateRange: @Html.Raw(Json.Serialize(new DateRange())),
+        RecruitmentTypes: @Html.Raw(Tools.EnumToJson2(typeof(RecruitmentType))),
+    };
+
+    model.proto.Recruitment.HTMLFile = "";
+</script>
+<script src="~/assets/areas/ess/js/recruitment.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+<link rel="stylesheet" href="~/assets/areas/ess/css/recruitment.css?@(Startup.Tick??DateTime.Now.Ticks)">
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card box">
+            <div class="card-header clearfix  px-xs-1">
+                <div class="row">
+                    <div class="col-md-3 col-12">
+                        <nav id="applicationTab" class="nav p-0 btn-group mb-md-xs-2 w-md-xs-100 leave-button-groups" role="group">
+                            <a class="nav-link btn btn-lg btn-outline-primary" id="open-tab" data-toggle="tab" href="#open">Open Registration</a> 
+                            <a class="nav-link btn btn-lg btn-outline-primary" id="history-tab" data-toggle="tab" href="#history">History</a>                        
+                        </nav>
+                    </div>                    
+                    @* <div class=" col-md-9 pl-md-4">
+                        <div class="float-right filter-attendance">
+                            <select data-bind="kendoDropDownList: {
+                                                        value: model.data.trainingStatus,
+                                                        data: model.list.trainingStatus,
+                                                        dataTextField: 'text',
+                                                        dataValueField: 'value',
+                                                        optionLabel: 'Select Status',                                                
+                                                        }" class="w-md-xs-100 mb-md-xs-2"></select>
+                            <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.StartDate, format: 'dd MMM yyyy'} " />
+                            <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.EndDate, format: 'dd MMM yyyy' } " />                        
+                            <a href="#" class="w-md-xs-100 btn btn-primary" onclick="model.action.refreshGridTraining(); return false;">Filter</a>
+                        </div>
+                    </div> *@
+                </div>
+                
+            </div>
+            
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show" id="open" role="tabpanel" aria-labelledby="open-tab">
+                    @await Html.PartialAsync("tabOpenRecruitment.cshtml")
+                </div>
+                <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">                    
+                    @await Html.PartialAsync("tabHistory.cshtml")
+                </div>
+            </div>                
+        </div>
+    </div>
+</div>
+@await Html.PartialAsync("ModalApplicationHistory.cshtml")
+
+<script>   
+    $(function () {
+        @*Render UI Components*@
+        model.init.application();     
+    })
+</script>

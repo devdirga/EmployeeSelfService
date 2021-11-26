@@ -1,0 +1,42 @@
+﻿html {
+    overflow-y: hidden;
+}
+
+
+.bg-images {
+    background-color:rgba(0,0,0,0);
+    background-size: cover;
+    background-image: url('/assets/img/background-auth.jpg');
+}
+
+.content-wrapper{
+    background:none !important;
+}
+
+.btn-show-password .input-group-text {
+    background: transparent !important;
+    border: none !important;
+    color: #333;
+}
+
+.btn-show-password:hover .input-group-text i.mdi::before {
+    content: "\F208";
+}
+
+.btn-show-password:active .input-group-text i.mdi::before {
+    content: "\F208";
+    color: #CCC;
+}
+
+.btn-show-password.password-displayed .input-group-text i.mdi::before {
+    content: "\F6D0";
+}
+
+.btn-show-password.password-displayed:hover .input-group-text i.mdi::before {
+    content: "\F209";
+}
+
+.btn-show-password.password-displayed:active .input-group-text i.mdi::before {
+    content: "\F209";
+    color: #CCC;
+}

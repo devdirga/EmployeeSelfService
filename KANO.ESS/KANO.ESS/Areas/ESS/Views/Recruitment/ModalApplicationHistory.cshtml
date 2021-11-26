@@ -1,0 +1,35 @@
+﻿<div id="modelApplicationHistory" class="modal" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Application History
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form data-bind="with: data.application">
+                    <div class="form-group">
+                        <label for="recruitmentType" class="required">Department</label>                        
+                        <div class="form-control-plaintext" data-bind="html:Department"></div>
+                    </div>                    
+                    
+                    <div class="form-group">
+                        <label for="startingdate" class="required">Date of Reception</label>                        
+                        <div class="form-control-plaintext" data-bind="html:standarizeDate(DateOfReception()) || '-'"></div>
+                    </div>                    
+                    
+                    <div class="form-group">
+                        <label for="openings" class="required">Job / Position</label>                        
+                        <div class="form-control-plaintext" data-bind="html:(JobDescription() || JobID()) || '-'"></div>
+                    </div>                    
+                </form>                
+                <div id="gridHistoryApplication"></div>
+            </div>
+            <div class="modal-footer">                
+            </div>
+        </div>
+    </div>
+</div>

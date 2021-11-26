@@ -1,0 +1,87 @@
+﻿
+@{
+    Layout = "_Layout";
+}
+
+<script src="~/assets/areas/ess/js/administrator.js"></script>
+<script>
+    const URL_GET_USER_MANAGEMENT = "@Url.Action("GetUserManagements", "Administrator")";
+</script>
+
+<style>
+    span.k-widget.k-dropdown.form-control{
+        width:100%;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card box" data-bind="with:model">
+            <div class="card-header clearfix">
+                <strong class="float-left p-2">User</strong>
+                <a href="#" data-bind="click: model.action.openCreateUserManagement" class="btn btn-sm btn-primary float-right">Create</a>
+            </div>
+            <div class="card-body">
+                <div id="gridUserManagement"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalUserManagement" class="modal" role="dialog">
+    <div class="modal-dialog" role="document" data-bind="with:model">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create User</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="with:data">
+                <form>
+                    <div class="form-group row">
+                        <label for="dropdownType" class="col-sm-3 col-form-label">Employee Name</label>
+                        <div class="col-sm-9">
+                            <select class="form-control" id="dropdownType" data-bind="kendoDropDownList: {dataTextField: 'text',dataValueField: 'value', data: employeeName, value: valueEmployeeName, filter: 'contains', optionLabel: 'Select Name'}"></select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="input" class="col-sm-3 col-form-label">Employee Email</label>
+                        <div class="col-sm-9">
+                            <input type="text" placeholder="Email" class="form-control" data-bind="value: valueEmployeeEmail"/>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="input" class="col-sm-3 col-form-label">Username</label>
+                        <div class="col-sm-9">
+                            <input type="text" placeholder="Username" class="form-control" data-bind="value: valueUsername"/>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="dropdownType" class="col-sm-3 col-form-label">User Group</label>
+                        <div class="col-sm-9">
+                            <select class="form-control" id="dropdownType" data-bind="kendoDropDownList: {dataTextField: 'text',dataValueField: 'value', data: userGroup, value: valueUserGroup, filter: 'contains', optionLabel: 'Select User Group'}"></select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="dropdownType" class="col-sm-3 col-form-label">Authentication</label>
+                        <div class="col-sm-9">
+                            <select class="form-control" id="dropdownType" data-bind="kendoDropDownList: {dataTextField: 'text',dataValueField: 'value', data: authentication, value: valueAuthentication, filter: 'contains', optionLabel: 'Select Authentication'}"></select>
+                        </div>
+                    </div> 
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bind="click: model.action.saveUserManagement">Save</button>
+                <button type="button" class="btn btn-primary" data-bind="click: model.action.saveUserManagement">Send Password</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.render.gridUserManagement()
+    })
+</script>

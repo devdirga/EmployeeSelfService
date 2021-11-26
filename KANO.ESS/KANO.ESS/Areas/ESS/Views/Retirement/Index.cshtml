@@ -1,0 +1,230 @@
+﻿@using KANO.Core.Service
+@using KANO.ESS
+@using KANO.Core.Model
+@using Newtonsoft.Json
+@{
+    Layout = "_Layout";
+}
+<script>
+    @*Defining Model Prototype*@
+    model.proto = {
+        Retirement: @Html.Raw(Json.Serialize(new Retirement())),
+        DateRange: @Html.Raw(Json.Serialize(new DateRange())),
+        RecruitmentTypes: @Html.Raw(Tools.EnumToJson2(typeof(RecruitmentType))),
+    };
+
+//    model.proto.Recruitment.HTMLFile = "";
+</script>
+<script src="~/assets/areas/ess/js/retirement.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+<div class="row" data-bind="with:model">
+    <main class="col-12" role="main">
+        <div class="alert alert-warning d-none" role="alert" data-bind="css:{
+            'd-block':!model.app.config.IsRetirementRequestActive,
+            'd-none':model.app.config.IsRetirementRequestActive,
+        }">
+            <i class="mdi mdi-clock-fast"></i> Retirement form is currently disabled
+            <span class="d-none" data-bind="css:{
+                'd-inline':standarizeDate(model.app.config.RetirementRequestStart) != '-' && model.app.config.RetirementRequestStart > model.app.config.today, 
+                'd-none':standarizeDate(model.app.config.RetirementRequestStart) == '-' || model.app.config.RetirementRequestStart <= model.app.config.today}">, 
+                it will be unlocked on 
+                <strong data-bind="html:standarizeDate(model.app.config.RetirementRequestStart)"></strong>
+            </span>
+        </div>
+        <div class="col-12 mb-4 p-0">
+            <div class="card box">                
+                <div id="retirementForm" class="card-body" data-bind="with:data.Retirement">
+                    <div class="d-xs-block card-title mb-xs-4 mb-sm-4 d-sm-flex">
+                        <h4 class="w-100 mb-xs-3">
+                            <span><i class="mdi mdi-calendar-check"></i> Retirement Request</span>
+                        </h4>
+
+                        <button type="button" class="btn btn-sm btn-info w-md-xs-100" data-bind="click:model.action.request, visible:model.app.config.IsRetirementRequestActive && ( model.data.Retirement().Flag() == 1 )">Request</button>
+                    </div>
+                    <div class="col-12 p-0 mb-3 d-md-flex">
+                        <div class="col-md-6 col-12">                                
+                            <div class="form-group">
+                                <label for="nip">NIP</label>                                    
+                                <input type="text" class="form-control" id="nip" data-bind="value: EmployeeID" disabled>                                    
+                            </div>
+                            <div class="form-group">
+                                <label for="name">Name</label>                                    
+                                <input type="text" class="form-control" id="name" data-bind="value: EmployeeName" disabled>                                    
+                            </div>
+                            <div class="col-12 p-0 d-md-flex mb-2">
+                                <div class="col-md-6 col-12 p-0 pr-md-1">
+                                    <label for="department">Department</label>                                    
+                                    <input type="text" class="form-control" id="department" data-bind="value: Department" disabled>                                     
+                                </div>
+                                <div class="col-md-6 col-12 pl-md-1 p-0 ">
+                                    <label for="position">Position</label>                                    
+                                    <input type="text" class="form-control" id="position" data-bind="value: Position" disabled>                                    
+                                </div>
+                            </div>                            
+                            <div class="form-group">
+                                <label for="birthdate">Birthdate</label>                                    
+                                <input type="text" class="form-control" id="Birthdate" data-bind="kendoDatePicker:{value:BirthDate, format: 'dd MMM yyyy', enabled:false}">                                    
+                            </div>
+                            <div class="form-group">
+                                <label for="mppType">MPP Type</label>
+                                <select id="mppType" class="form-control w-100" data-bind="kendoDropDownList: {
+                                            value:MPPType,
+                                            dataTextField: 'text',
+                                            dataValueField: 'value',
+                                            data: [{text:'6 Bulan', value:6}, {text:'12 Bulan', value:12}],
+                                            filter: 'contains',
+                                            change: model.action.onChangeMPPType,
+                                            optionLabel: 'Select MPP Type',
+                                            enable:model.app.config.IsRetirementRequestActive && Flag() == 1
+                                            }">
+                                </select>                                    
+                            </div>
+                            <div class="form-group">
+                                <label for="tmtCB">TMT CB</label>
+                                <select id="tmtCB" class="form-control w-100" data-bind="kendoDropDownList: {
+                                            value:CBType,
+                                            dataTextField: 'text',
+                                            dataValueField: 'value',
+                                            data: [{text:'2 Bulan', value:2}, {text:'3 Bulan', value:3}],
+                                            filter: 'contains',
+                                            change: model.action.onChangeCBType,
+                                            optionLabel: 'Select TMT CB',
+                                            enable:model.app.config.IsRetirementRequestActive && Flag() == 1
+                                            }">
+                                </select>
+                            </div> 
+                            
+                            @* <div class="form-group">
+                                <label for="Reason">Reason</label><br>
+                                <textarea  type="text" cols="5" rows="3" class="form-control form-control-sm w-md-xs-100 mb-md-xs-2 w-100" data-bind="value:Reason, disable:!model.app.config.IsRetirementRequestActive" ></textarea>
+                            </div> *@
+
+                        </div>
+                        <div class="col-md-6 col-12">
+                                <div class="col-12 p-0 d-md-flex mb-2">
+                                    <div class="col-md-6 col-12 p-0 pr-md-1">                                        
+                                        <label for="cbstart" >TMT CB Start</label>                                            
+                                        <input type="text" class="form-control" data-bind="kendoDatePicker:{value:CBDate.Start, format: 'dd MMM yyyy', enabled:false}">                                                                                    
+                                    </div>
+                                    <div class="col-md-6 col-12 pl-md-1 p-0">
+                                        <label for="cbfinish" >TMT CB Finish</label>                                            
+                                        <input type="text" class="form-control" data-bind="kendoDatePicker:{value:CBDate.Finish, format: 'dd MMM yyyy', enabled:false}">                                                                                    
+                                    </div>                                    
+                                </div>
+                                <div class="col-12 p-0 d-md-flex mb-2">
+                                    <div class="col-md-6 col-12 p-0 pr-md-1">                                        
+                                        <label for="cbstart" >MPP Start</label>                                            
+                                        <input type="text" class="form-control" data-bind="kendoDatePicker:{value:MPPDate.Start, format: 'dd MMM yyyy', enabled:false}">
+                                    </div>
+                                    <div class="col-md-6 col-12 pl-md-1 p-0">                                        
+                                        <label for="cbfinish" >MPP Finish</label>                                            
+                                        <input type="text" class="form-control" data-bind="kendoDatePicker:{value:MPPDate.Finish, format: 'dd MMM yyyy', enabled:false}">
+                                    </div>                                    
+                                </div>
+                                @* <div class="form-group mt-2">
+                                    <label for="name">Approval Status</label>                                    
+                                    <!-- ko if: AXID() < 0 -->
+                                    <div class="alert alert-secondary" role="alert">
+                                    No Status
+                                    </div>
+                                    <!-- /ko -->
+                                    <!-- ko if: AXID() > 0 -->
+                                    <div class="alert" role="alert" data-bind="css:{
+                                            'alert-info':Status() == 0,
+                                            'alert-success':Status() == 1,
+                                            'alert-warning':Status() == 2,
+                                            'alert-danger':Status() == 3,
+                                        }">
+                                        <i class="mdi float-right" data-bind="css:{
+                                            'mdi-clock-outline':Status() == 0,
+                                            'mdi-checkbox-marked-circle-outline':Status() == 1,
+                                            'mdi-cancel':Status() == 2,
+                                            'mdi-close-circle'  :Status() == 3,
+                                        }"></i>
+                                        <span data-bind="text:camelToTitle(StatusDescription())"></span>
+                                    </div>
+                                    <!-- /ko -->
+                                </div> *@
+                                <div class="form-group mt-2">
+                                    <label for="name">Retirement Status</label>                                    
+                                    <!-- ko if: Flag() == 1 -->
+                                    <div class="alert alert-secondary" role="alert">
+                                    No Status
+                                    </div>
+                                    <!-- /ko -->
+                                    <!-- ko if: Flag() != 1 -->
+                                    <a href="#" data-bind="attr:{onclick:`model.app.action.trackTask('${AXRequestID()}'); return false`}">                                    
+                                    <div class="alert" role="alert" data-bind="css:{
+                                            'alert-info':MPPStatus() == 0,
+                                            'alert-danger':MPPStatus() == 1,
+                                            'alert-success':MPPStatus() == 2,
+                                        }">
+                                        <i class="mdi float-right" data-bind="css:{
+                                            'mdi-clock-outline':MPPStatus() == 0,
+                                            'mdi-checkbox-marked-circle-outline':MPPStatus() == 2,
+                                            'mdi-close-circle':MPPStatus() == 1,
+                                        }"></i>
+                                        <span data-bind="text:camelToTitle(MPPStatusDescription())"></span>
+                                    </div>
+                                    </a>
+                                    <!-- /ko -->
+                                </div>
+                                <!-- ko if: Flag() > 1 -->
+                                <div class="form-group">
+                                    <label for="attachment">Attachments</label>
+                                    <div class="list-group">
+                                        <!-- ko if: model.data.Attachments.length == 0 -->
+                                        <a href="#" class="list-group-item list-group-item-action clearfix">
+                                            No attachment data
+                                        </a>
+                                        <!-- /ko -->
+                                        <!-- ko if: model.data.Attachments.length > 0 -->
+                                        <!-- ko foreach : model.data.Attachments -->
+                                        <a href="#" class="list-group-item list-group-item-action clearfix" data-bind="click:model.action.downloadAttachment">
+                                            <i class="mt-2 mdi mdi-download float-right"></i>
+                                            <strong data-bind="text:Filename || '-'"></strong>
+                                            <br />
+                                            <small>Notes : <i data-bind="text:Notes || '-'"></i></small>
+                                        </a>
+                                        <!-- /ko -->
+                                        <!-- /ko -->
+                                    </div>
+                                </div>
+                                <!-- /ko -->                                
+                                <div class="form-group">
+                                    <label for="upload">Document Verification</label>
+                                    <!-- ko if: !Filename() -->
+                                    <input type="file" name="Filepath" id="Filepath" data-bind="kendoUpload: {
+                                            multiple: false,
+                                            template: kendo.template($('#fileTemplate').html()),
+                                            enabled:model.app.config.IsRetirementRequestActive,
+                                            validation: {
+                                                allowedExtensions: model.app.config.upload.allowedExtensions,
+                                                maxFileSize: model.app.config.upload.maxFileSize
+                                            }
+                                        }" />
+                                    <div data-bind="value: Filepath"></div>
+                                    <!-- /ko -->
+                                    <!-- ko if: !!Filename() -->
+                                    <br/>
+                                    <a href="" class="btn btn-sm btn-outline-info w-100" data-bind="attr:{title:Filename, href:`/ESS/Retirement/Download/${EmployeeID()}/${AXRequestID()}/${Filename()}`}">
+                                        <i class="mdi mdi-download"></i> Download document verification
+                                    </a>
+                                    <!-- /ko -->
+                                </div>                                
+                        </div>
+                    </div>
+                    @*<div id="gridRetriment"></div>*@
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        //model.render.gridRetriment();
+        model.init.retirement();
+    })
+</script>

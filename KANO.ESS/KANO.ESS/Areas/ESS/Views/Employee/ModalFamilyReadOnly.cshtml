@@ -1,0 +1,122 @@
+﻿<div id="familyModal" class="modal" role="dialog" data-bind="with:model">
+    <div class="modal-dialog" role="document" data-bind="">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <span><i class="mdi mdi-human-male-female"></i> Detail Family</span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="formFamily" data-bind="with:detail.family">
+                    <div class="form-group">
+                        <label for="input">Employee</label>
+                        <div class="form-control-plaintext" data-bind="html:`${EmployeeName()}  (${EmployeeID()})`"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <div class="form-control-plaintext">
+                            <!-- ko if:Old.FirstName() && Old.FirstName() != FirstName() -->
+                            <del class="d-block text-muted" data-bind="text: Old.FirstName"></del>
+                            <!-- /ko -->
+                            <span data-bind="html: FirstName"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="middleName">Middle Name</label>
+                        <div class="form-control-plaintext">
+                            <!-- ko if:Old.MiddleName() && Old.MiddleName() != MiddleName() -->
+                            <del class="d-block text-muted" data-bind="text: Old.MiddleName"></del>
+                            <!-- /ko -->
+                            <span data-bind="html: MiddleName"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <div class="form-control-plaintext">
+                            <!-- ko if:Old.LastName() && Old.LastName() != LastName() -->
+                            <del class="d-block text-muted" data-bind="text: Old.LastName"></del>
+                            <!-- /ko -->
+                            <span data-bind="html: LastName"></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="familyGender">Gender</label>
+                            <div class="form-control-plaintext">
+                                <!-- ko if:Old.GenderDescription() && Old.GenderDescription() != GenderDescription() -->
+                                <del class="d-block text-muted" data-bind="text: Old.GenderDescription"></del>
+                                <!-- /ko -->
+                                <span data-bind="html: GenderDescription"></span>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="familyDropdownRelationship">Relationship</label>
+                            <div class="form-control-plaintext">
+                                <!-- ko if:Old.Relationship() && Old.Relationship() != Relationship() -->
+                                <del class="d-block text-muted" data-bind="text: Old.Relationship"></del>
+                                <!-- /ko -->
+                                <span data-bind="html: Relationship"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="familyDropdownReligion">Religion</label>
+                        <div class="form-control-plaintext">
+                            <!-- ko if:Old.ReligionDescription() && Old.ReligionDescription() != ReligionDescription() -->
+                            <del class="d-block text-muted" data-bind="text: Old.ReligionDescription"></del>
+                            <!-- /ko -->
+                            <span data-bind="html: ReligionDescription"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="familyNIK">NIK</label>
+                        <div class="form-control-plaintext">
+                            <!-- ko if:Old.NIK() && Old.NIK() != NIK() -->
+                            <del class="d-block text-muted" data-bind="text: Old.NIK"></del>
+                            <!-- /ko -->
+                            <span data-bind="html: NIK"></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="familyBirthdate">Birthdate</label>
+                            <div class="form-control-plaintext">
+                                <!-- ko if:standarizeDate(Old.Birthdate()) != '-' && standarizeDate(Old.Birthdate()) != standarizeDate(Birthdate()) -->
+                                <del class="d-block text-muted" data-bind="text: standarizeDate(Old.Birthdate())"></del>
+                                <!-- /ko -->
+                                <span data-bind="html: standarizeDate(Birthdate())"></span>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="familyPlaceofBirth">Birthplace</label>
+                            <div class="form-control-plaintext">
+                                <!-- ko if:Old.Birthplace() && Old.Birthplace() != Birthplace() -->
+                                <del class="d-block text-muted" data-bind="text: Old.Birthplace"></del>
+                                <!-- /ko -->
+                                <span data-bind="html: Birthplace"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ko if:Accessible -->
+                    <div class="form-group">
+                        <label for="input">Additional Document</label>
+                        <a href="" class="btn btn-sm btn-block btn-info" target="_blank" data-bind="attr:{title:Filename, href:`/ESS/Employee/DownloadFamilyAttachment/${EmployeeID()}/${AXRequestID()}/${Filename()}`}"><span class="mdi mdi-download"></span> Download Document</a>
+                    </div>
+                    <!-- /ko -->
+                    <!-- ko if:Reason() -->
+                    <div class="form-group">
+                        <label for="input">Request Reason</label>
+                        <pre data-bind="html: Reason"></pre>
+                    </div>
+                    <!-- /ko -->
+                </form>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>    
+</div>

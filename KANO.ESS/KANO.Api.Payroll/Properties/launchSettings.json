@@ -1,0 +1,41 @@
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:7011",
+      "sslPort": 7012
+    }
+  },
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "api/payroll",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "KANO.Api.Payroll": {
+      "commandName": "Project",
+      "launchUrl": "api/payroll",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:7012;http://localhost:7011"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/api/payroll",
+      "environmentVariables": {
+        "ASPNETCORE_URLS": "https://+:7012;http://+:7011",
+        "ASPNETCORE_HTTPS_PORT": "7012"
+      },
+      "httpPort": 7011,
+      "useSSL": true,
+      "sslPort": 7012
+    }
+  }
+}

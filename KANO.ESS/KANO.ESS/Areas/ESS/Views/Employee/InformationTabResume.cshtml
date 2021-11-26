@@ -1,0 +1,452 @@
+﻿<div class="row">
+    <div class="col-lg-12 mb-4">
+        <div class="card card-tab-content">
+            <div class="card-body">
+                <div class="d-xs-block card-title mb-xs-4 mb-sm-4 d-sm-flex">
+                    <h4 class="w-100 mb-xs-3">
+                        <span><i class="mdi mdi-clipboard-account"></i> Employee Profile</span>
+                    </h4>
+
+                    <!-- ko if: !model.is.requestActive() && !model.is.renderingEmployeeForm() -->
+                    <div class="btn-group" role="group" aria-label="button employee form">
+                        <button type="button" class="btn btn-info btn-request-update p-2" data-bind="click:action.requestUpdate">Request Update</button>
+
+                        <div class="btn-group" role="group">
+                            <button id="btnEmployeeOption" type="button" class="btn btn-info dropdown-toggle p-2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="btnEmployeeOption">
+                                <a class="dropdown-item" href="#" onclick="model.action.saveAsDraft()">
+                                    <i class="mdi mdi-file-document-outline mr-1 text-warning"></i>
+                                    Save as Draft
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#" data-bind="click:action.discardUpdate">
+                                    <i class="mdi mdi-delete mr-1 text-danger"></i>
+                                    Discard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /ko -->
+                </div>
+                <form class="row" id="employeeResumeForm" data-bind="with: data.employee, visible:!model.is.renderingEmployeeForm()">
+                    @*Form Left*@
+                    <section class="col-lg-6">
+                        <div class="form-group row">
+                            <label for="employeeID" class="col-sm-3 col-form-label">Employee ID</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="employeeID" disabled data-bind="value: EmployeeID">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="employeeName" class="col-sm-3 col-form-label">Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="employeeName" disabled data-bind="value: EmployeeName">
+                            </div>
+                        </div>
+                        <div class="form-group row" data-bind="css:{marked:Religion()!=model.data.originalEmployee().Religion()&&Religion()!='-'}">
+                            <label for="religion" class="col-sm-3 col-form-label">Religion</label>
+                            <div class="col-sm-5">
+                                <select id="religion" class="form-control" data-bind="kendoDropDownList: {
+                                                dataTextField: 'text',
+                                                dataValueField: 'value',
+                                                data: $parent.list.religion,
+                                                value: Religion,
+                                                filter: 'contains',
+                                                optionLabel: 'Select Religion',
+                                                enabled: false
+                                                }">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row" data-bind="css:{marked:standarizeDate(Birthdate())!=standarizeDate(model.data.originalEmployee().Birthdate())&&Birthdate()!='-'}">
+                            <label for="birthdate" class="col-sm-3 col-form-label">Birth Date</label>
+                            <div class="col-sm-9">
+                                <input type="datetime" id="birthdate" class="w-100" data-bind="kendoDatePicker: {value: Birthdate, enabled: false}">
+                            </div>
+                        </div>
+                        <div class="form-group row" data-bind="css:{marked:Birthplace()!=model.data.originalEmployee().Birthplace()&&Birthplace()!='-'}">
+                            <label for="placeofbirth" class="col-sm-3 col-form-label">Birthplace</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="placeofbirth" data-bind="value: Birthplace, disable: true">
+                            </div>
+                        </div>
+                        <div class="form-group row" data-bind="css:{marked:Gender()!=model.data.originalEmployee().Gender()&&Gender()!='-'}">
+                            <label for="gender" class="col-sm-3 col-form-label">Gender</label>
+                            <div class="col-sm-5">
+                                <select id="gender" class="form-control" data-bind="kendoDropDownList: {
+                                                dataTextField: 'text',
+                                                dataValueField: 'value',
+                                                data: $parent.list.gender,
+                                                value: Gender,
+                                                filter: 'contains',
+                                                optionLabel: 'Select Gender',
+                                                enabled: false
+                                                }">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row" id="MaritalStatusField" data-bind="css:{
+                             marked:MaritalStatus()!=model.data.originalEmployee().MaritalStatus()&&MaritalStatus()!='-',
+                             empty:!MaritalStatusAttachment().Filename(),
+                             filled:!!MaritalStatusAttachment().Filename()
+                             }">
+                            <label for="maritalStatus" class="col-sm-3 col-form-label">Marital Status</label>
+                            <div class="col-sm-5">
+                                <select id="maritalStatus" class="form-control" data-bind="kendoDropDownList: {
+                                                dataTextField: 'text',
+                                                dataValueField: 'value',
+                                                data: $parent.list.maritalStatus,
+                                                value: MaritalStatus,
+                                                filter: 'contains',
+                                                optionLabel: 'Select Marital Status',
+                                                enable:true,
+                                                }">
+                                </select>
+                            </div>
+                            <!-- ko if:false -->
+                            <div class="col-sm-4 col-4 p-xs-0">
+                                <div class="btn-group btn-group-sm float-right btn-group-attachment" role="group">
+                                    <!-- ko if:!!MaritalStatusAttachment().Filename() -->
+                                    <button type="button" class="btn btn-secondary py-1 field-attachment-download" data-field="MaritalStatus" data-bind="click:model.action.downloadEmployeeAttachment">
+                                        <i class="mdi mdi-download"></i>
+                                    </button>
+                                    <!-- /ko -->
+
+                                    <div class="field-attachment-uploader">
+                                        <input type="file" id="maritalStatusUploader" data-bind="
+                                           attr:{
+                                            'data-axid':AXID(),
+                                            'data-field':'MaritalStatus',
+                                           },
+                                           kendoUpload: {
+                                               async: {
+                                                    saveUrl: '/ESS/Employee/SaveEmployeeAttachment',
+                                                    autoUpload: true,
+                                                    saveField: 'fileUpload'
+                                               },
+                                               multiple: false,
+                                               upload:model.on.uploadEmployeeAttachment,
+                                               select:model.on.uploadEmployeeAttachmentSelected,
+                                               progress:model.on.uploadEmployeeAttachmentProgress,
+                                               success:model.on.uploadEmployeeAttachmentSuccess,
+                                               error:model.on.uploadEmployeeAttachmentError,
+                                               validation: {
+                                                    allowedExtensions: model.app.config.upload.allowedExtensions,
+                                                    maxFileSize: model.app.config.upload.maxFileSize
+                                                },
+                                           }" />
+                                    </div>
+                                    <button type="button" class="btn btn-secondary py-1 field-attachment-button" id="AttachmentMaritalStatus" data-bind="
+                                            click:model.action.attachMaritalStatusFile
+                                            ">
+                                        <i class="mdi mdi-paperclip"></i>
+                                        <div class="spinner-border text-light" role="status">
+                                            <span class="sr-only">Loading...</span>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- /ko -->
+                        </div>
+                        <div class="form-group row" id="IsExpartiarteField" data-bind="css:{
+                             marked:IsExpatriate()!=model.data.originalEmployee().IsExpatriate()&&IsExpatriate()!='-',
+                             empty:!IsExpartriateAttachment().Filename(),
+                             filled:!!IsExpartriateAttachment().Filename()
+                             }">
+                            <label for="expartiate" class="col-sm-3 col-5 col-form-label">Expartriate</label>
+                            <div class="col-sm-5 col-3 p-xs-0">
+                                <input type="checkbox" class="m-xs-0 form-check-input mt-sm-3 ml-sm-1" id="expartriat" data-bind="checked:IsExpatriate" disabled/>
+                            </div>
+                            <!-- ko if:false -->
+                            <div class="col-sm-4 col-4 p-xs-0">
+                                <div class="btn-group btn-group-sm float-right btn-group-attachment" role="group">
+                                    <!-- ko if:!!IsExpartriateAttachment().Filename() -->
+                                    <button type="button" class="btn btn-secondary py-1 field-attachment-download" data-field="IsExpartiarte" data-bind="click:model.action.downloadEmployeeAttachment">
+                                        <i class="mdi mdi-download"></i>
+                                    </button>
+                                    <!-- /ko -->
+
+                                    <div class="field-attachment-uploader">
+                                        <input type="file" id="expartriarteUploader" data-bind="
+                                           attr:{
+                                            'data-axid':AXID(),
+                                            'data-field':'IsExpartiarte',
+                                           },
+                                           kendoUpload: {
+                                               async: {
+                                                    saveUrl: '/ESS/Employee/SaveEmployeeAttachment',
+                                                    autoUpload: true,
+                                                    saveField: 'fileUpload'
+                                               },
+                                               multiple: false,
+                                               upload:model.on.uploadEmployeeAttachment,
+                                               select:model.on.uploadEmployeeAttachmentSelected,
+                                               progress:model.on.uploadEmployeeAttachmentProgress,
+                                               success:model.on.uploadEmployeeAttachmentSuccess,
+                                               error:model.on.uploadEmployeeAttachmentError,
+                                               validation: {
+                                                    allowedExtensions: model.app.config.upload.allowedExtensions,
+                                                    maxFileSize: model.app.config.upload.maxFileSize
+                                                },
+                                           }" />
+                                    </div>
+                                    <button type="button" class="btn btn-secondary py-1 field-attachment-button" id="AttachmentExpartriate" data-bind="
+                                            click:model.action.attachExpartriarteFile,
+                                            disable: model.is.requestActive()
+                                            ">
+                                        <i class="mdi mdi-paperclip"></i>
+                                        <div class="spinner-border text-light" role="status">
+                                            <span class="sr-only">Loading...</span>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- /ko -->
+                        </div>
+                        <div class="form-group row" id="addressField" data-bind="css:{
+                             marked:Address.OldData()!=Address.NewData(),
+                             empty:!Address.Filename(),
+                             filled:!!Address.Filename(),
+                             }">
+                            <label for="address" class="col-sm-3 col-form-label">Address</label>
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                    <!-- ko if:!!Address.Filename() -->
+                                    <div class="input-group-prepend">
+                                        <button type="button" class="input-group-text field-attachment-download" data-bind="click:model.action.downloadAddressFile">
+                                            <i class="mdi mdi-download"></i>
+                                        </button>                                        
+                                    </div>
+                                    <!-- /ko -->
+                                    <textarea class="form-control" id="addres" rows="5" data-bind="value: Address.Street, valueUpdate:'keyup', disable: model.is.requestActive()"></textarea>
+                                    <div class="input-group-append btn-group-attachment" data-bind="attr:{
+                                                title:Address.Filename() ||'Please attach a file for verification purpose'
+                                            }">
+                                        <!-- ko if:Address.NewData()!=Address.OldData() || !!Address.Filename() -->
+                                        <div class="field-attachment-uploader">
+                                            <input type="file" id="addressUploader" data-bind="
+                                           attr:{
+                                            'data-axid':AXID(),
+                                           },
+                                           kendoUpload: {
+                                               async: {
+                                                    saveUrl: '/ESS/Employee/SaveAddress',
+                                                    autoUpload: true,
+                                                    saveField: 'fileUpload'
+                                               },
+                                               multiple: false,
+                                               upload:model.on.uploadAddressAttachment,
+                                               select:model.on.uploadAddressAttachmentSelected,
+                                               progress:model.on.uploadAddressAttachmentProgress,
+                                               success:model.on.uploadAddressAttachmentSuccess,
+                                               error:model.on.uploadAddressAttachmentError,
+                                               validation: {
+                                                    allowedExtensions: model.app.config.upload.allowedExtensions,
+                                                    maxFileSize: model.app.config.upload.maxFileSize
+                                                },
+                                           }" />
+                                        </div>
+                                        <!-- /ko -->
+                                        <button type="button" class="input-group-text field-attachment-button" id="AttachmentAddress" data-bind="
+                                            click:model.action.attachAddressFile,
+                                            disable: model.is.requestActive()
+                                            ">
+                                            <i class="mdi mdi-paperclip"></i>
+                                            <div class="spinner-border text-light" role="status">
+                                                <span class="sr-only">Loading...</span>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="email" class="col-sm-3 col-form-label">City</label>
+                            <div class="col-sm-9">
+                                <select id="city" class="form-control" data-bind="kendoDropDownList: {
+                                                dataTextField: 'Description',
+                                                dataValueField: 'Name',
+                                                data: $parent.list.city,
+                                                value: Address.City,
+                                                filter: 'contains',
+                                                optionLabel: 'Select City Address',
+                                                enable:!model.is.requestActive() 
+                                                }">
+                                </select>
+                            </div>
+                        </div>
+                        <!-- ko if:model.data.employeeFieldsDivider().Left() > 0 -->
+                        <!-- ko foreach:Fields  -->
+                        <!-- ko if:$index() < model.data.employeeFieldsDivider().Left() -->
+                        <div class="additional-field-wrapper" data-bind="template: { name: 'employee-field-template', data: $data }"></div>
+                        <!-- /ko -->
+                        <!-- /ko -->
+                        <!-- /ko -->
+                    </section>
+
+                    @*Form Right*@
+                    <section class="col-lg-6">
+                        <!-- ko if:model.data.employeeFieldsDivider().Right() > 0 -->
+                        <!-- ko foreach:Fields  -->
+                        <!-- ko if:$index() >= model.data.employeeFieldsDivider().Left() && $index() <= model.data.employeeFieldsDivider().Right()+1 -->
+                        <div class="additional-field-wrapper" data-bind="template: { name: 'employee-field-template', data: $data }"></div>
+                        <!-- /ko -->
+                        <!-- /ko -->
+                        <!-- /ko -->                        
+                    </section>
+                </form>
+                <div class="row" data-bind="css:{'d-none':!model.is.renderingEmployeeForm(), 'd-flex':model.is.renderingEmployeeForm()}">
+                    <div class="col-lg-6">
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control render-loading" disabled>
+                            </div>
+                        </div>                        
+                    </div>
+                </div>
+                @*<div class="justify-content-center mb-3" data-bind="css:{'d-none':!model.is.renderingEmployeeForm(), 'd-flex':model.is.renderingEmployeeForm()}">
+                    <div class="spinner-border text-info" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>*@
+            </div>
+        </div>
+    </div>    
+</div>
+
+<script type="text/html" id="employee-field-template">
+    <div class="form-group additional row" data-bind="css:{
+            marked:NewData()!=OldData() && NewData()!='-',
+            empty:!Filename(),
+            filled:!!Filename(),
+         },
+         attr:{
+            id:'additionalField'+UID()
+         }">
+        <label class="col-sm-3 col-form-label" data-bind="text:Label, attr:{for:UID()}"></label>
+        <div class="col-sm-9">
+            <div class="input-group">
+                <!-- ko if:!!Filename() -->
+                <div class="input-group-prepend">
+                    <button type="button" class="input-group-text field-attachment-download" data-bind="click:model.action.downloadFieldFile">
+                        <i class="mdi mdi-download"></i>
+                    </button>
+                </div>
+                <!-- /ko -->
+                <input type="text" class="form-control" data-bind="
+                                       value:NewData,
+                                       valueUpdate:'keyup',
+                                       attr:{
+                                            id:UID()
+                                       },
+                                       disable: model.is.requestActive()
+                                       " aria-describedby="employeeFieldAttachment">
+                <div class="input-group-append btn-group-attachment" data-bind="attr:{
+                                                title:Filename() ||'Please attach a file for verification purpose'
+                                            }">
+                    <!-- ko if:NewData()!=OldData() || !!Filename() -->
+                    <div class="field-attachment-uploader">
+                        <input type="file" data-bind="
+                                           attr:{
+                                            id:'Uploader'+UID(),
+                                            'data-axid':AXID(),
+                                            'data-uid':UID(),
+                                           },
+                                           kendoUpload: {
+                                               async: {
+                                                    saveUrl: model.map.fieldCategory[Category()],
+                                                    autoUpload: true,
+                                                    saveField: 'fileUpload'
+                                               },
+                                               multiple: false,
+                                               upload:model.on.uploadFieldAttachment,
+                                               select:model.on.uploadFieldAttachmentSelected,
+                                               progress:model.on.uploadFieldAttachmentProgress,
+                                               success:model.on.uploadFieldAttachmentSuccess,
+                                               error:model.on.uploadFieldAttachmentError,
+                                               validation: {
+                                                    allowedExtensions: model.app.config.upload.allowedExtensions,
+                                                    maxFileSize: model.app.config.upload.maxFileSize
+                                                }
+                                           }" />
+                    </div>
+                    <!-- /ko -->
+                    <button type="button" class="input-group-text field-attachment-button" data-bind="
+                                            attr:{
+                                                id:'Attachment'+UID()
+                                            },
+                                            click:model.action.attachFieldFile,
+                                            disable: model.is.requestActive()
+                                            ">
+                        <i class="mdi mdi-paperclip"></i>
+                        <div class="spinner-border text-light" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>

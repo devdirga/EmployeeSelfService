@@ -1,0 +1,42 @@
+﻿@using KANO.Core.Model;
+@using KANO.Core.Service;
+@using KANO.ESS;
+@{
+    Layout = "_Layout";
+}
+
+<script>
+    model.proto = {
+        Canteen: @Html.Raw(Json.Serialize(new Canteen())),
+        User: @Html.Raw(Json.Serialize(new User())),
+        FieldAttachment: @Html.Raw(Json.Serialize(new FieldAttachment())),
+        CanteenUserType: @Html.Raw(Tools.EnumToJson2(typeof(CanteenUser))),
+        MenuMerchant:  @Html.Raw(Json.Serialize(new MenuMerchant())),
+    }
+    model.proto.User.RoleID = "";
+    model.proto.Canteen.HTMLFile = "";
+</script>
+<link href="~/assets/areas/ess/css/canteen.css?@(Startup.Tick??DateTime.Now.Ticks)" rel="stylesheet" />
+<script src="~/assets/areas/ess/js/canteen.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+
+<div class="row">
+    <div class="col-md-12 grid-margin">
+        <div class="card">
+            <div class="card-header">
+                <strong class="float-left p-2">Canteen</strong>
+                
+            </div>
+            <div class="card-body p-max-1200-4">
+                <div class="table-responsive" id="canteenProfile"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("ModalCanteenProfile.cshtml")
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        model.init.manageCanteen();
+    })
+</script>

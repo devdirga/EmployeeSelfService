@@ -1,0 +1,86 @@
+﻿<div id="modalRetirementReadonly" class="modal" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">                
+                <h5 class="modal-title">
+                    <i class="mdi mdi-calendar-check"></i> Retirement Request
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="with: detail.Retirement">
+                <form>
+
+                    <div class="form-group">
+                        <label for="EmployeeID">EmployeeID</label>
+                        <div class="form-control-plaintext" data-bind="html: EmployeeID"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="EmployeeName">Employee Name</label>
+                        <div class="form-control-plaintext" data-bind="html: EmployeeName"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="birthdate">Birthdate</label>
+                        <div class="form-control-plaintext" data-bind="html: standarizeDate(new Date(BirthDate())) || '-'"></div>
+                    </div>
+
+                    <div class="form-group">                        
+                        <label for="Department">Department</label>
+                        <div class="form-control-plaintext" data-bind="html: Department"></div>                                
+                    </div>                  
+                    <div class="form-group">
+                        <label for="Position">Position</label>
+                        <div class="form-control-plaintext" data-bind="html: Position"></div>                            
+                    </div>  
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="col">
+                                <label for="Position">MPP Type</label>
+                                <div class="form-control-plaintext" data-bind="html: MPPType()+' Month(s)'"></div>
+                            </div>
+                            <div class="col">
+                                <label for="Position">CB type</label>
+                                <div class="form-control-plaintext" data-bind="html: CBType()+ 'Month(s)'"></div>
+                            </div>
+                        </div>                        
+                    </div>                                        
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="col">
+                                <label for="birthdate">MPP Start</label>
+                                <div class="form-control-plaintext" data-bind="html: standarizeDate(new Date(MPPDate.Start())) || '-'"></div>
+                            </div>
+                            <div class="col">
+                                <label for="birthdate">MPP End</label>
+                        <div class="form-control-plaintext" data-bind="html: standarizeDate(new Date(MPPDate.Finish())) || '-'"></div>
+                            </div>
+                        </div>                        
+                    </div>                                        
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="col">
+                                <label for="birthdate">CB Start</label>
+                                <div class="form-control-plaintext" data-bind="html: standarizeDate(new Date(CBDate.Start())) || '-'"></div>
+                            </div>
+                            <div class="col">
+                                <label for="birthdate">CB End</label>
+                                <div class="form-control-plaintext" data-bind="html: standarizeDate(new Date(CBDate.Finish())) || '-'"></div>
+                            </div>
+                        </div>                        
+                    </div>                                        
+                    <!-- ko if:Accessible -->
+                        <div class="form-group" data-bind="">
+                            <label for="input">Document Verification</label>
+                            <a href="" class="btn btn-sm btn-block btn-info" target="_blank" data-bind="attr:{title:Filename, href:`/ESS/Retirement/Download/${EmployeeID()}/${AXRequestID()}/${Filename()}`}"><span class="mdi mdi-download"></span> Download Document Verification</a>
+                        </div>
+                    <!-- /ko -->                    
+                </form>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>

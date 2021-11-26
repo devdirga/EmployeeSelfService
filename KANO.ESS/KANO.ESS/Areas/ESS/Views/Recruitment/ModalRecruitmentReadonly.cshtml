@@ -1,0 +1,81 @@
+﻿<div id="modalRecruitmentReadonly" class="modal" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" data-bind="html:data.recruitment().AXID() > 0 ? 'Recruitment':'Request Recruitment'"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="with: data.recruitment">
+                <form>
+                    <div class="form-group">
+                        <label for="recruitmentType">Recruitment Type</label>                        
+                        <div class="form-control-plaintext" data-bind="html:model.proto.RecruitmentTypes[RecruitmentType()] || '-'"></div>
+                    </div>                    
+                    <!-- ko if:!!RecruitmentType() -->
+                    
+                    <!-- ko if:RecruitmentType()==1 -->
+                    <div class="form-group">
+                        <label for="job">Job</label>                        
+                        <div class="form-control-plaintext" data-bind="html:JobDescription() || PositionDescription() || '-'"></div>
+                    </div> 
+                    <!-- /ko -->
+
+                    <!-- ko if:RecruitmentType()==2 -->
+                    <div class="form-group">
+                        <label for="position">Position</label>                        
+                        <div class="form-control-plaintext" data-bind="html:PositionDescription() || JobDescription() || '-'"></div>
+                    </div>
+                    <!-- /ko -->
+
+                    <!-- /ko -->
+                    <div class="form-group">
+                        <label for="startingdate">Estimation Starting Date</label>                        
+                        <div class="form-control-plaintext" data-bind="html:standarizeDate(EstimationStartedDate()) || '-'"></div>
+                    </div>
+
+                    <!-- ko if:AXID()>0 -->
+                    <div class="form-row">
+                        <div class="col">                                        
+                            <label for="opendate">Open Date</label>                                            
+                            <div class="form-control-plaintext" data-bind="html:standarizeDate(OpenDate()) || '-'"></div>
+                        </div>
+                        <div class="col">                            
+                            <label for="closedate">Close Date</label>                                            
+                            <div class="form-control-plaintext" data-bind="html:standarizeDate(CloseDate()) || '-'"></div>
+                        </div>                                    
+                    </div>
+
+                    <div class="form-group">
+                        <label for="startingdate">Deadline</label>                        
+                        <div class="form-control-plaintext" data-bind="html:standarizeDate(Deadline()) || '-'"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="startingdate">Requisition Approval Date</label>                        
+                        <div class="form-control-plaintext" data-bind="html:standarizeDate(RequisitionApprovalDate()) || '-'"></div>
+                    </div>
+                    <!-- /ko -->
+                    
+                    <div class="form-group">
+                        <label for="openings">Number of Openings</label>                        
+                        <div class="form-control-plaintext" data-bind="html:NumberOfOpenings() || '-'"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Description</label>                        
+                        <div class="form-control-plaintext" data-bind="html:Description() || '-'"></div>
+                    </div>
+                    <!-- ko if:Accessible() -->
+                    <div class="form-group" data-bind="">
+                        <label for="input">Document</label>
+                        <a href="" class="btn btn-sm btn-block btn-info" target="_blank" data-bind="attr:{title:Filename, href:`/ESS/Recruitment/Download/${EmployeeID()}/${AXRequestID()}/${Filename()}`}"><span class="mdi mdi-download"></span> Download Document</a>
+                    </div>
+                    <!-- /ko -->
+                </form>
+            </div>
+            <div class="modal-footer">                
+            </div>
+        </div>
+    </div>
+</div>

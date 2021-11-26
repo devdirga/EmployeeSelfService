@@ -1,0 +1,295 @@
+﻿@using KANO.Core.Model
+@using KANO.ESS
+
+@{
+    Layout = "_Layout";
+}
+
+<script>
+    model.proto = {
+        LeaveInfo: @Html.Raw(Json.Serialize(new LeaveInfo())),
+    };
+    model.proto.LeaveInfo.Percentage = "none";
+
+    var summaryBoxArr = [
+        model.app.hasAccess('MyAttendance'),
+        model.app.hasAccess('Leave'),
+        model.app.hasAccess('Canteen')
+    ]; 
+    
+    var summaryBoxLen = summaryBoxArr.filter(x=>x).length;
+</script>
+<style>
+    div.k-loading-mask
+{
+    z-index: 3; /* must be larger than the z-index:2 of #container */
+}
+</style>
+<script src="~/assets/vendors/chart.js/Chart.min.js"></script>
+<script src="~/assets/areas/ess/js/dashboard.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+<link rel="stylesheet" href="~/assets/areas/ess/css/dashboard.css">
+
+<div class="row">
+    <!-- ko if: model.app.hasAccess('MyAttendance') -->
+    <div class="col-md-4 stretch-card card-summary mb-3" data-bind="with:model, css:{'col-md-4':summaryBoxLen==3, 'col-md-6':summaryBoxLen==2, 'col-md-12':summaryBoxLen==1 || summaryBoxLen == 0}">
+        <div id="attendanceContainer" class="card bg-gradient-danger card-img-holder text-white">
+            <div class="card-body p-max-1200-4 p-xl-4" data-bind="with:data.todayAttendance">
+                <img src="~/assets/vendors/purple-admin/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image">
+                <h4 class="font-weight-normal mb-3">
+                    Today Attendance <i class="mdi mdi-clock-fast mdi-24px float-right"></i>
+                </h4>
+                <div class="row">
+                    <div class="col-12 d-flex">
+                        <div class="col-12 p-0 mb-4">
+                            <div class="col-12 p-0 mb-2">
+                                <i class="mdi mdi-login"></i> Clock In
+                                <span class="px-3">:</span>
+                                <span data-bind="text:ClockIn"></span>
+                            </div>
+                            <div class="col-12 p-0 mb-2">
+                                <i class="mdi mdi-logout"></i> Clock Out
+                                <span class="px-3">:</span>
+                                <span data-bind="text:ClockOut"></span>
+                            </div>
+                        </div>
+                        @*<table class="mb-4 summary-table">
+                                <tr>
+                                    <td class="col-12"><i class="mdi mdi-login"></i> Clock In</td>
+                                    <td class="px-3">:</td>
+                                    <th data-bind="text:ClockIn">-</th>
+                                </tr>
+                                <tr>
+                                    <td><i class="mdi mdi-logout"></i> Clock Out</td>
+                                    <td class="px-3">:</td>
+                                    <th data-bind="text:ClockOut">-</th>
+                                </tr>
+                            </table>*@
+                    </div>
+                </div>
+
+                @*<h6 class="card-text">
+                        <!-- ko if:Absent -->
+                        No attendance record for today
+                        <!-- /ko -->
+
+                        <!-- ko ifnot:Absent -->
+
+                        <!-- ko if:Good -->
+                        <span data-bind="text:_niceWords[getRandom(0,_niceWords.length)] + ' !!'"></span>
+                        <!-- /ko -->
+                        You are <strong data-bind="text:Productivity"></strong>
+                        <!-- ko if:Good -->
+                        early
+                        <!-- /ko -->
+                        <!-- ko ifnot:Good -->
+                        late
+                        <!-- /ko -->
+
+                        <!-- /ko -->
+                    </h6>*@
+
+
+            </div>
+        </div>
+    </div>
+    <!-- /ko -->
+    <!-- ko if: model.app.hasAccess("Leave") -->
+    <div class="col-md-4 stretch-card card-summary mb-3" data-bind="css:{'col-md-4':summaryBoxLen==3, 'col-md-6':summaryBoxLen==2, 'col-md-12':summaryBoxLen==1 || summaryBoxLen == 0}">
+        <div id="leaveContainer" class="card bg-gradient-info card-img-holder text-white">
+            <img src="~/assets/vendors/purple-admin/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image">
+            <div class="card-body p-max-1200-4 p-xl-4" data-bind="with:data.leaveInfo">
+                <h4 class="font-weight-normal mb-3">
+                    Leave Remainder <i class="mdi mdi-bag-personal mdi-24px float-right"></i>
+                </h4>
+                <h1 class="mb-4" data-bind="text:Remainder">-</h1>
+                <h6 class="card-text">You used <strong data-bind="text: Percentage"></strong> of your leave rights</h6>
+            </div>
+        </div>
+    </div>
+    <!-- /ko -->
+    <!-- ko if: model.app.hasAccess("Canteen") -->
+    <div class="col-md-4 stretch-card card-summary mb-3" data-bind="css:{'col-md-4':summaryBoxLen==3, 'col-md-6':summaryBoxLen==2, 'col-md-12':summaryBoxLen==1 || summaryBoxLen == 0}">
+        <div id="canteenContainer" class="card bg-gradient-success card-img-holder text-white">
+            <div class="card-body p-max-1200-4" data-bind="with:data.canteenInfo">
+                <img src="~/assets/vendors/purple-admin/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image">
+                <h4 class="font-weight-normal mb-3">
+                    Remaining Voucher <i class="mdi mdi-ticket-account mdi-24px float-right"></i>
+                </h4>
+                <h2 class="mb-5" data-bind="text:VoucherRemaining">0</h2>
+                <h6 class="card-text">You have use <strong data-bind="text:VoucherAlmostExpired">0</strong> that almost expired</h6>
+            </div>
+        </div>
+    </div>
+    <!-- /ko -->
+</div>
+
+@*<div class="row">
+        <div class="col-md-7 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body p-max-1200-4">
+                    <div class="clearfix">
+                        <h4 class="card-title float-left">Visit And Sales Statistics</h4>
+                        <div id="visit-sale-chart-legend" class="rounded-legend legend-horizontal legend-top-right float-right"></div>
+                    </div>
+                    <canvas id="visit-sale-chart" class="mt-4"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body p-max-1200-4">
+                    <h4 class="card-title">Traffic Sources</h4>
+                    <canvas id="traffic-chart"></canvas>
+                    <div id="traffic-chart-legend" class="rounded-legend legend-vertical legend-bottom-left pt-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>*@
+
+<!-- ko if: model.app.hasAccess('MyAttendance') -->
+<div class="row">
+    <div class="col-md-8 grid-margin">
+        <div class="card">
+            <div class="card-body p-max-1200-4">
+                <h4 class="card-title">
+                    <i class="mdi mdi-clock-fast"></i>
+                    Recent Attendances
+                </h4>
+                <div class="table-responsive" id="gridAttendance"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 grid-margin">
+        <div id="agendaContainer" class="card">
+            <div class="card-body p-max-1200-4">
+                <div class="row">
+                    <div class="col-12 ">
+                        <h4 class="card-title">
+                            <i class="mdi mdi-earth"></i>
+                            Agenda
+                        </h4>
+                        <!-- ko ifnot:model.data.travelTimelines().length > 0 -->
+                        <div class="alert alert-secondary text-center mt-4 mb-1">There is no agenda yet</div>
+                        <!-- /ko -->
+                        <!-- ko if:model.data.travelTimelines().length > 0 -->
+                        <ul class="timeline">
+                            <!-- ko foreach:model.data.travelTimelines -->
+                            <li>
+                                <div class="date-agenda" data-bind="text: _date"></div>
+                                <!-- ko foreach:_data -->
+                                <div class="content-agenda" data-bind="click:model.action.showAgenda">
+                                    <div class="row">
+                                        <div class="col-xl-12">
+                                            <strong class="float-right">
+                                                <i class="mdi" data-bind="css:model.data.parseAgendaIcon(AgendaType)"></i>
+                                            </strong>
+                                            <strong class="float-left" data-bind="text:Issuer"></strong>
+                                            <br clear="all" />
+                                            <span data-bind="html:Name"></span>
+                                            <!-- ko if:!!Location -->
+                                            <br clear="all" />
+                                            <span>   
+                                                <small>
+                                                    <i class="mdi mdi-map-marker-circle"></i>
+                                                    <span data-bind="text: Location"></span>
+                                                </small>
+                                            </span>
+                                            <!-- /ko -->
+                                            <br clear="all" />
+                                            <span>                                                
+                                                <small>
+                                                    <i class="mdi mdi-calendar-clock"></i>
+                                                    <span data-bind="text: _schedule"></span>
+                                                </small>
+                                            </span>
+                                            
+                                        </div>
+
+
+                                    </div>
+                                </div>
+                                <!-- /ko -->
+                            </li>
+                            <!-- /ko -->
+                        </ul>
+                        <!-- /ko -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /ko -->
+<div id="ModalDetailAgenda" class="modal" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-earth"></i>
+                     Agenda
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="with:model.data.DetailAgenda">
+                <div>
+                    <div class="form-group">
+                        <label for="input">Name</label>
+                        <div class="form-control-plaintext" data-bind="html:Name"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="input">Description</label>
+                        <div class="form-control-plaintext">
+                            <!-- ko if: !!Notes -->
+                            <div class="mb-2"><strong data-bind="html:Description"></strong></div>
+                            <p data-bind="html:Notes"></p>
+                            <!-- /ko -->
+                            <!-- ko if: !Notes -->
+                            <p data-bind="html:Description"></p>
+                            <!-- /ko -->
+                        </div>                        
+                    </div>
+                    <!-- ko if: !!Location -->
+                    <div class="form-group">
+                        <label for="input">Location</label>
+                        <div class="form-control-plaintext">
+                            <i class="mdi mdi-map-marker-circle"></i>
+                            <span data-bind="html:Location"></span>
+                        </div>
+                    </div>
+                    <!-- /ko -->
+                    <div class="form-group">
+                        <label for="input">Schedule</label>
+                        <div class="form-control-plaintext">
+                            <i class="mdi mdi-calendar-clock"></i>
+                            <span data-bind="html:_scheduleFull"></span>
+                        </div>
+                    </div>                    
+                    <div data-bind="if: !!Attachments && Attachments.length >0">
+                        <br />
+                        <div class="form-group">
+                            <label>Attachments</label>
+                            <br />
+                            <!-- ko foreach:Attachments -->
+                            <form target="_blank" name="download" action="/ESS/Agenda/Download" method="post">
+                                <input type="hidden" data-bind="value:encodeURIComponent(Filehash)" name="token" />
+                                <button type="submit" class="btn btn-sm mt-1" data-bind="attr:{'aria-disabled':!Accessible}, css:{'btn-info':Accessible, 'btn-outline-secondary':!Accessible}, disable:!Accessible">
+                                    <i class="mdi mdi-file-document"></i>
+                                    <span data-bind="html: Filename"></span>
+                                </button>
+                            </form>
+                            <!-- /ko -->
+                        </div>
+                    </div>
+                </div>
+            </div>    
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        model.init();
+    });
+</script>

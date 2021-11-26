@@ -1,0 +1,307 @@
+﻿@using KANO.Core.Service
+@using KANO.Core.Model
+@using KANO.ESS
+@{
+    Layout = "_Layout";
+}
+
+    <script>
+    @*Defining Model Prototype*@
+    model.proto = {
+        ParamTask: @Html.Raw(Json.Serialize(new ParamTask())),
+        Leave: @Html.Raw(Json.Serialize(new Leave())),
+        LeaveInfo: @Html.Raw(Json.Serialize(new LeaveInfo())),
+        TimeAttendance: @Html.Raw(Json.Serialize(new TimeAttendance())),
+        IdentificationForm: @Html.Raw(Json.Serialize(new AbsenceRecommendation())),
+        Employee: @Html.Raw(Json.Serialize(new Employee())),
+        Address: @Html.Raw(Json.Serialize(new Address())),
+        FieldAttachment: @Html.Raw(Json.Serialize(new FieldAttachment())),
+        Certificate: @Html.Raw(Json.Serialize(new Certificate())),
+        Family: @Html.Raw(Json.Serialize(new Family())),
+        DateRange: @Html.Raw(Json.Serialize(new DateRange())),
+        SPPD: @Html.Raw(Json.Serialize(new SPPD())),
+        Travel: @Html.Raw(Json.Serialize(new Travel())),
+        MedicalBenefit: @Html.Raw(Json.Serialize(new MedicalBenefit())),
+        MedicalBenefitDetail:  @Html.Raw(Json.Serialize(new MedicalBenefitDetail())),
+        Recruitment:  @Html.Raw(Json.Serialize(new Recruitment())),
+        RecruitmentTypes: @Html.Raw(Tools.EnumToJson2(typeof(RecruitmentType))),
+        Retirement:  @Html.Raw(Json.Serialize(new Retirement())),
+        DocumentRequest: @Html.Raw(Json.Serialize(new DocumentRequest())),
+        TicketCategory: @Html.Raw(Json.Serialize(new TicketCategory())),
+    };
+
+    model.proto.Leave.Schedule = @Html.Raw(Json.Serialize(new DateRange()));
+    model.proto.Employee.GenderDescription = "";
+    model.proto.Employee.ExpatriateDescription = ""
+    </script>
+
+<link href="~/assets/areas/ess/css/activity.css?@(Startup.Tick??DateTime.Now.Ticks)" rel="stylesheet" />
+<link href="~/assets/areas/ess/css/task.css?@(Startup.Tick??DateTime.Now.Ticks)" rel="stylesheet" />
+<script src="~/assets/vendors/random-color/random-color.min.js"></script>
+<script src="~/assets/areas/ess/js/timemanagement.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+<script src="~/assets/areas/ess/js/activity.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+<script src="~/assets/vendors/terbilang-js/terbilang.min.js"></script>
+
+<div class="row" data-bind="with:model">
+    <div class="col-md-12 grid-margin stretch-card">
+        <div class="card bg-transparent">
+            <div class="card-ex bg-transparent">
+                <div class=" p-0 card-body bg-transparent">
+                    <nav>
+                        <ul class="nav nav-tabs" id="taskTab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link border-none active" id="active-tab" data-toggle="tab" href="#active" role="tab" aria-controls="active" aria-selected="true">Active</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link border-none" id="all-tab" data-toggle="tab" href="#all" role="tab" aria-controls="all" aria-selected="false">All</a>
+                            </li>
+                            <li class="task-filter">
+                                <div id="filterTask" title="daterangepicker" data-bind="visible:model.is.filterVisible()"></div>
+                            </li>
+                        </ul>
+                    </nav>
+                    @*new*@
+                    <div class="task-container bg-white p-3">
+
+                        <!-- ko if: data.groupedTasks().length == 0|| model.is.renderingTask() -->
+
+                        <div class="col-12 p-0 d-none" data-bind="css: {'d-block':model.data.activeTaskTab() == 'active'}">
+                            <div class="align-right">
+                                <button class="btn btn-sm btn-light" onclick="model.render.tasks()" data-bind="disable:model.is.renderingTask()">
+                                    <i class="mdi mdi-refresh cursor-pointer"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="col-12 p-0 d-none" data-bind="css: {'d-block':model.data.activeTaskTab() == 'all' }">
+                            <div class="align-right">
+                                <button class="btn btn-sm btn-light" onclick="model.render.tasks()" data-bind="disable:model.is.renderingTask()">
+                                    <i class="mdi mdi-refresh cursor-pointer"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- /ko -->
+                        <!-- ko if: model.is.renderingTask() -->
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-center h-100 align-items-center">
+                                <div class="spinner-border text-dark" role="status">
+                                    <span class="sr-only">Loading Task...</span>
+                                </div>
+                                <div class="ml-2">Loading Task ...</div>
+                            </div>
+                        </div>
+                        <!-- /ko -->
+                        <!-- ko ifnot: model.is.renderingTask() -->
+                        <div class="d-none" data-bind="css:{'d-block':!model.is.renderingTask()}">
+                            <div class="text-center mb-3" data-bind="if:data.groupedTasks().length == 0">No task available.</div>
+                            <!-- ko ifnot: data.groupedTasks().length == 0 -->
+                            <div data-bind="foreach:data.groupedTasks" data-bind="css:{'mt-4':$index()>0}">
+                                @*header*@
+                                <div class="col-12 p-0 d-lg-flex mb-3">
+                                    <div class="col-lg-9 col-10 p-0 d-flex mb-lg-xs-2">
+                                        <strong class="task-day" data-bind="text:Day"></strong>
+                                        <span class="text-muted task-date ml-3" data-bind="text:Date"></span>
+                                    </div>
+                                    <!-- ko if:$index()==0 -->
+                                    <div class="col-lg-3 col-2 p-0 mb-lg-xs-2">
+                                        <div class="align-right">
+                                            <button class="btn btn-sm btn-light" onclick="model.render.tasks()"><i class="mdi mdi-refresh cursor-pointer"></i></button>
+                                        </div>
+                                    </div>
+                                    <!-- /ko -->
+                                </div>
+                                @*body*@
+                                <div class="list-group mb-4" data-bind="foreach:$data.Data">
+                                    <div class="list-task list-group-item list-group-item-action flex-column align-items-start p-xs-2" data-bind="css:{
+                                        'undone':!$data.Done(),
+                                        },
+                                        attr: {
+                                         style:!!ColorGroup()?'border-left: solid 15px '+ColorGroup():''
+                                        }">
+                                        <div class="d-flex col-12 p-0 w-100 justify-content-between">
+                                            <div class="flex-shrink-1 text-info">
+                                                <i class="icon-size-notif" data-bind="css:model.app.parseIcon($data.WorkflowTypeDescription)"></i>
+                                            </div>
+                                            <div class="w-95 w-lg-xs-80 pt-1 pl-2" data-bind="attr:{title:DateTime}">
+                                                <div class="mb-1 task-message">
+                                                    <span data-bind="text:Title"></span>
+                                                </div>
+                                                <!-- ko if: $data.SubmitEmployeeID() != model.app.config.employeeID -->
+                                                <div class="text-muted mb-2">
+                                                    <strong><span data-bind="text:InstanceId()"></span></strong>
+                                                    <span>&nbsp;&mdash;&nbsp;</span>
+                                                    <strong>Step <span data-bind="text:Sequence()"></span></strong>
+                                                </div>
+                                                <!-- /ko -->
+                                                <div class="text-muted d-xs-grid">
+                                                    <small><span data-bind="text:SubmitEmployeeName()"></span></small>
+                                                    <span class="d-xs-none">&nbsp;/&nbsp;</span>
+                                                    <small><span data-bind="text:SubmitEmployeeID()"></span></small>
+                                                    <span class="d-xs-none">&nbsp;/&nbsp;</span>
+                                                    <small data-bind="text:HumanizedDateTime"></small>
+                                                </div>
+
+                                                <div class="mt-xs-1 mt-sm-3 d-xs-grid">
+                                                    @*Normal*@
+                                                    <!-- ko ifnot: $data.Inverted() -->
+                                                    <!-- ko if: $data.TaskType() == 1 -->
+                                                    <a class="mt-xs-1 btn btn-sm btn-outline-success" data-bind="css:{'d-none' :  $data.ActionCancel()}, text:($data.ActionApprove())?'Approved':'Fill'" href="/ESS/Survey/Fill/5efd63541e44273afc50e2a7" target="_blank">
+                                                        Fill Survey
+                                                    </a> 
+                                                    <!-- /ko -->
+                                                    <!-- ko ifnot: $data.TaskType() == 1 -->
+                                                    <!-- ko if: $data.StepTrackingType() == 1 -->
+                                                    <button class="mt-xs-1 btn btn-sm btn-outline-success" data-bind="css:{
+                                                'd-none' : !$data.AssignApprove() || ($data.ActionReject() || $data.ActionDelegate() || $data.ActionCancel())}, text:($data.ActionApprove())?'Approved':'Approve', click:model.action.approveTask">
+                                                        Approve
+                                                    </button>
+                                                    <button class="mt-xs-1 btn btn-sm btn-outline-danger" data-bind="css:{
+                                                'd-none' : !$data.AssignReject() || ($data.ActionApprove() || $data.ActionDelegate() || $data.ActionCancel())}, text:($data.ActionReject())?'Rejected':'Reject', click:model.action.rejectTask">
+                                                        Reject
+                                                    </button>
+                                                    <button class="mt-xs-1 btn btn-sm btn-outline-primary" data-bind="css:{
+                                                'd-none' : !$data.AssignDelegate()|| ($data.ActionReject() || $data.ActionApprove() || $data.ActionCancel())}, text:($data.ActionDelegate())?'Delegated to '+$data.ActionDelegateToEmployeeName()+' ('+$data.ActionDelegateToEmployeeID()+')':'Delegate', click:model.action.openTaskDelegation">
+                                                        Delegate
+                                                    </button>
+                                                    <button class="mt-xs-1 btn btn-sm btn-outline-warning" data-bind="css:{
+                                                'd-none' : !$data.AssignCancel() || ($data.ActionReject() || $data.ActionDelegate() || $data.ActionApprove())}, text:($data.ActionCancel())?'Canceled':'Cancel',click:model.action.cancelTask">
+                                                        Cancel
+                                                    </button>
+                                                    <!-- /ko -->
+                                                    <!-- /ko -->
+                                                    <!-- ko if: ($data.StepTrackingType() >= 2) -->
+                                                    <button disabled class="mt-xs-1 btn btn-sm" data-bind="css:{
+                                                    'btn-danger': $data.TrackingStatus() == 3,
+                                                    'btn-warning': $data.TrackingStatus() == 2,
+                                                    'btn-success':$data.TrackingStatus() == 1,
+                                                    'btn-info':$data.TrackingStatus() == 0,
+                                                }, text:model.app.parseTrackingStatus(TrackingStatus())"></button>
+                                                    <!-- /ko -->
+                                                    <!-- /ko -->
+                                                    @*END : Normal*@
+
+                                                    @*Inverted*@
+                                                    <!-- ko if: $data.Inverted() -->
+                                                    <!-- ko if: $data.StepTrackingType() == 1 -->
+                                                    <button class="mt-xs-1 btn btn-sm btn-outline-success" data-bind="css:{
+                                                'd-none' : !$data.AssignApprove() || ($data.ActionReject() || $data.ActionDelegate() || $data.ActionCancel())}, text:($data.ActionApprove())?'Approved':'Approve', click:model.action.approveTaskInverted">
+                                                        Approve
+                                                    </button>
+                                                    <button class="mt-xs-1 btn btn-sm btn-outline-danger" data-bind="css:{
+                                                'd-none' : !$data.AssignReject() || ($data.ActionApprove() || $data.ActionDelegate() || $data.ActionCancel())}, text:($data.ActionReject())?'Rejected':'Reject', click:model.action.rejectTaskInverted">
+                                                        Reject
+                                                    </button>
+                                                    <button class="mt-xs-1 btn btn-sm btn-outline-primary" data-bind="css:{
+                                                        'd-none' : !$data.AssignDelegate()|| ($data.ActionReject() || $data.ActionApprove() || $data.ActionCancel())}, text:($data.ActionDelegate())?'Delegated to '+$data.ActionDelegateToEmployeeName()+' ('+$data.ActionDelegateToEmployeeID()+')':'Delegate', click:model.action.openTaskDelegation">
+                                                        Delegate
+                                                    </button>
+                                                    <button class="mt-xs-1 btn btn-sm btn-outline-warning" data-bind="css:{
+                                                        'd-none' : !$data.AssignCancel() || ($data.ActionReject() || $data.ActionDelegate() || $data.ActionApprove())}, text:($data.ActionCancel())?'Canceled':'Cancel',click:model.action.cancelTask">
+                                                        Cancel
+                                                    </button>
+                                                    <!-- /ko -->
+                                                    <!-- ko if: ($data.StepTrackingType() >= 2) -->
+                                                    <button disabled class="mt-xs-1 btn btn-sm" data-bind="css:{
+                                                    'btn-success': $data.TrackingStatus() == 3,
+                                                    'btn-warning': $data.TrackingStatus() == 2,
+                                                    'btn-danger':$data.TrackingStatus() == 1,
+                                                    'btn-info':$data.TrackingStatus() == 0,
+                                                }, text:model.app.parseTrackingStatus(TrackingStatus(), true)"></button>
+                                                    <!-- /ko -->
+                                                    <!-- /ko -->
+                                                    @*END : Inverted*@
+
+                                                    <!-- ko ifnot: $data.TaskType() == 1 -->
+                                                    <!-- ko if: $data.WorkflowType()!=8 -->
+                                                    <button class="mt-xs-1 btn btn-sm btn-outline-info" data-bind="click:model.action.detailsTask">
+                                                        Details
+                                                    </button>
+                                                    <!-- /ko -->
+                                                    <!-- ko if: $data.SubmitEmployeeID() == model.app.config.employeeID -->
+                                                    <button class="mt-xs-1 btn btn-sm btn-outline-secondary" data-bind="click:model.app.action.trackTask">
+                                                        Track
+                                                    </button>
+                                                    <!-- /ko -->
+                                                    <!-- /ko -->
+
+
+
+                                                </div>
+                                            </div>
+
+                                            <i class="mdi mark-as-done-single" data-bind="css:{
+                                                'mdi-check-circle': $data.Done(),
+                                                'mdi-checkbox-blank-circle-outline': !$data.Done(),
+                                                'text-muted': !$data.Done(),
+                                                'text-info': $data.Done(),
+                                                }"></i>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /ko -->
+                        </div>
+                        <!-- /ko -->
+                    </div>
+                    @*end*@
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="modalFormDelegation" class="modal" role="dialog" data-bind="with: model">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="mdi mdi-cube-send"></i>  Task Delegation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="familyName" class="required">Delegate To</label>
+                        <div id="gridDelegation"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info" data-bind="click:action.delegateTask">Delegate</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("../TimeManagement/ModalTimeAttendanceReadOnly.cshtml")
+@await Html.PartialAsync("../Leave/ModalLeaveReadOnly.cshtml")
+@await Html.PartialAsync("../Employee/ModalResumeReadOnly.cshtml")
+@await Html.PartialAsync("../Employee/ModalCertificateReadOnly.cshtml")
+@await Html.PartialAsync("../Employee/ModalFamilyReadOnly.cshtml")
+@await Html.PartialAsync("../Travel/ModalSPPDReadOnly.cshtml")
+@await Html.PartialAsync("../Benefit/ModalReimburseReadOnly.cshtml")
+@await Html.PartialAsync("../Recruitment/ModalTaskRecruitmentReadonly.cshtml")
+@await Html.PartialAsync("../Retirement/ModalRetirementReadonly.cshtml")
+
+<script>
+    $(function () {
+        model.render.dateRange();
+
+        model.init.task();
+        $("#all-tab").click(function () {
+            model.is.filterVisible(true);
+            model.data.activeTaskTab("all");
+            model.render.tasks();
+        });
+        $("#active-tab").click(function () {
+            model.is.filterVisible(false);
+            model.data.activeTaskTab("active");        
+            model.render.tasks();
+        });
+    })
+</script>

@@ -1,0 +1,48 @@
+﻿@using KANO.Core.Model
+@using KANO.ESS
+@{
+    Layout = "_Layout";
+}
+<script>
+
+    @*Defining Model Prototype*@
+    model.proto = {
+        TimeAttendance: @Html.Raw(Json.Serialize(new TimeAttendance())),
+        IdentificationForm: @Html.Raw(Json.Serialize(new AbsenceRecommendation()))
+    };
+</script>
+<script src="~/assets/areas/ess/js/timemanagement.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+<link rel="stylesheet" href="~/assets/areas/ess/css/timemanagement.css?@(Startup.Tick??DateTime.Now.Ticks)">
+
+<div class="row">
+    <main class="col-lg-12" role="main">
+        <div class="col-lg-12 mb-4 p-0">
+            <div class="card box">
+                <div class="card-header clearfix">
+                    <strong class="float-left p-2">Subordinate Attendance</strong>
+                    <div class="float-right filter-attendance">
+                        @*<label class="d-md-xs-none">Periode</label>*@
+                        <input class="w-lg-xs-100 mb-lg-xs-2" data-bind="kendoDatePicker: { value: model.data.StartDate, max : model.data.todaymin1, format: 'dd MMM yyyy' }" />
+                        <input class="w-lg-xs-100 mb-lg-xs-2" data-bind="kendoDatePicker: { value: model.data.EndDate, max : model.data.todaymin1, format: 'dd MMM yyyy' }" />
+                        <div class="btn-group w-lg-xs-100 mb-lg-xs-2" role="group" aria-label="Basic example">
+                            <button type="button" class="btn btn-outline-secondary px-3" onclick="model.action.refreshSubordinateTimeAttendanceMonthly()">Monthly</button>
+                            <button type="button" class="btn btn-outline-secondary px-3" onclick="model.action.refreshSubordinateTimeAttendanceYearly()">Yearly</button>
+                        </div>
+                        <a href="#" class="w-lg-xs-100 btn btn-primary" onclick="model.action.refreshSubordinateTimeAttendance(); return false;">Filter</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="gridSubordinateTimeAttendance"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.render.gridSubordinateTimeAttendance();
+    })
+</script>
+
+

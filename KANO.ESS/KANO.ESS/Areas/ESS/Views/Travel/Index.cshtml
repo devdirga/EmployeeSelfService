@@ -1,0 +1,67 @@
+﻿@using KANO.Core.Model
+@using KANO.Core.Service
+@using KANO.ESS
+@{
+    Layout = "_Layout";
+}
+<script>
+    @* Defining Model Prototype *@
+    model.proto = {
+        Travel: @Html.Raw(Json.Serialize(new Travel())),
+        DateRange: @Html.Raw(Json.Serialize(new DateRange())),
+        TravelPurpose: @Html.Raw(Json.Serialize(new TravelPurpose())),
+        Transportation: @Html.Raw(Json.Serialize(new Transportation())),
+        SPPD: @Html.Raw(Json.Serialize(new SPPD())),
+        TravelReqStatus: @Html.Raw(Tools.EnumToJson2(typeof(KESSTEServices.KESSTrvExpTravelReqStatus))),
+        TravelType: @Html.Raw(Tools.EnumToJson2(typeof(KESSTEServices.KESSTrvExpFacilityAreaType)))
+    };
+
+    model.proto.Travel.HTMLFile = "";
+</script>
+<script src="~/assets/areas/ess/js/travel.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+<script src="~/assets/vendors/kendoui/js/jszip.min.js"></script>
+<script src="~/assets/vendors/kendoui/js/pako_deflate.min.js"></script>
+<script src="~/assets/vendors/terbilang-js/terbilang.min.js"></script>
+<link rel="stylesheet" href="~/assets/areas/ess/css/travel.css?@(Startup.Tick??DateTime.Now.Ticks)">
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card box">
+            <div class="card-header clearfix">
+                <div class="float-left filter-attendance mb-md-xs-2">
+                    <button type="button" class="btn btn-md btn-info float-left w-md-xs-100" data-bind="click:action.openFormTravel">Add</button>
+                </div>
+                <div class="float-right filter-attendance">
+                    <select data-bind="kendoDropDownList: {
+                                                value: model.data.travelStatus,
+                                                data: model.list.travelStatus,
+                                                dataTextField: 'text',
+                                                dataValueField: 'value',
+                                                optionLabel: 'Select Status',
+                                                }" class="w-md-xs-100 mb-md-xs-2"></select>
+                    <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.StartDate, max : model.data.todaymin1, format: 'dd MMM yyyy' } " />
+                    <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.EndDate, max : model.data.todaymin1, format: 'dd MMM yyyy' } " />
+                    <div class="btn-group w-md-xs-100 mb-md-xs-2" role="group" aria-label="Basic example">
+                        <button type="button" class="w-md-xs-100 btn btn-outline-secondary px-3" onclick="model.action.filterTravelMonthly()">Monthly</button>
+                        <button type="button" class="w-md-xs-100 btn btn-outline-secondary px-3" onclick="model.action.filterTravelYearly()">Yearly</button>
+                    </div>
+                    <a href="#" class="w-md-xs-100 btn btn-primary" onclick="model.action.refreshTravel(); return false;">Filter</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="gridTravel"></div>
+            </div>
+        </div>
+    </div>
+</div>
+@await Html.PartialAsync("ModalTravel.cshtml")
+@await Html.PartialAsync("ModalSPPD.cshtml")
+@await Html.PartialAsync("ModalItenary.cshtml")
+@await Html.PartialAsync("ModalDetailTravel.cshtml")
+@await Html.PartialAsync("ModalRevisionTravel.cshtml")
+<script>
+    $(function () {
+        @* Render UI Components *@
+        model.init.Travel();
+    })
+</script>

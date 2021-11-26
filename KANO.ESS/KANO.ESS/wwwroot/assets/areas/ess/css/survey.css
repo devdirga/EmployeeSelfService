@@ -1,0 +1,21 @@
+﻿iframe#survey-form-container{
+    border:none;
+}
+
+#survey-schedule .k-textbox-container{
+    width: 49%;
+}
+
+#survey-schedule .k-textbox-container>.k-dateinput {
+    margin-top: 7px;
+}
+#survey-schedule .k-textbox-container>.k-label{
+    font-size: 1.1rem !important;    
+    margin-top: -5px;
+}
+#survey-schedule_dateview{
+    margin-top: 20px;
+}
+.k-multiselect-wrap .k-button {
+    padding-right: 1.5rem !important;
+}

@@ -1,0 +1,78 @@
+﻿body {
+}
+.k-event{
+    height:auto !important;
+}
+.k-loading-image {
+    background-color: #dde2e7;
+    opacity: .6;
+}
+.k-floatwrap.k-header.k-scheduler-toolbar {
+    display: none;
+}
+.kgrid thead tr td {
+    font-size: 14px;
+}
+.k-grid tbody tr td {
+    font-size: 14px;
+}
+.k-calendar .k-content .k-state-disabled a {
+    color:var(--danger);
+}
+.k-scheduler .k-holiday {
+    background-color: #e26a75;
+}
+.leave-button-groups>.btn{
+    padding:13px 0;
+}
+.leave-summary th {
+    background: #f8f9fa;
+}
+#dateCalendarLeave .k-textbox-container {
+    width: calc(50% - 2px) !important;
+}
+
+.k-calendar td.k-state-selected a {
+    color: #fff !important;
+    background-color: #e26a75 !important;
+}
+
+@media (max-width: 575px) {
+    .k-calendar-header {
+        padding: 0 !important;
+    }
+    .k-animation-container.k-animation-container-sm {
+        top: 80px !important;
+        left: 20px !important;
+    }
+    div#dateCalendarLeave_dateview{
+        padding:0 !important;
+    }
+    div.k-footer {
+        display: none !important;
+    }
+    .k-calendar.k-calendar-range table.k-content{
+        padding:0 !important;
+    }
+    .k-calendar .k-month th {
+        height: fit-content !important;
+        padding: 0 !important;
+    }
+    .k-calendar .k-calendar-monthview td, .k-calendar .k-month td {
+        height: 25px !important;
+    }
+    .k-calendar .k-calendar-monthview .k-link, .k-calendar .k-month .k-link {
+        height: 25px !important;
+        padding: 0 !important;
+    }
+    .k-calendar-monthview .k-content tbody tr {
+        height: fit-content !important;
+    }
+    .k-scheduler-header th:first-letter {
+        font-size: 13px;
+    }
+
+    .k-scheduler-header th {
+        font-size: 0px;
+    }
+}

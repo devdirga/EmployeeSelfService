@@ -1,0 +1,64 @@
+﻿
+@using KANO.Core.Model
+@using KANO.Core.Lib.Helper;
+@{
+    Layout = "_AuthLayout";
+}
+
+<script>
+    model.proto = {
+        login : @Html.Raw(Json.Serialize(new LoginParam()))
+    };
+</script>
+
+<div class="row flex-grow" data-bind="with:model">
+    <div class="col-lg-4 mx-auto">
+        <div class="auth-form-light text-left p-4">
+            <div class="brand-logo mb-3">
+                <img src="~/assets/img/tps-large-trimmed.png">
+            </div>
+            <h4>Welcome to ESS</h4>
+            <h6 class="font-weight-light">Sign in to continue.</h6>
+            <form class="pt-3 pt-xs-0" data-bind="with:data.login" onsubmit="model.action.doLogin(); return false;">
+                <div class="mb-xs-2 form-group">
+                    <input type="text" class="form-control form-control-lg" id="employeeID" placeholder="Employee ID" tabindex="1" data-bind="value:EmployeeID, valueUpdate:'keyup', event:{keypress:model.action.onKeyPressLogin}">
+                </div>
+                <div class="mb-xs-2 form-group" style="display:none;">
+                    <input type="email" class="form-control form-control-lg" id="email" placeholder="Email" data-bind="value:Email, valueUpdate:'keyup'">
+                </div>
+                <div class="mb-xs-2 form-group">
+                    <div class="input-group">
+                        <input type="password" class="form-control form-control-lg" id="password" placeholder="Password" tabindex="2" data-bind="value:Password, valueUpdate:'keyup', event:{keypress:model.action.onKeyPressLogin}">
+                        <button type="button" class="btn-show-password input-group-append" data-bind="click:model.action.showPassword" data-id="password">
+                            <span class="input-group-text">
+                                <i class="mdi mdi-eye-outline"></i>
+                            </span>
+                        </button>
+                    </div>                    
+                </div>
+            </form>
+            <div class="my-2 d-flex justify-content-between align-items-center">
+                <a href="@Url.Action("ResetPassword","Auth", new { area="Site"})" class="auth-link text-black">Forgot password?</a>
+            </div>
+            <div class="mt-3">
+                <a class="btn btn-block btn-gradient-info btn-lg font-weight-medium auth-form-btn" href="#" data-bind="click:action.doLogin">Sign In</a>
+            </div>
+            <div class="text-center mt-4 font-weight-light">
+                Don't have an account? <a href="@Url.Action("ActivateUser", "Auth")" class="text-info">Activate</a>
+            </div>
+            <div class="mt-2">
+                <small class="text-muted text-center d-block">Copyright © 2019 <a href="#" target="_blank">IT TPS</a>. All rights reserved.</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        var m = "@Hasher.Decrypt(string.IsNullOrWhiteSpace(Context.Request.Query["m"].ToString())?"":Context.Request.Query["m"].ToString())";
+        if (m) {
+            var mtok = m.split("_");
+            //swalWarning("Login", decodeURI(mtok[0]));
+        }
+    })
+</script>

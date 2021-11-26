@@ -1,0 +1,84 @@
+﻿<div id="certificateModal" class="modal" role="dialog" data-bind="with:model">
+    <div class="modal-dialog" role="document" data-bind="">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <span><i class="mdi mdi-clipboard-account"></i> Detail Certificate</span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formCertificate" data-bind="with: detail.certificate">
+                    <div class="form-group">
+                        <label for="input">Employee</label>
+                        <div class="form-control-plaintext" data-bind="html:`${EmployeeName()}  (${EmployeeID()})`"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="dropdownCertificateType" class="required">Type</label>
+                        <div class="form-control-plaintext">
+                            <!-- ko if:(Old.TypeDescription() || Old.TypeID()) && (Old.TypeDescription() || Old.TypeID()) != (TypeDescription() || TypeID()) -->
+                            <del class="d-block text-muted" data-bind="text: (Old.TypeDescription() || Old.TypeID())"></del>
+                            <!-- /ko -->
+                            <span data-bind="html: TypeDescription() || TypeID()"></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="validityStart" class="required">Issuing Date</label>
+                            <div class="form-control-plaintext">
+                                <!-- ko if:standarizeDate(Old.Validity.Start()) != '-' && standarizeDate(Old.Validity.Start()) != standarizeDate(Validity.Start()) -->
+                                <del class="d-block text-muted" data-bind="text: standarizeDate(Old.Validity.Start())"></del>
+                                <!-- /ko -->
+                                <span data-bind="html: standarizeDate(Validity.Start())"></span>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="validityStart">Expiration Date</label>
+                            <div class="form-control-plaintext">
+                                <!-- ko if:standarizeDate(Old.Validity.Finish()) != '-' && standarizeDate(Old.Validity.Finish()) != standarizeDate(Validity.Finish()) -->
+                                <del class="d-block text-muted" data-bind="text: standarizeDate(Old.Validity.Finish())"></del>
+                                <!-- /ko -->
+                                <span data-bind="html: standarizeDate(Validity.Finish())"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="certificateDescription">Note</label>
+                        <div class="form-control-plaintext" data-bind="html:Note">
+                            <!-- ko if:Old.Note() && Old.Note() != Note() -->
+                            <del class="d-block text-muted" data-bind="text: Old.Note"></del>
+                            <!-- /ko -->
+                            <span data-bind="html: Note"></span>
+                        </div>
+                    </div>
+                    <!-- ko if:Accessible -->
+                    <div class="form-group" data-bind="">
+                        <label for="input">Document Attachment</label>
+                        <a href="" class="btn btn-sm btn-block btn-info" target="_blank" data-bind="attr:{title:Filename, href:`/ESS/Employee/DownloadCertificateAttachment/${EmployeeID()}/${AXRequestID()}/${Filename()}`}"><span class="mdi mdi-download"></span> Download Document</a>
+                    </div>
+                    <!-- /ko -->
+                    <div class="form-group">
+                        <label for="certificateDescription">Request Renewal</label>
+                        <div class="form-control-plaintext">
+                            <!-- ko if:Old.ReqRenew() && Old.ReqRenew() != ReqRenew() -->
+                            <del class="d-block text-muted" data-bind="text: Old.ReqRenew() ? 'Yes': 'No' "></del>
+                            <!-- /ko -->
+                            <span data-bind="html: ReqRenew() ? 'Yes': 'No'"></span>
+                        </div>
+                    </div>
+                    <!-- ko if:Reason() -->
+                    <div class="form-group" data-bind="">
+                        <label for="input">Request Reason</label>
+                        <pre data-bind="text:Reason"></pre>
+                    </div>
+                    <!-- /ko -->
+                </form>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+    
+</div>

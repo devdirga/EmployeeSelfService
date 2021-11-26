@@ -1,0 +1,430 @@
+{
+  "ReRoutes": [
+    {
+      "DownstreamPathTemplate": "/api/common{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.common",
+          "Host": "localhost",
+          "Port": 8070
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/common{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/common",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.common",
+          "Host": "localhost",
+          "Port": 8070
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/common"
+    },
+    {
+      "DownstreamPathTemplate": "/api/notification-{all}",
+      "DownstreamScheme": "ws",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.notification",
+          "Host": "localhost",
+          "Port": 8090
+        }
+      ],
+      "UpstreamPathTemplate": "/api/notification-{all}",
+      "UpstreamHttpMethod": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "OPTIONS"
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/notification/{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.notification",
+          "Host": "localhost",
+          "Port": 8090
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/notification/{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/employee{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.employee",
+          "Host": "localhost",
+          "Port": 7001
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/employee{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/employee",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.employee",
+          "Host": "localhost",
+          "Port": 7001
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/employee"
+    },
+    {
+      "DownstreamPathTemplate": "/api/benefit{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.benefit",
+          "Host": "localhost",
+          "Port": 7003
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/benefit{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/benefit",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.benefit",
+          "Host": "localhost",
+          "Port": 7003
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/benefit"
+    },
+    {
+      "DownstreamPathTemplate": "/api/leave{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.leave",
+          "Host": "localhost",
+          "Port": 7005
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/leave{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/leave",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.leave",
+          "Host": "localhost",
+          "Port": 7005
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/leave"
+    },
+    {
+      "DownstreamPathTemplate": "/api/timemanagement{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.timemanagement",
+          "Host": "localhost",
+          "Port": 7007
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/timemanagement{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/timemanagement",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.timemanagement",
+          "Host": "localhost",
+          "Port": 7007
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/timemanagement"
+    },
+    {
+      "DownstreamPathTemplate": "/api/auth{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.auth",
+          "Host": "localhost",
+          "Port": 7009
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/auth{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/auth",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.auth",
+          "Host": "localhost",
+          "Port": 7009
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/auth"
+    },
+    {
+      "DownstreamPathTemplate": "/api/payroll{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.payroll",
+          "Host": "localhost",
+          "Port": 7011
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/payroll{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/payroll",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.payroll",
+          "Host": "localhost",
+          "Port": 7011
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/payroll"
+    },
+    {
+      "DownstreamPathTemplate": "/api/travel{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.travel",
+          "Host": "localhost",
+          "Port": 7013
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/travel{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/travel",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.travel",
+          "Host": "localhost",
+          "Port": 7013
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/travel"
+    },
+    {
+      "DownstreamPathTemplate": "/api/recruitment{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.recruitment",
+          "Host": "localhost",
+          "Port": 7015
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/recruitment{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/recruitment",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.recruitment",
+          "Host": "localhost",
+          "Port": 7015
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/recruitment"
+    },
+    {
+      "DownstreamPathTemplate": "/api/administration{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.administration",
+          "Host": "localhost",
+          "Port": 7017
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/administration{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/administration",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.administration",
+          "Host": "localhost",
+          "Port": 7017
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/administration"
+    },
+    {
+      "DownstreamPathTemplate": "/api/training{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.training",
+          "Host": "localhost",
+          "Port": 7025
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/training{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/training",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.training",
+          "Host": "localhost",
+          "Port": 7025
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/training"
+    },
+    {
+      "DownstreamPathTemplate": "/api/complaint{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.complaint",
+          "Host": "localhost",
+          "Port": 7021
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/complaint{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/complaint",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.complaint",
+          "Host": "localhost",
+          "Port": 7021
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/complaint"
+    },
+    {
+      "DownstreamPathTemplate": "/api/mobileportal{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.mobileportal",
+          "Host": "localhost",
+          "Port": 7033
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/mobileportal{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/mobileportal",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.mobileportal",
+          "Host": "localhost",
+          "Port": 7033
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/mobileportal"
+    },
+    {
+      "DownstreamPathTemplate": "/api/absence{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.absence",
+          "Host": "localhost",
+          "Port": 7029
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/absence{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/absence",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.absence",
+          "Host": "localhost",
+          "Port": 7029
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/absence"
+    },
+    {
+      "DownstreamPathTemplate": "/api/survey{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.survey",
+          "Host": "localhost",
+          "Port": 7019
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/survey{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/survey",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.survey",
+          "Host": "localhost",
+          "Port": 7019
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/api/survey"
+    }
+  ],
+  "GlobalConfiguration": {
+    "_BaseUrl": "http://kano.api.gateway:8080",
+    "BaseUrl": "http://localhost:8080"
+  }
+}

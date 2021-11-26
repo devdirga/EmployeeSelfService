@@ -1,0 +1,116 @@
+﻿
+@{
+    ViewData["Title"] = "Log";
+    Layout = "_Layout";
+}
+
+<div class="col-12">
+    <div id="gridHealthCheck"></div>
+</div>
+
+<script>
+    model.render = {}
+    model.render.HealthCheck = function () {
+        let $el = $("#gridHealthCheck");
+        if (!!$el) {
+            let $grid = $el.getKendoGrid();
+
+            if (!!$grid) {
+                $grid.destroy();
+            }
+
+            
+        $el.kendoGrid({
+            dataSource: {
+                transport: {
+                    read: "/Site/Diagnostic/GetHealthCheck",
+                    dataType: "json",
+                },        
+                schema: {
+                    data: function (res) {
+                        if (res.StatusCode !== 200 && res.Status !== '') {
+                            swalFatal("Fatal Error", `Error occured while fetching HealthCheck(s)\n${res.Message}`)
+                            return []
+                        }
+                        var data = res.Data || []
+                        var result = []
+                        for (var i in data.entries) {
+                            let dt = data.entries[i]
+                            let details = []
+                            for (var j in dt.data.data) {
+                                let a = dt.data.data[j]
+                                details.push({
+                                    key: j,
+                                    value: a
+                                })
+                            }
+                            result.push({
+                                "uid": kendo.guid(),
+                                "diagnostic": i,
+                                "duration": dt.duration,
+                                "status": dt.status,
+                                "details": details
+                            })
+                        }
+                        //console.log(result)
+                        return result
+                    },
+                },
+                //error: function (e) {
+                //    swalFatal("Fatal Error", `Error occured while fetching HealthCheck(s)\n${e.xhr.responseText}`)
+                //}
+            },                        
+            noRecords: {
+                template: "No HealthCheck data available."
+            },
+            columns: [
+                {
+                    field: "diagnostic",
+                    title: "Diagnostic",
+                    template: function (d) {
+                        return titleCase(d.diagnostic);
+                    }
+                },
+                {
+                    headerAttributes: {
+                        "class": "text-center",
+                    },
+                    attributes: {
+                        "class": "text-center",
+                    },
+                    field: "duration",
+                    title: "Duration",
+                },
+                {
+                    headerAttributes: {
+                        "class": "text-center",
+                    },
+                    attributes: {
+                        "class": "text-center",
+                    },
+                    field: "status",
+                    title: "Status",
+                    template: function (d) {
+                        return `<span class="badge ${(d.status == 'Healthy') ? 'badge-success' : 'badge-danger'}">${d.status.toLowerCase()}</span>`;
+                    }
+                },
+                {
+                    title: "Data",
+                    template: (e) => {
+                        dt = e.details
+                        a = []
+                        _.forEach(dt, function (e) {
+                            a.push(' ' + e.key + ' : ' + e.value + ' ')
+                        })
+                        return a
+                    }
+                },
+            ]
+        })
+        }
+    }
+    $(function () {
+        @*Render UI Components*@
+        model.render.HealthCheck();
+    })
+</script>

@@ -1,0 +1,50 @@
+﻿
+@{
+    Layout = "_Layout";
+}
+
+<script src="~/assets/areas/ess/js/administrator.js"></script>
+<script>
+    const URL_GET_USER_GROUP = "@Url.Action("GetUserGroups", "Administrator")";
+    const URL_GET_MENU = "@Url.Action("GetMenus", "Administrator")";
+</script>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card box" data-bind="with:model">
+            <div class="card-header clearfix">
+                <strong class="float-left p-2">Group</strong>
+                <a href="#" data-bind="click:action.openCreateUserGroup" class="btn btn-sm btn-primary float-right">Create</a>
+            </div>
+            <div class="card-body">
+                <div id="gridUserGroup"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalUserGroup" class="modal" tabindex="-1" role="dialog" data-bind="with:model" aria-labelledby="modalUserGroupLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create User Group</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="gridCreateUserGroup"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bind="click:action.saveUserGroup">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.render.gridUserGroup()
+    })
+</script>

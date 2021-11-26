@@ -1,0 +1,48 @@
+﻿<div class="row">
+    <div class="col-lg-12 mb-4">
+        <div class="card box border-radius-none">
+            <div class="card-body">
+                @*pagging*@
+                <div class="col-12 align-right p-0 mb-3">
+                    <span class="mr-2" data-bind="text:data.counterUsed() +' of '+data.totalUsed() "></span>
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-sm btn-outline-secondary" data-bind="click:model.action.prevUsedPage">
+                            <input type="radio" name="options" id="prev-used" autocomplete="off" checked>
+                            <i class="mdi mdi-chevron-left"></i>
+                        </label>
+                        <label class="btn btn-sm btn-outline-secondary" data-bind="click:model.action.nextUsedPage">
+                            <input type="radio" name="options" id="next-used" autocomplete="off"> <i class="mdi mdi-chevron-right"></i>
+                        </label>
+                    </div>
+                </div>
+                @*pagging*@
+                @*start*@
+                <ul class="list-group">
+                    <li class="list-group-item mb-1 border-radius-none p-2">
+                        <div class="p-0 col-12 d-flex">
+                            <div class="bg-info align-center image-box-voucher">
+                                <div class="mdi mdi-silverware-fork-knife image-voucher"></div>
+                            </div>
+                            <div class="col-sm-12 p-0 d-sm-flex">
+                                <div class="col-sm-3 p-0 ml-3">
+                                    <small>VC-052019-0023</small>
+                                    <br />
+                                    <bold>Exp 25 Januari 2020</bold>
+                                </div>
+                                <div class="col-sm-3 p-0 ml-3">
+                                    <bold>Transaction :</bold>
+                                    <br />
+                                    <bold>25 Januari 2020</bold>
+                                </div>
+                                <div class="col-sm-3 p-0 ml-3">
+                                    <span class="text-gray">Kantin Bunda</span>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                @*end*@
+            </div>
+        </div>
+    </div>
+</div>

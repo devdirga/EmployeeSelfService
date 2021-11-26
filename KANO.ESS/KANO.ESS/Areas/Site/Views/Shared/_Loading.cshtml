@@ -1,0 +1,26 @@
+<script>
+    function isLoading (show) {
+        if (show) {
+            $('#loader').css('opacity', 0).show().animate({
+                opacity: 1
+            }, 'fast')
+        } else {
+            $('#loader').animate({
+                opacity: 0
+            }, 'fast', function () {
+                $('#loader').hide().css('opacity', 1)
+            })
+        }
+    }
+</script>
+<div id="loader" class="loader" style="display: none;">
+    <div class="sk-chase">
+        <div class="sk-chase-dot"></div>
+        <div class="sk-chase-dot"></div>
+        <div class="sk-chase-dot"></div>
+        <div class="sk-chase-dot"></div>
+        <div class="sk-chase-dot"></div>
+        <div class="sk-chase-dot"></div>
+    </div>
+</div>
+<link rel="stylesheet" href="~/assets/vendors/loading/loading.css">

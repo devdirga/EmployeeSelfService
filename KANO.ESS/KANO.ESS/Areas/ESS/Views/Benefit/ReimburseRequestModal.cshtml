@@ -1,0 +1,131 @@
+﻿<div id="modalFormReimburseRequest" class="modal"  tabindex="-1" role="dialog" data-bind="with:model">
+    <div class="modal-dialog modal-xl" role="document" >
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Reimburse Request</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form data-bind="with: data.reimburse">
+                    <div class="form-group">
+                        <label for="dropdownType" class="required">Request For</label>
+                        <input id="requestfor" class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="kendoDropDownList: {
+                                                dataTextField: 'Name',
+                                                dataValueField: 'AXID',
+                                                data: $parent.list.requestfor,
+                                                change: $parent.action.changetypes,
+                                                optionLabel: 'Select type',
+                                                }" />
+                    </div>
+                    @*
+                    <div data-bind="visible : $parent.data.viewfamily" class="form-group">
+                        <label for="dropdownType" class="required">Family</label>
+                        <input class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="kendoDropDownList: {
+                                                dataTextField: 'Name',
+                                                dataValueField: 'AXID',
+                                                data: $parent.data.family,
+                                                change: $parent.action.choosefamily,
+                                                optionLabel: 'Select family',
+                                                }" />
+                    </div>
+                    *@
+                    <div data-bind="visible : $parent.data.viewnip" class="form-group">
+                        <label for="dropdownType" class="required">NIP</label>
+                        <input class="form-control readonly w-md-xs-100 mb-md-xs-2 w-100" data-bind="value: EmployeeID" />
+                    </div>
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="col">
+                                <label for="Date" class="required">Date</label><br>
+                                <input class="w-md-xs-100 mb-md-xs-2 w-100" data-bind="kendoDatePicker : { value: RequestDate, format: 'dd MMM yyyy' , dateInput: false} , value: RequestDate" />
+                            </div>
+                            <div class="col">
+                                <label for="dropdownType" class="required">Type</label>
+                                <select class="form-control" data-bind="kendoDropDownList: {
+                                                data: $parent.data.medicaltype,
+                                                dataTextField: 'Description',
+                                                dataValueField: 'Id',
+                                                optionLabel: 'Select Type',
+                                                }, value:TypeID"></select>
+                            </div>
+                        </div>
+                    </div>  
+                    <div class="form-group">
+                        <label class="required">Attachment(s)</label>
+                        <br/>
+                        <button type="button" class="btn btn-sm btn-success" data-bind="click: $parent.action.adddocument">Add Attachment</button>
+                        <hr />
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th class="text-center w-5">#</th>
+                                    <th class="text-center w-35">Document type</th>
+                                    <th class="text-center w-20">Amount</th>
+                                    <th class="text-center w-10">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="ifnot: $parent.data.documents().length">
+                                <tr>
+                                    <td colspan="4" class="table-body-header">No attachment</td>
+                                </tr>
+                            </tbody>
+                            <tbody data-bind="foreach: $parent.data.documents()">
+                                <tr data-bind="css:{'odd-row':$index()%2 == 1}">
+                                    <td rowspan="2" class="text-center">
+                                        <strong data-bind="text:$index() + 1"></strong>
+                                    </td>
+                                    <td>
+                                        <select class="form-control" data-bind="kendoDropDownList: {
+                                                value: TypeID,
+                                                data: model.data.documenttype,
+                                                dataTextField: 'Description',
+                                                dataValueField: 'TypeID',
+                                                optionLabel: 'Select Type',
+                                                }, value: TypeID"></select>
+                                    </td>
+                                    <td> <input class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="value : Amount" /> </td>
+                                    <td rowspan="2" class="text-center">
+                                        <button class="btn btn-xs btn-outline-danger" data-bind="click: model.action.deletedocument"><i class="fa mdi mdi-delete"></i></button>
+                                    </td>
+                                </tr>
+                                <tr data-bind="css:{'odd-row':$index()%2 == 1}">
+                                    <td colspan="2">
+                                        <input type="file" class="benefit-attachment" name="Filepath[]" data-bind="
+                                           attr:{
+                                            'data-guid':guid,
+                                            'data-field':'MedicalBenefit',
+                                           },
+                                           kendoUpload: {
+                                               async: {
+                                                    saveUrl: '/ESS/Benefit/SaveBenefitAttachment',
+                                                    autoUpload: true,
+                                                    saveField: 'fileUpload'
+                                               },
+                                               multiple: false,
+                                               upload:model.on.uploadMedicalAttachment,
+                                               select:model.on.uploadMedicalAttachmentSelected,
+                                               progress:model.on.uploadMedicalAttachmentProgress,
+                                               success:model.on.uploadMedicalAttachmentSuccess,
+                                               error:model.on.uploadMedicalAttachmentError,
+                                               validation: {
+                                                    allowedExtensions: model.app.config.upload.allowedExtensions,
+                                                    maxFileSize: model.app.config.upload.maxFileSize
+                                                },
+                                           }" />
+                                    </td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info" data-bind="click:model.action.insertMedicalBenefit">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

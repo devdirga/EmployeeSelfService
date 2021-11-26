@@ -1,0 +1,309 @@
+﻿@using KANO.Core.Model
+@using System.Security.Claims
+@using Microsoft.Extensions.Options;
+@using KANO.ESS;
+@using System.Web;
+@inject IOptions<LayoutInjectConfiguration> AppConfig;
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject KANO.Core.Service.IUserSession UserSession
+@inject Microsoft.Extensions.Configuration.IConfiguration Configurationv
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>ESS | @ViewBag.Title</title>
+
+    <script src="~/assets/vendors/platform.js-master/platform.js"></script>
+    <script>
+        var Browsername = platform.name;
+        var BrowserVersion = parseFloat(platform.version);
+        //console.log(Browsername, BrowserVersion)
+        if (Browsername == 'Opera' && BrowserVersion < 60) {
+            location.href = "@Url.Action("NotSupported", "Auth")";
+        } else if (Browsername == 'Firefox' && BrowserVersion < 70){
+            location.href = "@Url.Action("NotSupported", "Auth")";
+        } else if (Browsername == 'IE'){
+            location.href = "@Url.Action("NotSupported", "Auth")";
+        } else if (Browsername == 'Microsoft Edge' && BrowserVersion < 80){
+            location.href = "@Url.Action("NotSupported", "Auth")";
+        }
+    </script>
+
+    <!-- plugins:css -->
+    <link rel="stylesheet" href="~/assets/vendors/mdi/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="~/assets/vendors/purple-admin/css/vendor.bundle.base.css">
+    <!-- endinject -->
+    <!-- Plugin css for this page -->
+    <link rel="stylesheet" href="~/assets/vendors/bootstrap/dist/css/bootstrap-xs.css">
+    <link rel="stylesheet" href="~/assets/vendors/kendoui/styles/kendo.common-bootstrap.core.min.css">
+    <link rel="stylesheet" href="~/assets/vendors/kendoui/styles/kendo.common-bootstrap.min.css">
+    <link rel="stylesheet" href="~/assets/vendors/kendoui/styles/kendo.bootstrap-v4.min.css">
+    <link rel="stylesheet" href="~/assets/vendors/kendoui/styles/kendo.bootstrap.mobile.min.css">
+    <link rel="stylesheet" href="~/assets/vendors/fontawesome/css/all.css">
+
+    <!-- End plugin css for this page -->
+    <!-- Layout styles -->
+    <link rel="stylesheet" href="~/assets/vendors/purple-admin/css/style.css">
+    <link rel="stylesheet" href="~/assets/app.css?@(Startup.Tick??DateTime.Now.Ticks)">
+    <!-- End layout styles -->
+    <!-- plugins:js -->
+    <script src="~/assets/vendors/jquery/dist/jquery.js"></script>
+    <script src="~/assets/vendors/purple-admin/js/vendor.bundle.base.js"></script>
+    <script src="~/assets/vendors/kendoui/js/kendo.all.min.js"></script>
+    <script src="~/assets/vendors/kendoui/js/cultures/kendo.culture.en-ID.min.js"></script>
+    <script src="~/assets/vendors/kendoui/js/cultures/kendo.culture.id-ID.min.js"></script>
+    <script src="~/assets/vendors/knockoutjs/knockout-3.4.2.js"></script>
+    <script src="~/assets/vendors/knockoutjs/knockout-helper.js"></script>
+    <script src="~/assets/vendors/knockoutjs/knockout.mapping-2.4.1.js"></script>
+    <script src="~/assets/vendors/knockout-kendo/knockout-kendo.min.js"></script>
+    <script src="~/assets/vendors/sweetalert/sweetalert2.all.min.js"></script>
+    <script src="~/assets/vendors/lodash/lodash.min.js"></script>
+    <script src="~/assets/vendors/moment/moment.js"></script>
+    <script src="~/assets/vendors/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/assets/vendors/qrcodejs/qrcode.min.js"></script>
+    <script src="~/assets/vendors/kendoui/js/pdf.js"></script>
+    <script src="~/assets/vendors/kendoui/js/pdf.worker.js"></script>
+    <script src="~/assets/areas/ectools.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+    <!-- endinject -->
+
+    <link rel="shortcut icon" href="~/assets/img/favicon.png">
+
+    <script>
+        var model = {
+            breadcrumbs: ko.observableArray( @Html.Raw(Json.Serialize(ViewBag.Breadcrumbs))),
+            app: {
+                proto: {
+                    ChangePassword:@Html.Raw(Json.Serialize(new ChangePasswordParam())),
+                    Notification:@Html.Raw(Json.Serialize(new Notification())),
+                    Redeem: @Html.Raw(Json.Serialize(new KANO.Core.Model.Redeem()))
+                },
+                config: Object.freeze({
+                    gatewayUrl: "@AppConfig.Value.GatewayUrl",
+                    vpbk: "@AppConfig.Value.PushNotificationPublicKey",
+                    upload: Object.freeze({
+                        maxFileSize: @AppConfig.Value.UploadMaxFileSize,
+                        allowedExtensions: @Html.Raw(Json.Serialize(AppConfig.Value.UploadAllowedExtension)),
+                    }),
+                    thumbprint: "@HttpUtility.UrlEncode(UserSession.Thumbprint())",
+                    employeeID: "@UserSession.Id()",
+                    employeeName: "@UserSession.DisplayName()",
+                    employeeEmail: "@UserSession.Email()",
+                    access: @Html.Raw(Json.Serialize(UserSession.GetPageAccess())),
+                    RetirementRequestStart: new Date("@UserSession.GetRetirementRequestStart().ToString("yyyy-MM-dd")"),
+                    IsRetirementRequestActive: "@UserSession.IsRetirementRequestActive()"=="True",
+                    userData: @Html.Raw(UserSession.UserData()),
+                    maxNotification: 5,
+                    readonly: true,
+                    lastchangepassword: "@UserSession.GetLastChangedPassword()",
+                    thresholdChangePassword : 100
+                }),
+                notifications: ko.observableArray([]),
+                menu: ko.observableArray([]),
+            },
+            action: {}, get: {}, init: {}, is: {}, data: {}, render: {}, on: {}, map: {}, list: {},
+        };
+        kendo.culture("en-ID");
+    </script>
+    <script src="~/assets/app.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+</head>
+<body>
+    <!-- defining class for sidebar -->
+    <script>
+        var collapsed = localStorage.getItem("sidebar-collapsed") == "true";
+        if (collapsed) {
+            document.body.classList.add('sidebar-icon-only');
+        } else {
+            document.body.classList.remove('sidebar-icon-only');
+        }
+
+    </script>
+
+    @await Html.PartialAsync("_Loading.cshtml")
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        @await Html.PartialAsync("_Navbar.cshtml")
+
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            @await Html.PartialAsync("_Sidebar.cshtml")
+
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper p-3 p-xs-2">
+                    <div class="page-header">
+                        <h3 class="page-title">
+                            <span class="page-title-icon bg-gradient-warning text-white mr-2">
+                                <i class="@ViewBag.Icon"></i>
+                            </span> @ViewBag.Title
+                        </h3>
+                        <nav aria-label="breadcrumb" class="d-md-xs-none">
+                            <ul class="breadcrumb" data-bind="foreach: model.breadcrumbs">
+                                <!-- ko if: ($index()==model.breadcrumbs().length-1) -->
+                                <li class="breadcrumb-item active" aria-current="page" data-bind="text: Title"></li>
+                                <!-- /ko -->
+                                <!-- ko ifnot: ($index()==model.breadcrumbs().length-1) -->
+                                <li class="breadcrumb-item active" aria-current="page">
+                                    <a href="#" data-bind="text: Title, attr:{href: URL != '' ? URL : '#' }"></a>
+                                </li>
+                                <!-- /ko -->
+                            </ul>
+                        </nav>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+
+                            <!-- ko  if: model.app.data.isneedchangepassword() -->
+                            <div class="alert alert-warning d-block" role="alert" data-bind="css:{'d-block':!model.app.is.subscribed(), 'd-none':model.app.is.subscribed()}">
+                                <i class="mdi mdi-bell-ring"></i> You haven't changed your password for <span data-bind="text: model.app.data.changepasswordcountdays()"></span> days. Please change your password <b><a href="#" data-bind="click: model.app.action.openChangePasswordModal">here</a></b>
+                            </div>
+
+                            <!-- /ko -->
+                            @*<!-- ko if:model.app.is.subscriptionChecked() -->
+        <div class="alert alert-info d-none" role="alert" data-bind="css:{'d-block':!model.app.is.subscribed(), 'd-none':model.app.is.subscribed()}">
+            <i class="mdi mdi-bell-ring"></i> Do you want to get push notification from ESS ? <b><a href="#" onclick="model.app.subscribe(); return false;">Subscribe notification</a></b>
+        </div>
+        <!-- /ko -->
+        <div class="alert alert-primary" role="alert" style="display:none;" data-bind="attr:{style:(model.app.config.IsRetirementRequestActive)?'display:block;':'display:none;'}">
+            <i class="mdi mdi-alert"></i> Your MPP Request is opened, please <b>request before : <i data-bind="html:standarizeDate(model.app.config.RetirementRequestStart)"></i>. You can access it <a href="/ESS/Retirement">HERE</a></b>
+        </div>
+                            *@
+
+                            @RenderBody()
+
+                            <div class="modal fade" id="employeeQRModal" role="dialog" aria-labelledby="employeeQRLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="employeeQRLabel">Employee QR</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="text-center">
+                                                <figure class="figure">
+                                                    <strong class="mb-2 d-block" data-bind="text:model.app.config.employeeName"></strong>
+                                                    <div id="employeeQRCode"></div>
+                                                    <figcaption class="figure-caption mt-3" data-bind="text:model.app.config.employeeID"></figcaption>
+                                                </figure>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                @await Html.PartialAsync("_Footer.cshtml")
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+    <!-- inject:js -->
+    <script src="~/assets/vendors/purple-admin/js/off-canvas.js"></script>
+    <script src="~/assets/vendors/purple-admin/js/hoverable-collapse.js"></script>
+    <script src="~/assets/vendors/purple-admin/js/misc.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+    <!-- endinject -->
+
+    <div id="modalChangePassword" class="modal" role="dialog" data-bind="with:model">
+        <div class="modal-dialog" role="document" data-bind="with:app">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="mdi mdi-lock"></i>
+                        Change Password
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" data-bind="with:data.changePassword">
+                    <form id="formChangePassword" name="formChangePassword">
+                        <div id="fieldlist">
+                            <div class="form-group">
+                                <label for="currentPassword">Current Password</label>
+                                <input type="password" id="currentPassword" name="currentPassword" placeholder="" class="form-control" data-bind="value:Password" required="required" />
+                            </div>
+                            <div class="form-group">
+                                <label for="newPassword">New Password</label>
+                                <input type="password" id="newPassword" name="newPassword" placeholder="" class="form-control" data-bind="value:NewPassword" required="required" />
+                            </div>
+                            <div class="form-group">
+                                <label for="reNewPassword">Confirm New Password</label>
+                                <input type="password" id="reNewPassword" name="reNewPassword" placeholder="" class="form-control" data-bind="value:ReNewPassword" required="required" />
+                            </div>
+                        </div>
+                        <br clear="all" />
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-info" data-bind="click: model.app.action.changePassword">Change Password</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @await Html.PartialAsync("ModalRedeem.cshtml")
+    @await Html.PartialAsync("../Activity/ModalUpdateRequestReadOnly.cshtml")
+
+    <script type="text/x-kendo-template" id="gridRefreshButton">
+        <div class="refreshBtnContainer">
+            <a href="\\#" class="k-pager-refresh k-link k-button k-button-icon" title="Refresh"><span class="k-icon k-i-reload"></span></a>
+        </div>
+    </script>
+
+    <script id="loadingScreen" type="text/x-kendo-template">
+        <div class="k-loading-mask"><span class="k-loading-text">Loading...</span><div class="k-loading-image"></div><div class="k-loading-color"></div></div>
+    </script>
+
+    <script id="fileTemplate" type="text/x-kendo-template">
+        <div class="file-list">
+            <span class="k-file-extension-wrapper kendo-files-color">
+                <span class="k-file-extension">#=(!!files && files.length > 0)?files[0].extension:(extension || (Extension || Fileext))#</span>
+                <span class="k-file-state"></span>
+            </span>
+            <span class="k-file-name-size-wrapper">
+                <span class="k-file-name text-wrap">#=name || (Name || Filename)#</span>
+                <span class="k-file-size">#=(size || (Size || Filesize))?humanizeBytes(size || (Size || Filesize), 0):""#</span>
+            </span>
+
+            <strong class='k-upload-status'>
+                <button type='button' class='k-upload-action'></button>
+                <button type='button' class='k-upload-action'></button>
+            </strong>
+        </div>
+    </script>
+
+    <script id="fileTemplateReadonly" type="text/x-kendo-template">
+        <div class="p-2 border">
+            <div class="file-list">
+                <span class="k-file-extension-wrapper kendo-files-color">
+                    <span class="k-file-extension">#=Fileext#</span>
+                    <span class="k-file-state"></span>
+                </span>
+                <span class="k-file-name-size-wrapper">
+                    <span class="k-file-name">#=Filename#</span>
+                </span>
+
+                <strong class='k-upload-status'>
+                </strong>
+            </div>
+        </div>
+    </script>
+
+    <script>
+        ko.applyBindings(model);
+    </script>
+</body>
+</html>

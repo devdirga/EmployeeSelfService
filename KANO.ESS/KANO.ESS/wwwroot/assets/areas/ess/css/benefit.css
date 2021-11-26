@@ -1,0 +1,70 @@
+﻿/*li.nav-item:hover {
+    background: #ece9e9;
+}*/
+.image-box-voucher {
+    height: fit-content;
+    width: fit-content;
+}
+.image-voucher{
+    color:white;
+    font-size:3.5rem !important;
+    width:100px;
+    height:100px;
+}
+
+.k-dropzone {
+    padding:0!important;
+}
+
+table.table-bordered th {
+    font-weight: bold !important;
+    font-size: medium !important;
+    padding: 10px 0;
+    background: #e9ecef;
+}
+
+table.table-bordered tfoot {
+    border-top: solid 3px #bababa;
+}
+
+table tr.odd-row {
+    background: #f2f2f2;
+}
+
+@media (max-width: 575px) {
+    .image-voucher {
+        color: white;
+        font-size: 2rem !important;
+        width: 60px;
+        height: 60px;
+    }
+    .btn-xs-sm {
+        padding: 0.5rem 0.81rem;
+        font-size: 0.875rem;
+        border-radius: 0.1875rem;
+    }
+}
+
+.w-5 {
+    width: 5%;
+}
+
+.w-35 {
+    width: 35%;
+}
+
+.w-20 {
+    width: 20%;
+}
+
+.w-10 {
+    width: 10%;
+}
+.w-70{
+    width: 70%;
+}
+
+.table-body-header {
+    text-align: center;
+    padding-top: 10px
+}

@@ -1,0 +1,81 @@
+﻿
+@{
+    Layout = "_Layout";
+}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card box">
+            <div class="card-header clearfix">
+                <strong class="float-left"></strong>
+                <div class="float-right">
+                    @*<label>Periode</label>
+                    <input data-bind="kendoDatePicker: model.StartDate" />
+                    <input data-bind="kendoDatePicker: model.EndDate" />*@
+                    <a href="#" class="btn btn-sm btn-primary">Add</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="gridPerformanceAppraisal"></div>
+            </div>
+        </div>
+    </div>    
+</div>
+
+<script>
+    model.PerformanceAppraisal = {
+        DataPerformanceAppraisal: ko.observableArray([]),
+        GridPerformanceAppraisal: function () {
+            ajaxPost("@Url.Action("GetPerformaceAppraisals", "PerformanceAppraisal")", {}, function (res) {
+                model.PerformanceAppraisal.DataPerformanceAppraisal(res);
+                $('#gridPerformanceAppraisal').kendoGrid({
+                    dataSource: {
+                        data: model.PerformanceAppraisal.DataPerformanceAppraisal(),
+                        pageSize: 10,
+                    },
+                   // pageable: false,
+                    sortable: true,
+                    pageable: {
+                        refresh: false,
+                        pageSizes: 10,
+                        buttonCount: 5
+                    },
+                    columns: [
+                        { field: "Id", title: "Nomor", width: "80px" },
+                        { field: "EmployeeID", title: "NIK Pegawai", width: "110px" },
+                        {
+                            field: "AppraisalDate", title: "Tanggal", width: "80px",
+                            template: function (d) {
+                                return moment(d.AppraisalDate).format("DD/MM/YYYY");
+                            }
+                        },
+                        { field: "Status", title: "Status", width: "110px" },
+                        {
+                            field: "Attachment", title: "Attachment", width: "80px",
+                            template: function () {
+                                return '<a href="#"><i class="fa fa-paperclip"></i></a>'
+                            },
+                            attributes: {
+                                "class": "table-cell text-info",
+                                style: "text-align: center; font-size: 18px; cursor: pointer;"
+                            }
+                        },
+                        {
+                            field: "Id", title: "Menu", width: "120px",
+                            template: function () {
+                                return '<a class="text-info"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;<a class="text-danger"><i class="fa fa-trash"></i></a>';
+                            },
+                            attributes: {
+                                "class": "table-cell",
+                                style: "text-align: center; font-size: 18px; cursor: pointer;"
+                            }
+                        },
+                    ]
+                });
+            });
+
+        }
+    }
+    $(document).ready(function () {
+        model.PerformanceAppraisal.GridPerformanceAppraisal();
+    });
+</script>

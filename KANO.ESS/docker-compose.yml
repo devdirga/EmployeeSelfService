@@ -1,0 +1,139 @@
+version: '3.7'
+
+services:
+  kano.ess:
+    image: ${DOCKER_REGISTRY-}kanoess
+    container_name: kanoess
+    build:
+      context: .
+      dockerfile: KANO.ESS\Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:8003;http://+:8000
+      - ASPNETCORE_HTTPS_PORT=8003
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=
+    ports:
+      - "8000:8000"
+      - "8003:8003"
+    networks:
+      - kanonetwork
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:C:\Users\ContainerUser\AppData\Roaming\Microsoft\UserSecrets:ro
+      - ${APPDATA}/ASP.NET/Https:C:\Users\ContainerUser\AppData\Roaming\ASP.NET\Https:ro  
+
+  kano.api.employee:
+    image: ${DOCKER_REGISTRY-}kanoapiemployee
+    container_name: kanoapiemployee
+    build:
+      context: .
+      dockerfile: KANO.Api.Employee\Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:7002;http://+:7001
+      - ASPNETCORE_HTTPS_PORT=7002
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=
+    networks:
+      - kanonetwork
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:C:\Users\ContainerUser\AppData\Roaming\Microsoft\UserSecrets:ro
+      - ${APPDATA}/ASP.NET/Https:C:\Users\ContainerUser\AppData\Roaming\ASP.NET\Https:ro
+
+  kano.api.benefit:
+    image: ${DOCKER_REGISTRY-}kanoapibenefit
+    container_name: kanoapibenefit
+    build:
+      context: .
+      dockerfile: KANO.Api.Benefit\Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:7004;http://+:7003
+      - ASPNETCORE_HTTPS_PORT=7004
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=
+    networks:
+      - kanonetwork
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:C:\Users\ContainerUser\AppData\Roaming\Microsoft\UserSecrets:ro
+      - ${APPDATA}/ASP.NET/Https:C:\Users\ContainerUser\AppData\Roaming\ASP.NET\Https:ro
+
+
+  kano.api.leave:
+    image: ${DOCKER_REGISTRY-}kanoapileave
+    container_name: kanoapileave
+    build:
+      context: .
+      dockerfile: KANO.Api.Leave\Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:7006;http://+:7005
+      - ASPNETCORE_HTTPS_PORT=7006
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=
+    networks:
+      - kanonetwork
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:C:\Users\ContainerUser\AppData\Roaming\Microsoft\UserSecrets:ro
+      - ${APPDATA}/ASP.NET/Https:C:\Users\ContainerUser\AppData\Roaming\ASP.NET\Https:ro
+
+  kano.api.timemanagement:
+    image: ${DOCKER_REGISTRY-}kanoapitimemanagement
+    container_name: kanoapitimemanagement
+    build:
+      context: .
+      dockerfile: KANO.Api.TimeManagement\Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:7008;http://+:7007
+      - ASPNETCORE_HTTPS_PORT=7008
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=
+    networks:
+      - kanonetwork
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:C:\Users\ContainerUser\AppData\Roaming\Microsoft\UserSecrets:ro
+      - ${APPDATA}/ASP.NET/Https:C:\Users\ContainerUser\AppData\Roaming\ASP.NET\Https:ro
+
+   kano.api.auth:
+    image: ${DOCKER_REGISTRY-}kanoapiauth
+    container_name: kanoapiauth
+    build:
+      context: .
+      dockerfile: KANO.Api.Auth\Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:7010;http://+:7009
+      - ASPNETCORE_HTTPS_PORT=7010
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=
+    networks:
+      - kanonetwork
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:C:\Users\ContainerUser\AppData\Roaming\Microsoft\UserSecrets:ro
+      - ${APPDATA}/ASP.NET/Https:C:\Users\ContainerUser\AppData\Roaming\ASP.NET\Https:ro
+
+  kano.api.gateway:
+    image: ${DOCKER_REGISTRY-}kanoapigateway
+    container_name: kanoapigateway
+    build:
+      context: .
+      dockerfile: KANO.Api.Gateway\Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:8083;http://+:8080
+      - ASPNETCORE_HTTPS_PORT=8083
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=
+    ports:
+      - "8080:8080"
+      - "8083:8083"
+    networks:
+      - kanonetwork
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:C:\Users\ContainerUser\AppData\Roaming\Microsoft\UserSecrets:ro
+      - ${APPDATA}/ASP.NET/Https:C:\Users\ContainerUser\AppData\Roaming\ASP.NET\Https:ro
+
+networks:
+  kanonetwork:
+    name: kanonetwork        

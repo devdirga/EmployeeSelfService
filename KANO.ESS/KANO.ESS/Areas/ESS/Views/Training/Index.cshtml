@@ -1,0 +1,99 @@
+﻿@using KANO.Core.Model
+@using KANO.Core.Service
+@using KANO.ESS
+@{
+    Layout = "_Layout";
+}
+<script>
+    @* Defining Model Prototype *@
+    model.proto = {
+        Training: @Html.Raw(Json.Serialize(new Training())),
+        DateRange: @Html.Raw(Json.Serialize(new DateRange())),
+        TrainingRegistration: @Html.Raw(Json.Serialize(new TrainingRegistration())),
+        TrainingStatus: @Html.Raw(Tools.EnumToJson2(typeof(KESSHRMServices.HRMCourseTableStatus))),
+    };
+</script>
+<script src="~/assets/areas/ess/js/training.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+<link rel="stylesheet" href="~/assets/areas/ess/css/training.css?@(Startup.Tick??DateTime.Now.Ticks)">
+<div class="row">
+    <div class="col-md-12">
+        <div class="card box">
+            <div class="card-header clearfix  px-xs-1">
+                <div class="row">
+                    <div class="col-md-3 col-12">
+                        <nav class="nav p-0 btn-group mb-md-xs-2 w-md-xs-100 leave-button-groups" role="group">
+                            <a class="nav-link btn btn-lg btn-outline-primary" id="open-tab" data-toggle="tab" href="#open">Open Registration</a> 
+                            <a class="nav-link btn btn-lg btn-outline-primary" id="history-tab" data-toggle="tab" href="#history">History</a>                        
+                        </nav>
+                    </div>                    
+                    <div class=" col-md-9 pl-md-4" data-bind="visible:!model.is.filterHidden()">
+                        <div class="float-right filter-attendance">
+                            <select data-bind="kendoDropDownList: {
+                                                        value: model.data.trainingStatus,
+                                                        data: model.list.trainingStatus,
+                                                        dataTextField: 'text',
+                                                        dataValueField: 'value',
+                                                        optionLabel: 'Select Status',                                                
+                                                        }" class="w-md-xs-100 mb-md-xs-2"></select>
+                            <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.StartDate, format: 'dd MMM yyyy'} " />
+                            <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.EndDate, format: 'dd MMM yyyy' } " />
+                            @*<div class="btn-group w-md-xs-100 mb-md-xs-2" role="group" aria-label="Basic example">
+                    <button type="button" class="w-md-xs-100 btn btn-outline-secondary px-3" onclick="model.action.filterTravelMonthly()">Monthly</button>
+                    <button type="button" class="w-md-xs-100 btn btn-outline-secondary px-3" onclick="model.action.filterTravelYearly()">Yearly</button>
+                </div>*@
+                            <a href="#" class="w-md-xs-100 btn btn-primary" onclick="model.action.refreshGridTraining(); return false;">Filter</a>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade" id="open" role="tabpanel" aria-labelledby="open-tab">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="card card-tab-content">
+                                <div class="card-body">
+                                    <h4 class="card-title">
+                                        <i class="mdi mdi-account-check"></i> Open Registration
+                                        @*<button type="button" class="btn btn-sm btn-info float-right" data-bind="click:action.openFormDocument, visible: !model.app.config.readonly">Add</button>*@
+                                    </h4>
+                                    <form class="row">
+                                        <div class="col-lg-12">
+                                            <div id="gridTraining"></div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+                    <div class="row">
+                        <div class="col-lg-12 mb-4">
+                            <div class="card card-tab-content">
+                                <div class="card-body">
+                                    <h4 class="card-title">
+                                        <i class="mdi mdi-file-document-box"></i> History                                            
+                                    </h4>
+                                    <form class="row">
+                                        <div class="col-lg-12">
+                                            <div id="gridHistory"></div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>                
+        </div>
+    </div>
+</div>
+@await Html.PartialAsync("ModalTraining.cshtml")
+
+<script>
+    $(document).ready(function () {
+        model.init.training();
+    });
+</script>

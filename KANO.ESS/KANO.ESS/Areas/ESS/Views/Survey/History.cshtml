@@ -1,0 +1,209 @@
+﻿@{
+    Layout = "_Layout";
+}
+@using KANO.Core.Service
+@using KANO.ESS
+@using KANO.Core.Model
+@using Newtonsoft.Json
+
+<style>
+    .k-pdf-viewer .k-canvas {
+        background-color: #808080;
+    }
+</style>
+
+<script>
+    @*Defining Model Prototype*@
+    model.proto = {
+        Survey: @Html.Raw(Json.Serialize(new Survey())),
+        DateRange: @Html.Raw(Json.Serialize(new DateRange())),
+        SurveyRecurrent: @Html.Raw(Tools.EnumToJson2(typeof(SurveyRecurrent))),
+        ParticipantType: @Html.Raw(Tools.EnumToJson2(typeof(ParticipantType))),
+    };
+
+</script>
+<script src="~/assets/areas/ess/js/survey.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+<script>
+    //window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.2.2/pdf.worker.js';
+</script>
+
+<div class="row">
+    <main class="col-lg-12" role="main">
+        <ul class="nav nav-tabs d-nav-tabs-none" id="employeeTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="history-tab" data-toggle="tab" href="#history" role="tab" aria-controls="resume" aria-selected="false">History</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="summary-tab" data-toggle="tab" href="#summary" role="tab" aria-controls="summary" aria-selected="false">Summary</a>
+            </li>
+        </ul>
+        <div class="dropdown d-hide-dropdown">
+            <button class="w-100 btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Menu
+            </button>
+            <div class="dropdown-menu p-0 m-0 w-100 border-radius-none" aria-labelledby="dropdownMenuButton" id="dropdownMenuButtons">
+                <a class="dropdown-item" id="history-tab" data-toggle="tab" href="#history" role="tab" aria-controls="resume" onclick="model.action.selectedDropdownMenu(this)">History</a>
+                <a class="dropdown-item" id="summary-tab" data-toggle="tab" href="#summary" role="tab" aria-controls="family" onclick="model.action.selectedDropdownMenu(this)">Summary</a>
+            </div>
+        </div>
+        <div class="tab-content" id="employeeTabContent">
+            @* Summary *@
+            <div class="tab-pane fade active show" id="history" role="tabpanel" aria-labelledby="history-tab">
+                <div class="row">
+                    <div class="col-lg-12 mb-4">
+                        <div class="card box">
+                            <div class="card-header clearfix">
+                                <div class="float-left filter-attendance mb-md-xs-2 no-display">
+                                    @*<button class="btn btn-dark" onclick="model.action.ExportToExcel()" data-bind="visible: model.is.buttonExport">Export</button>*@
+                                </div>
+                                <div class="float-right filter-attendance">
+                                    <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.StartDate, max : model.data.todaymin1, format: 'dd MMM yyyy' } " />
+                                    <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.EndDate, max : model.data.todaymin1, format: 'dd MMM yyyy' } " />
+                                    <a href="#" class="w-md-xs-100 btn btn-primary" onclick="model.action.refreshSurvey(); return false;">Filter</a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="gridSurveyHistory"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="summary" role="tabpanel" aria-labelledby="summary-tab">
+                <div class="row">
+                    <div class="col-lg-12 mb-4">
+                        <div class="card box">
+                            <div class="card-header clearfix">
+                                <div class="float-left filter-attendance mb-md-xs-2 w-100 no-display">                                    
+                                </div>
+                                <div class="float-right filter-attendance">
+                                    <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.StartDate, max : model.data.todaymin1, format: 'dd MMM yyyy' } " />
+                                    <input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.EndDate, max : model.data.todaymin1, format: 'dd MMM yyyy' } " />
+                                    <a href="#" class="w-md-xs-100 btn btn-primary" onclick="model.action.refreshSummary(); return false;">Filter</a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="gridSurveySummary"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="detailFillModal" class="modal" role="dialog">
+    <div class="modal-dialog" role="document" data-bind="with:model">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-bag-personal"></i>
+                    Answer
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="min-height: 200px;">
+                <div id="AnswerSurvey" class="mb-3">
+                    <h6 class="mb-1"><span data-bind="text: model.data.title"></span></h6>
+                    <h6><span data-bind="text: model.data.dateFill"></span></h6>
+                </div>
+                <ul class="list-group" data-bind="foreach: data.detailFill">
+                    <li class="list-group-item">
+                        <span data-bind="text: question_id[0]"></span>.<span data-bind="text: question_id[1]" class="ml-2"></span><span class="badge badge-primary badge-pill ml-4 float-right" data-bind="text: 'Score: ' + answer_score">12</span><br />
+                        <span data-bind="text: value_suggested[1]" class="ml-3"></span>
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn ml-xs-0 btn-light" data-bind="" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="PDF-form" class="modal" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-file-pdf-outline"></i>
+                    PDF
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="min-height: 200px;">
+                <div id="pdfViewer"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn ml-xs-0 btn-light" data-bind="" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/x-kendo-template" id="template">
+    <div class="m-2">
+        @*<button class="btn btn-dark btn-sm" onclick="model.action.ExportToExcel()" data-bind="visible: model.is.buttonExport">
+            <div class="spinner-border spinner-border-sm text-light" role="status" data-bind="visible: model.is.buttonExport">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <span data-bind="visible: !model.is.buttonExport">Export</span>
+        </button>*@
+        <div class="chartSumary mb-2"></div>
+        <div class="detailSumary" style="width: 100%;overflow-x: auto;"></div>
+    </div>
+    @*<div class="detailTabstrip">
+        <ul>
+            <li class="k-state-active">
+                Orders
+            </li>
+            <li>
+                Contact Information
+            </li>
+        </ul>
+        <div>
+            <div class="detailSumary"></div>
+        </div>
+        <div>
+            <div class='employee-details'>
+                <ul>
+                    <li><label>Country:</label>#= Country #</li>
+                    <li><label>City:</label>#= City #</li>
+                    <li><label>Address:</label>#= Address #</li>
+                    <li><label>Home Phone:</label>#= HomePhone #</li>
+                </ul>
+            </div>
+        </div>
+    </div>*@
+</script>
+
+<script type="text/x-kendo-template" id="toolbarSummary">
+    @*<div class="refreshBtnContainer">
+        <a href="\\#" class="k-pager-refresh k-link k-button k-button-icon" title="Refresh"><span class="k-icon k-i-reload"></span></a>
+    </div>*@
+    <div class="toolbar">
+        @*<button class="btn btn-dark btn-sm mr-2" onclick="model.action.ExportToExcel('#= Id #')"><i class="mdi mdi-file-export"></i> Export</button>*@
+        <button class="btn btn-info btn-sm mr-2 excel-#= Id #" onclick="model.action.showExcel(this)" style="display: none;"><i class="mdi mdi-file-excel"></i> Excel</button>
+        <button class="btn btn-success btn-sm pdf-#= Id #" onclick="model.action.showPDF(this)" style="display: none;"><i class="mdi mdi-file-pdf"></i> PDF</button>
+    </div>
+</script>
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.init.surveyHistory();
+        //model.init.surveySummary();
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+          //e.target // newly activated tab
+            //e.relatedTarget // previous active tab
+            if (e.target.id == "summary-tab") {
+                if (model.list.summary().length ==0) model.init.surveySummary();
+            }
+        })
+    })
+</script>

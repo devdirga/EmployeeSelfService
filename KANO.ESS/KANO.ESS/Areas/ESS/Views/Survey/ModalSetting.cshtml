@@ -1,0 +1,108 @@
+﻿<div id="settingModal" class="modal" role="dialog">
+    <div class="modal-dialog" role="document" data-bind="with:model">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-bag-personal"></i>
+                    Setting Survey
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" data-bind="with:data.survey, afterRender: model.on.renderForm">
+                <form>
+                    <div class="form-group mb-3">
+                        <label for="survey-title" class="required">Title</label>
+                        <input type="text" class="form-control" id="survey-title" placeholder="e.g. : Survey kepuasan pegawai" readonly data-bind="value:Title">
+                    </div>
+                    <div class="form-group my-4">
+                        <label for="survey-description" class="required">Description</label>
+                        <textarea type="text" class="form-control" id="survey-description" placeholder="e.g. : Survey kepuasan pegawai" readonly data-bind="value:Description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="PublicLink" class="required">Public Link</label>
+                        <input type="text" class="form-control" id="PublicLink" placeholder="Event Name" />
+                    </div>
+                    <div class="form-group my-4">
+                        @*<label for="survey-required">Is Required</label>*@
+                        <input type="checkbox" class="d-inline-block mr-2" id="survey-required" data-bind="checked:IsRequired">
+                        <label class="form-check-label d-inline-block" for="survey-required">
+                            Is Required
+                        </label>
+                    </div>
+                    <div class="form-group my-4">
+                        @*<div class="form-group col-md-12">*@
+                        @*<label for="survey-schedule">Schedule</label>*@
+                        <div class="form-control" id="survey-schedule"></div>
+                        @*</div>*@
+                    </div>
+                    <div class="form-group my-4">
+                        <label for="survey-recurrent" class="required">Recurrent</label>
+                        <select class="form-control w-md-xs-100 mb-md-xs-2 w-100" id="survey-recurrent" data-bind="kendoDropDownList: {
+                                                    dataTextField: 'text',
+                                                    dataValueField: 'value',
+                                                    data: model.list.surveyRecurrences,
+                                                    value: Recurrent,
+                                                    optionLabel: 'Select Survey Recurrence',
+                                                    enabled: true
+                                                    }"></select>
+                    </div>
+                    <div class="form-group my-4">
+                        <label for="survey-participant" class="required">Participant</label>
+                        <select class="form-control w-md-xs-100 mb-md-xs-2 w-100" id="survey-participant" data-bind="kendoDropDownList: {
+                                dataTextField: 'text',
+                                dataValueField: 'value',
+                                value: ParticipantType,
+                                data: model.list.participantTypes,
+                                optionLabel: 'Select Participant Type',
+                                enabled: true,
+                                change: model.action.changeType
+                                }"></select>
+                    </div>
+                    <div class="form-group" data-bind="visible : model.data.survey().ParticipantType() == 2">
+                        <select class="form-control w-md-xs-100 mb-md-xs-2 w-100" id="departments" data-bind="kendoMultiSelect: {
+                                data:model.list.departments,
+                                dataTextField: 'name',
+                                dataValueField: 'name',
+                                filter: 'contains',
+                                autoClose: false
+                                }"></select>
+                    </div>
+                    <div class="form-group" data-bind="visible : model.data.survey().ParticipantType() == 3">
+                        <select class="form-control w-md-xs-100 mb-md-xs-2 w-100" id="participants" data-bind="kendoMultiSelect: {
+                                data: model.data.employees,
+                                dataTextField: 'EmployeeName',
+                                dataValueField: 'EmployeeID',
+                                placeholder: 'Select particiants',
+                                filter: 'contains',
+                                autoClose: false
+                                }"></select>
+                    </div>
+                    @*<hr />*@
+                    @*<div class="form-group">*@
+                    @*<div class="form-group">*@
+                    @* daripada harus input survey_action_id, mending di odoo bikin satu controller yang ngarah ke survey form
+                        @* biar kita ngga usah maintenance survey_action_id *@
+                    @* tapi bisa langsung ke /odoo/web/survey_form?employeeID=732100292 *@
+                    @*<iframe id="survey-form-container" class="w-100" src="/odoo/web?employee_id=@UserSession.Id()#id=&action={{survey_action_id}}&view_type=form" title="Survey Form" style="height:800px"></iframe>*@
+                    @*<iframe id="survey-form-container" class="w-100" src="/odoo/web#action=142&model=survey.survey&view_type=kanban&cids=1&menu_id=99" title="Survey Form" style="height:800px"></iframe>*@
+                    @*</div>*@
+                    @*</div>*@
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-md btn-info float-right w-md-xs-50" data-bind="click:model.action.saveSurvey">
+                    <!-- ko if :model.is.buttonLoading() -->
+                    <div class="spinner-border spinner-border-sm text-light" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <!-- /ko -->
+                    <!-- ko ifnot:model.is.buttonLoading() -->
+                    Save
+                    <!-- /ko -->
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
