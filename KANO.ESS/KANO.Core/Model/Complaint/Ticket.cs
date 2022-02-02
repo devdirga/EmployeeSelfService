@@ -14,17 +14,20 @@ namespace KANO.Core.Model
     [BsonIgnoreExtraElements]
     public class TicketRequest : BaseDocumentVerification, IMongoPreSave<TicketRequest>
     {
+        public string TicketNumber { get; set; }
+        public string TicketResolution { get; set; }
         public string Subject { get; set; }
         public string TicketCategory { get; set; }
         public string EmailCC { get; set; }
         public List<string> EmailTo { get; set; }
         public string EmailFrom { get; set; }
-        public TicketType TicketType { get; set; }
+        public KESSWRServices.KESSTicketType TicketType { get; set; }
         public string FullName { get; set; }
-        public TicketMedia TicketMedia { get; set; }
+        public KESSWRServices.KESSTicketMedia TicketMedia { get; set; }
         public string Description { get; set; }
         public DateTime TicketDate { get; set; }
-        public TicketStatus TicketStatus { get; set; }
+        public KESSWRServices.KESSTicketStatus TicketStatus { get; set; }
+        public TicketCategory Category { get; set; }
         public FieldAttachment Attachments { get; set; } = new FieldAttachment();
         public TicketRequest() : base() { }
         public TicketRequest(IMongoDatabase mongoDB, IConfiguration configuration) : base(mongoDB, configuration) { }
@@ -223,6 +226,12 @@ return TaskRequest<TicketRequest>.Create("DB", ticketrequest);
                 MongoDB.Save(request);
             }
         }
+        public TicketRequest GetByInstanceID(String EmployeeID, String AXRequestID)
+        {
+            return this.MongoDB.GetCollection<TicketRequest>()
+                .Find(x => x.EmployeeID == EmployeeID && x.AXRequestID == AXRequestID)
+                .FirstOrDefault();
+        }
     }
     public enum TicketStatus : int
     {
@@ -283,5 +292,23 @@ return TaskRequest<TicketRequest>.Create("DB", ticketrequest);
         {
             return DB.GetCollection<ComplaintMailTemplate>().Find(x => x.Id == "ComplaintTemplate").FirstOrDefault();
         }
+    }
+
+    public class TicketStatusObject
+    {
+        public int Value { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class TicketMediaObject
+    {
+        public int Value { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class TicketTypeObject
+    {
+        public int Value { get; set; }
+        public string Name { get; set; }
     }
 }

@@ -202,5 +202,31 @@ namespace KANO.Core.Service.AX
 
             return result;
         }
+
+        public List<TicketRequest> GetComplaintsByEmplID(String EmployeeID)
+        {
+            var result = new List<TicketRequest>();
+            var Client = this.GetClient();
+            var Context = this.GetContext();
+            try
+            {
+                var complaints = Client.getComplaintsByEmplIdAsync(Context, EmployeeID).GetAwaiter().GetResult().response;
+                foreach (var complaint in complaints)
+                {
+                    result.Add(new TicketRequest()
+                    {
+                        AXID = complaint.RecId,
+                        Description = complaint.Description,
+                        EmailCC = complaint.EmailCC
+                    });
+                }
+
+                return result;
+            }
+            catch (Exception)
+            {
+                return result;
+            }
+        }
     }
 }
