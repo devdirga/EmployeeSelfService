@@ -39,6 +39,11 @@ namespace KANO.Core.Model
         public List<string> Groups { get; set; }
         public User Owner { get; set; }
         public SubscriptionMap Subscription { get; set; }
+        public string MapboxTemplate { get; set; }
+        public string MapboxToken { get; set; }
+        public string MapboxId { get; set; }
+        public List<ActivityTypeResult> ActivityTypes { get; set; }
+        public List<LocationResult> Locations { get; set; }
 
         public Entity() { }
 
@@ -214,6 +219,76 @@ namespace KANO.Core.Model
 
             return entityMap;
         }
+
+        public List<EntityMap> MGet(string employeeID, int skip, int limit, string keyword)
+        {
+            // Find Entity on Local Database
+            var Entity = new List<Entity>();
+            var filter = new BsonDocument();
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                filter = new BsonDocument {
+                    { "$or", new BsonArray {
+                       new BsonDocument {{ "Name", new BsonDocument { { "$regex", keyword }, { "$options", "i" } } } },
+                       new BsonDocument {{ "Description", new BsonDocument { { "$regex", keyword }, { "$options", "i" } } } },
+                       new BsonDocument {{ "Status", new BsonDocument { { "$regex", keyword }, { "$options", "i" } } } }
+                    }}
+                };
+            }
+
+            Entity = this.MongoDB.GetCollection<Entity>()
+                .Find(filter).Skip(skip).Limit(limit).ToList();
+
+            if (Entity == null)
+            {
+                throw new Exception($"Entity is not found");
+            }
+
+            var entityStr = JsonConvert.SerializeObject(Entity);
+            var entityMaps = JsonConvert.DeserializeObject<List<EntityMap>>(entityStr);
+
+            foreach (var entityMap in entityMaps)
+            {
+                entityMap.Groups = new List<string>();
+                entityMap.Owner = new UserMobileResult();
+                var user = this.MongoDB.GetCollection<User>().Find(x => x.Id == entityMap.CreatedBy).FirstOrDefault();
+                if (user != null)
+                {
+                    entityMap.Owner.Id = user.Id;
+                    entityMap.Owner.Username = user.Username;
+                    entityMap.Owner.Email = user.Email;
+                    entityMap.Owner.PhoneNumber = user.AdditionalInfo == null ? "" : user.AdditionalInfo.PhoneNumber;
+                    entityMap.Owner.FirstName = user.AdditionalInfo == null ? "" : user.AdditionalInfo.FirstName;
+                    entityMap.Owner.LastName = user.AdditionalInfo == null ? "" : user.AdditionalInfo.LastName;
+                    entityMap.Owner.Address = user.AdditionalInfo == null ? "" : user.AdditionalInfo.Address;
+                    entityMap.Owner.Position = user.AdditionalInfo == null ? "" : user.AdditionalInfo.Position;
+                    entityMap.Owner.Picture = user.AdditionalInfo == null ? "" : user.AdditionalInfo.Picture;
+                    entityMap.Owner.IsSelfieAuth = user.IsSelfieAuth;
+                }
+                entityMap.Subscription = new SubscriptionMap();
+                var subscription = this.MongoDB.GetCollection<Subscription>().Find(x => x.CreatedBy == entityMap.CreatedBy).FirstOrDefault();
+                if (subscription != null)
+                {
+                    entityMap.Subscription.ExpiredDate = subscription.ExpiredDate;
+                    entityMap.Subscription.MaxEntity = 0;
+                    entityMap.Subscription.CreatedEntity = 0;
+                }
+
+                var activitytypes = this.MongoDB.GetCollection<ActivityType>().Find(x => x.EntityID == ObjectId.Parse(entityMap.Id)).ToList();
+                var activitytypesstr = JsonConvert.SerializeObject(activitytypes);
+                entityMap.ActivityTypes = JsonConvert.DeserializeObject<List<ActivityTypeResult>>(activitytypesstr);
+
+                User u = this.MongoDB.GetCollection<User>().Find(x => x.Username == employeeID).FirstOrDefault();
+                List<string> locationcodes = new List<string>();
+                locationcodes = u.Location.Select(x => x.Code).ToList();
+                var locationlist = this.MongoDB.GetCollection<Location>().Find(x => locationcodes.Contains(x.Code)).ToList();
+                var locationliststr = JsonConvert.SerializeObject(locationlist);
+                entityMap.Locations = JsonConvert.DeserializeObject<List<LocationResult>>(locationliststr);
+
+            }
+
+            return entityMaps;
+        }
     }
 
     public class SubscriptionMap
@@ -252,6 +327,16 @@ namespace KANO.Core.Model
         public UserMobileResult Owner { get; set; }
         [JsonProperty(PropertyName = "subscription")]
         public SubscriptionMap Subscription { get; set; }
+        [JsonProperty(PropertyName = "mapboxTemplate")]
+        public string MapboxTemplate { get; set; }
+        [JsonProperty(PropertyName = "mapboxToken")]
+        public string MapboxToken { get; set; }
+        [JsonProperty(PropertyName = "mapboxId")]
+        public string MapboxId { get; set; }
+        [JsonProperty(PropertyName = "activityTypes")]
+        public List<ActivityTypeResult> ActivityTypes { get; set; }
+        [JsonProperty(PropertyName = "locations")]
+        public List<LocationResult> Locations { get; set; }
     }
 
     public class EntityMemberMap

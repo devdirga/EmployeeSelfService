@@ -195,6 +195,57 @@ namespace KANO.Core.Model
                 throw new Exception("Unable to find file path on database");
             }
         }
+
+        public void UploadAbsence(IConfiguration configuration, BaseDocumentVerification oldData, IEnumerable<IFormFile> FileUpload, Func<BaseDocumentVerification, string> newFileNameFunc)
+        {
+            UploadAbsence(configuration, this, oldData, FileUpload, newFileNameFunc);
+        }
+        public void UploadAbsence(IConfiguration configuration, BaseDocumentVerification data, BaseDocumentVerification oldData, IEnumerable<IFormFile> FileUpload, Func<BaseDocumentVerification, string> newFileNameFunc)
+        {
+            var uploadDirectory = Lib.Helper.Configuration.UploadPath(configuration);
+            var maxFilesize = Lib.Helper.Configuration.UploadMaxFileSize(configuration);
+            var allowedExtension = Lib.Helper.Configuration.UploadAllowedExtensions(configuration);
+
+            if (this.IsUploadNeeded(FileUpload, oldData))
+            {
+                // Currently we limit only one file upload
+                var file = FileUpload.FirstOrDefault();
+
+                // File validation
+                if (file.Length > maxFilesize)
+                {
+                    throw new Exception($"File upload size could not be more than {Format.FormatFileSize(maxFilesize)}");
+                }
+
+                if (!allowedExtension.Contains(Path.GetExtension(file.FileName)))
+                {
+                    throw new Exception($"File upload extension should be {string.Join(", ", allowedExtension)}");
+                }
+
+                // New file path and name preparation
+                var newFilename = Tools.SanitizeFileName(String.Format("{0}_{1}{2}", newFileNameFunc(data), DateTime.Now.ToLocalTime().ToString("ddMMyyyyHHmmssff"), Path.GetExtension(file.FileName)));
+                var newFilepath = Path.Combine(uploadDirectory, newFilename);
+
+                // Upload file
+                using (var fileStream = new FileStream(newFilepath, FileMode.Create))
+                {
+                    file.CopyTo(fileStream);
+                }
+
+                // We do not delete old, just add OLD behind the old file name 
+                if (oldData != null && !string.IsNullOrWhiteSpace(oldData.Filepath))
+                {
+                    Tools.DeleteFile(oldData.Filepath);
+                    data.Id = oldData.Id;
+                }
+
+                data.Filepath = newFilepath;
+            }
+            else if (oldData != null && string.IsNullOrWhiteSpace(oldData.Filepath))
+            {
+                data.Filepath = oldData.Filepath;
+            }
+        }
     }
 
     [BsonIgnoreExtraElements]

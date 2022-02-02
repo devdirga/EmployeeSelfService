@@ -166,5 +166,9 @@ namespace KANO.Core.Lib.Helper
             var path = configuration["Path:IpServer"] ?? ((defaultDirectory == "") ? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "assets", "appdata") : defaultDirectory);
             return path;
         }
+        public static string GetStageApp(IConfiguration configuration)
+        {
+            return configuration["Stage"];
+        }
     }
 }

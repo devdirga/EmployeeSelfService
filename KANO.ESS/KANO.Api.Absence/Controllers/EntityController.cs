@@ -131,5 +131,32 @@ namespace KANO.Api.Absence.Controllers
             }
         }
 
+        /**
+         * Function for ESS Mobile because ESS Mobile need Authentication except signin
+         * Every function must authorize with token from signin function
+         * This is for security
+         */
+
+        [Authorize]
+        [HttpGet("mlist")]
+        public IActionResult MList()
+        {
+            try
+            {
+                string employeeID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                int skip = String.IsNullOrEmpty(Request.Query["skip"]) ? 0 : Int32.Parse(Request.Query["skip"]);
+                int limit = String.IsNullOrEmpty(Request.Query["limit"]) ? 0 : Int32.Parse(Request.Query["limit"]);
+                string keyword = Request.Query["search"].ToString();
+
+                var result = _entity.MGet(employeeID, skip, limit, keyword);
+                return ApiResult<List<EntityMap>>.Ok(result, result.Count);
+            }
+            catch (Exception e)
+            {
+                return ApiResult<List<EntityMap>>.Error(
+                    HttpStatusCode.BadRequest, $"Fetching entitylist data error :\n{Format.ExceptionString(e)}");
+            }
+        }
+
     }
 }

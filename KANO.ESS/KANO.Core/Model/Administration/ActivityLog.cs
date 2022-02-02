@@ -39,7 +39,7 @@ namespace KANO.Core.Model
 
         public Nullable<DateTime> LastUpdatedDate { get; set; }
         public string Status { get; set; }
-
+        public bool Temporary { get; set; } = false;
         public ActivityLog() { }
 
         public ActivityLog(IMongoDatabase mongoDB, IConfiguration configuration)  {

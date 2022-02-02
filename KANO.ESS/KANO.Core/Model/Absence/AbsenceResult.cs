@@ -5,6 +5,24 @@ using System.Collections.Generic;
 
 using Microsoft.AspNetCore.Http;
 
+using MongoDB.Bson;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+
+using Microsoft.AspNetCore.Http;
+
+using KANO.Core.Lib.Extension;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http;
+using KANO.Core.Service;
+using KANO.Core.Service.AX;
+
 
 
 namespace KANO.Core.Model
@@ -307,5 +325,20 @@ namespace KANO.Core.Model
         public string Photo { get; set; }
         public string LogoContent { get; set; }
         public string LogoMIME { get; set; }
+    }
+
+    [Collection("Absences")]
+    [BsonIgnoreExtraElements]
+    public class Absences : BaseDocumentVerification, IMongoPreSave<Absences>
+    {
+        public string typeID { get; set; }
+        public string EntityID { get; set; }
+        public string ActivityTypeID { get; set; }
+        public string LocationID { get; set; }
+        public Double Longitude { get; set; }
+        public Double Latitude { get; set; }
+        public string InOut { get; set; }
+        public string Photo { get; set; }
+        public bool Temporary { get; set; }
     }
 }
