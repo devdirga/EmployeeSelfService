@@ -988,151 +988,162 @@ model.render.gridDocument = function () {
 };
 
 model.render.gridDocumentRequest = function () {
-    let $el = $("#gridDocumentRequest");
-    if (!!$el) {
-        let $grid = $el.getKendoGrid();
+  let $el = $("#gridDocumentRequest");
+  if (!!$el) {
+    let $grid = $el.getKendoGrid();
 
-        if (!!$grid) {
-            $grid.destroy();
+    if (!!$grid) {
+      $grid.destroy();
+    }
+
+    $el.kendoGrid({
+      dataSource: {
+        transport: {
+          read: "/ESS/Employee/GetDocumentRequests"
+        },
+        schema: {
+          data: function (res) {
+            console.log(res)
+            if (res.StatusCode !== 200 && res.Status !== '') {
+              swalFatal("Fatal Error", `Error occured while fetching document request(s)\n${res.Message}`)
+              return []
+            }
+
+            return res.Data || [];
+          },
+          total: "Total",
+        },
+        error: function (e) {
+          swalFatal("Fatal Error", `Error occured while fetching document request(s)\n${e.xhr.responseText}`)
         }
+      },
+      pageable: {
+        previousNext: false,
+        info: false,
+        numeric: false,
+        refresh: true
+      },
+      noRecords: {
+        template: "No document request data available."
+      },
+      columns: [
+        {
+          field: "Id",
+          title: "Request ID",
+          width: 150,
+        },
+        {
+          field: "CreatedDate",
+          title: "Created Date",
+          template: (d) => {
+            return standarizeDate(d.CreatedDate);
+          },
+          width: 125,
+        },
+        {
+          field: "EmployeeID",
+          title: "Created By",
+          width: 125,
+        },
+        {
+          field: "DocumentType",
+          title: "Doc. Type",
+          width: 100,
+        },
 
-        $el.kendoGrid({
-            dataSource: {
-                transport: {
-                    read: "/ESS/Employee/GetDocumentRequests"
-                },
-                schema: {
-                    data: function (res) {
-                        if (res.StatusCode !== 200 && res.Status !== '') {
-                            swalFatal("Fatal Error", `Error occured while fetching document request(s)\n${res.Message}`)
-                            return []
-                        }
-
-                        return res.Data || [];
-                    },
-                    total: "Total",
-                },
-                error: function (e) {
-                    swalFatal("Fatal Error", `Error occured while fetching document request(s)\n${e.xhr.responseText}`)
-                }
-            },
-            pageable: {
-                previousNext: false,
-                info: false,
-                numeric: false,
-                refresh: true
-            },
-            noRecords: {
-                template: "No document request data available."
-            },
-            columns: [
-                //{
-                //    field: "Id",
-                //    title: "Request ID",
-                //    width:150,
-                //},
-                {
-                    field: "CreatedDate",
-                    title: "Created Date",
-                    template: (d) => {
-                        return standarizeDate(d.CreatedDate);
-                    },
-                    width: 125,
-                },
-                {
-                    field: "DocumentType",
-                    title: "Doc. Type",
-                    width: 100,
-                },
-
-                {
-                    field: "Description",
-                    title: "Description",
-                    width: 170,
-                },
-                {
-                    headerAttributes: {
-                        "class": "text-center",
-                    },
-                    attributes: {
-                        "class": "text-center",
-                    },
-                    field: "ValidDate.Finish",
-                    title: "Valid Until",
-                    width: 125,
-                    template: (d) => {
-                        return standarizeDate((d.ValidDate) ? d.ValidDate.Finish : null);
-                    },
-                },
-                {
-                    headerAttributes: {
-                        "class": "text-center",
-                    },
-                    attributes: {
-                        "class": "text-center",
-                    },
-                    field: "Status",
-                    title: "Approval Status",
-                    template: function (data) {
-                        let status = data.Status;
-                        let statusClass = {
-                            0: {
-                                class: "badge badge-warning",
-                                text: "Waiting for Approval",
-                            },
-                            1: {
-                                class: "badge badge-success",
-                                text: "Verified",
-                            },
-                            2: {
-                                class: "badge badge-danger",
-                                text: "Rejected",
-                            },
-                        };
-
-                        return `<span class="${(statusClass[status].class)}">${statusClass[status].text}</span>`;
-                    },
-                    width: 150,
-                },
-                {
-                    headerAttributes: {
-                        "class": "text-center",
-                    },
-                    attributes: {
-                        "class": "text-center",
-                    },
-                    template: function (data) {
-                        return `
+        {
+          field: "Description",
+          title: "Description",
+          width: 170,
+        },
+        //{
+        //    headerAttributes: {
+        //        "class": "text-center",
+        //    },
+        //    attributes: {
+        //        "class": "text-center",
+        //    },
+        //    field: "ValidDate.Finish",
+        //    title: "Valid Until",
+        //    width: 125,
+        //    template: (d) => {
+        //        return standarizeDate((d.ValidDate) ? d.ValidDate.Finish : null);
+        //    },
+        //},
+        {
+          hidden: false,
+          headerAttributes: {
+            "class": "text-center",
+          },
+          attributes: {
+            "class": "text-center",
+          },
+          title: "Status",
+          template: function (data) {
+            let status = data.Status
+            let nstatus = 0;
+            if (data.Attachment.Filename == null) {
+              nstatus = 1;
+            } else {
+              nstatus = 2;
+            }
+            let statusClass = {
+              0: {
+                class: "badge badge-warning",
+                text: "Waiting for Approval",
+              },
+              1: {
+                class: "badge badge-success",
+                text: "Open",
+              },
+              2: {
+                class: "badge badge-success",
+                text: "Completed",
+              },
+            };
+            return `<span class="${(statusClass[nstatus].class)}">${statusClass[nstatus].text}</span>`;
+          },
+          width: 150,
+        },
+        {
+          headerAttributes: {
+            "class": "text-center",
+          },
+          attributes: {
+            "class": "text-center",
+          },
+          template: function (data) {
+            return `
                                 <button class="btn btn-xs btn-outline-info" onclick="model.action.editDocumentRequest('${data.uid}'); return false;">
                                     <i class="fa mdi mdi-pencil"></i>
                                 </button>
-                                <button class="btn btn-xs btn-outline-danger" onclick="model.action.removeDocumentRequest('${data.uid}'); return false;">
-                                    <i class="mdi mdi-close-box"></i>
-                                </button>                             
                             `
-                    },
-                    width: 75,
-                    hidden: model.app.config.readonly,
-                },
-                {
-                    attributes: {
-                        "class": "text-center",
-                    },
-                    template: function (data) {
-                        var disabled = (data.Status == 1 && !!data.ValidDate) ? '' : 'disabled';
-                        return `<button class="btn btn-xs ${(disabled) ? 'btn-outline-dark' : 'btn-outline-success'}" onclick="model.action.download('${data.uid}');" ${disabled}>
+          },
+          width: 75,
+          //hidden: model.app.config.readonly,
+          hidden: false
+        },
+        {
+          attributes: {
+            "class": "text-center",
+          },
+          template: function (data) {
+            //var disabled = (data.Status == 1 && !!data.ValidDate) ? '' : 'disabled';
+            var disabled = '';
+            return `<button class="btn btn-xs ${(disabled) ? 'btn-outline-dark' : 'btn-outline-success'}" onclick="model.action.download('${data.uid}');" ${disabled}>
                                     <i class="fa mdi mdi-download"></i>
                                 </button>`;
 
-                        return '';
+            return '';
 
-                    },
-                    width: 50,
-                    hidden: model.app.config.readonly,
-                },
-            ]
-        });
-    }
+          },
+          width: 50,
+          //hidden: model.app.config.readonly,
+          hidden: true
+        },
+      ]
+    });
+  }
 };
 
 model.render.gridApplication = function () {
@@ -2497,74 +2508,74 @@ model.action.openDocumentRequest = function () {
 };
 
 model.action.saveDocumentRequest = async function () {
-    var dialogTitle = "Document Request";
-    var result = await swalConfirm(dialogTitle, 'Are you sure to request document ?');
+  var dialogTitle = "Document Request";
+  var result = await swalConfirm(dialogTitle, 'Are you sure to request document ?');
 
-    if (result.value) {
-        try {
-            isLoading(true);
-            var data = ko.mapping.toJS(model.data.documentRequest);            
-            var files;
-            var $uploader = $("#fileDocumentRequest").getKendoUpload();
-            if ($uploader) files = $uploader.getFiles();
+  if (result.value) {
+    try {
+      isLoading(true);
+      var data = ko.mapping.toJS(model.data.documentRequest);
+      var files;
+      var $uploader = $("#fileDocumentRequest").getKendoUpload();
+      if ($uploader) files = $uploader.getFiles();
 
-            if (!(data.DocumentType || "").trim()) {
-                isLoading(false);
-                swalAlert(dialogTitle, 'Document type is required.');
-                return;
-            }
+      if (!(data.DocumentType || "").trim()) {
+        isLoading(false);
+        swalAlert(dialogTitle, 'Document type is required.');
+        return;
+      }
 
-            if (!(data.Description || "").trim()) {
-                isLoading(false);
-                swalAlert(dialogTitle, 'Description is required.');
-                return;
-            }
+      if (!(data.Description || "").trim()) {
+        isLoading(false);
+        swalAlert(dialogTitle, 'Description is required.');
+        return;
+      }
 
 
 
-            let formData = new FormData();
-            formData.append("JsonData", ko.mapping.toJSON(data));
-            if (files[0]) {
-                formData.append("FileUpload", files[0].rawFile);
-            }
+      let formData = new FormData();
+      formData.append("JsonData", ko.mapping.toJSON(data));
+      if (files[0]) {
+        formData.append("FileUpload", files[0].rawFile);
+      }
 
-            let $modal = $("#modalFormDocumentRequest");
+      let $modal = $("#modalFormDocumentRequest");
 
-            $modal.modal("hide");
-            ajaxPostUpload("/ESS/Employee/SaveDocumentRequest", formData, function (data) {
-                isLoading(false)
-                if (data.StatusCode == 200) {
-                    model.action.refreshGridDocumentRequest();
-                    swalSuccess(dialogTitle, data.Message);
-                } else {
-                    $modal.modal("show");
-                    swalError(dialogTitle, data.Message);
-                }
-            }, function (data) {
-                $modal.modal("show");
-                swalError(dialogTitle, data.Message);
-            });
-        } catch (e) {
-            console.error(e);
-            isLoading(false);
+      $modal.modal("hide");
+      ajaxPostUpload("/ESS/Employee/SaveDocumentRequest", formData, function (data) {
+        isLoading(false)
+        if (data.StatusCode == 200) {
+          model.action.refreshGridDocumentRequest();
+          swalSuccess(dialogTitle, data.Message);
+        } else {
+          $modal.modal("show");
+          swalError(dialogTitle, data.Message);
         }
+      }, function (data) {
+        $modal.modal("show");
+        swalError(dialogTitle, data.Message);
+      });
+    } catch (e) {
+      console.error(e);
+      isLoading(false);
     }
+  }
 };
 
 let documentRequestReadOnlyFile;
 model.action.editDocumentRequest = function (uid) {
-    model.data.family(model.newDocumentRequest());
-    dataGrid = $("#gridDocumentRequest").data("kendoGrid").dataSource.getByUid(uid);
+  model.data.family(model.newDocumentRequest());
+  dataGrid = $("#gridDocumentRequest").data("kendoGrid").dataSource.getByUid(uid);
 
-    if (dataGrid) {
-        model.data.documentRequest(model.newDocumentRequest(dataGrid));
+  if (dataGrid) {
+    model.data.documentRequest(model.newDocumentRequest(dataGrid));
 
-        if (!documentRequestReadOnlyFile)
-            documentRequestReadOnlyFile = kendo.template($("#fileTemplateReadonly").html());
+    if (!documentRequestReadOnlyFile)
+      documentRequestReadOnlyFile = kendo.template($("#fileTemplateReadonly").html());
 
-        model.data.documentRequest().HTMLFile(documentRequestReadOnlyFile(dataGrid));
-        $("#modalFormDocumentRequest").modal("show");
-    }
+    model.data.documentRequest().HTMLFile(documentRequestReadOnlyFile(dataGrid));
+    $("#modalFormDocumentRequest").modal("show");
+  }
 }
 
 model.action.removeDocumentRequest = async function (uid) {

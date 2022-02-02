@@ -19,7 +19,7 @@ namespace KANO.Core.Model
         public string DocumentType { get; set; }
         public string Description { get; set; }        
         public string Notes { get; set; }
-
+        public FieldAttachment Attachment { get; set; } = new FieldAttachment();
         public Document() : base() { }
 
         public Document(IMongoDatabase mongoDB, IConfiguration configuration) : base(mongoDB, configuration) { }
