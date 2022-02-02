@@ -10,6 +10,7 @@ using KANO.Core.Lib.Helper;
 using KANO.Core.Model;
 using KANO.Core.Service;
 using KANO.Core.Service.AX;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -27,6 +28,8 @@ namespace KANO.Api.TimeManagement.Controllers
         private IMongoDatabase DB;
         private IConfiguration Configuration;
         private TimeAttendance _timeAttendance;
+        private Core.Model.Agenda _agenda;
+        private readonly String UnableGetTimeAttendance = "Unable to get TimeAttendance for";
 
         // Required, this make sure we use Dependency Injection provided by ASP.Core
         public TimeManagementController(IMongoManager mongo, IConfiguration conf)
@@ -35,6 +38,7 @@ namespace KANO.Api.TimeManagement.Controllers
             DB = Mongo.Database();
             Configuration = conf;
             _timeAttendance = new TimeAttendance(DB, Configuration);
+            _agenda = new Core.Model.Agenda(DB, Configuration);
         }
         
         [HttpGet("{employeeID}")]
@@ -336,6 +340,357 @@ namespace KANO.Api.TimeManagement.Controllers
             {
                 throw e;
             }
+        }
+
+        [HttpPost("agendaget/range")]
+        public IActionResult AgendaGetRange([FromBody] GridDateRange param)
+        {
+            try
+            {
+                var result = _agenda.GetS(param.Username, param.Range);
+                return ApiResult<List<Core.Model.Agenda>>.Ok(result);
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get agenda '' :\n{Format.ExceptionString(e)}");
+            }
+            //return ApiResult.Ok(Tools.ConfigChecksum(Configuration), "success");
+        }
+
+        /**
+         * Function for ESS Mobile because ESS Mobile need Authentication except signin
+         * Every function must authorize with token from signin function
+         * This is for security
+         */
+
+        [Authorize]
+        [HttpGet("m/{employeeID}")]
+        public IActionResult MGets(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<TimeAttendanceResult>>.Ok(
+              _timeAttendance.GetS(employeeID, new DateRange(DateTime.Now.AddMonths(-1), DateTime.Now)));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+HttpStatusCode.BadRequest, $"{UnableGetTimeAttendance} {employeeID} :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpPost("mget/range")]
+        public IActionResult MGetRange([FromBody] GridDateRange param)
+        {
+            try
+            {
+                return ApiResult<List<TimeAttendanceResult>>.Ok(
+                  _timeAttendance.GetS(param.Username, new DateRange(param.Range.Start, param.Range.Finish)));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+HttpStatusCode.BadRequest, $"{UnableGetTimeAttendance} {param.Username} :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("msubordinate/{employeeID}")]
+        public IActionResult MGetSubordinate(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<TimeAttendance>>.Ok(
+              new TimeManagementAdapter(Configuration).GetSubordinate(employeeID, new DateRange(DateTime.Now.AddMonths(-1), DateTime.Now)));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<List<TimeAttendance>>.Error(
+  HttpStatusCode.BadRequest, $"{UnableGetTimeAttendance} subordinate {employeeID} :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpPost("msubordinate/range")]
+        public IActionResult MGetSubordinateRange([FromBody] GridDateRange param)
+        {
+            try
+            {
+                return ApiResult<List<TimeAttendance>>.Ok(
+              new TimeManagementAdapter(Configuration).GetSubordinate(param.Username, param.Range));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<List<TimeAttendance>>.Error(
+  HttpStatusCode.BadRequest, $"{UnableGetTimeAttendance} subordinate {param.Username} :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mget/period")]
+        public IActionResult MGetPeriodTable()
+        {
+            try
+            {
+                return ApiResult<List<Period>>.Ok(
+                  new TimeManagementAdapter(Configuration).GetPeriodTable());
+            }
+            catch (Exception e)
+            {
+                return ApiResult<List<Period>>.Error(
+HttpStatusCode.BadRequest, $"Error loading period :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mabsencecode/get")]
+        public IActionResult MGet()
+        {
+            try
+            {
+                return ApiResult<List<AbsenceCode>>.Ok(
+                  new HRAdapter(Configuration).Get());
+            }
+            catch (Exception e)
+            {
+                return ApiResult<List<TimeAttendance>>.Error(
+  HttpStatusCode.BadRequest, $"Error loading time attendance :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mabsenceimported/{employeeID}")]
+        public IActionResult MGetAbsenceImported(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<AbsenceImported>>.Ok(
+              new TimeManagementAdapter(Configuration).GetAbsenceImported(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<List<AbsenceImported>>.Error(
+HttpStatusCode.BadRequest, $"Error loading Absence Imported :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [HttpPost("mtimeattendance/create")]
+        public IActionResult MCreateTimeAttendance([FromForm] TimeAttendanceForm param)
+        {
+            var workflowAdapter = new WorkFlowRequestAdapter(Configuration);
+            var strAction = Enum.GetName(typeof(ActionType), ActionType.Create);
+            try
+            {
+                string Filepath = string.Empty;
+                TimeAttendance oldData = new TimeAttendance();
+                TimeAttendance data = JsonConvert.DeserializeObject<TimeAttendance>(param.JsonData);
+                // Get existing request
+                var instanceID = workflowAdapter.GetAbsenceInstanceID(data.EmployeeID, data.LoggedDate);
+                if (string.IsNullOrWhiteSpace(instanceID))
+                {
+                    instanceID = new WorkFlowRequestAdapter(Configuration).RequestTimeAttendance(data);
+                }
+                oldData = DB.GetCollection<TimeAttendance>()
+                    .Find(x => x.AXID == data.AXID && x.EmployeeID == data.EmployeeID &&
+                    (x.Status == UpdateRequestStatus.InReview) && (x.LoggedDate == data.LoggedDate))
+                    .FirstOrDefault();
+
+                data.Upload(Configuration, oldData, param.FileUpload,
+                    x => String.Format("AbsenceRecomendation_{0}_{1}",
+                    DateTime.Now.ToLocalTime().ToString("ddMMyyyyHHmmssff"), x.EmployeeID));
+
+                if (string.IsNullOrWhiteSpace(instanceID))
+                {
+                    throw new Exception("Unable to get AX Request ID");
+                }
+                data.Action = ActionType.Create;
+                data.AXRequestID = instanceID;
+                var tasks = new List<Task<TaskRequest<object>>>
+                {
+                    Task.Run(() =>
+                    {
+                        DB.Save(data);
+                        return TaskRequest<object>.Create("TimeAttendance", true);
+                    }),
+
+                    Task.Run(() =>
+                    {
+                        DB.Save(new UpdateRequest {
+                                    AXRequestID = instanceID,
+                                    EmployeeID = data.EmployeeID,
+                                    Module = UpdateRequestModule.UPDATE_TIMEATTENDANCE,
+                                    Notes = data.Reason,
+                                    Description = $"Absence Recomendation {Format.StandarizeDate(data.LoggedDate)}",
+                                    UpdateBy = data.EmployeeName
+                                });
+                        return TaskRequest<object>.Create("UpdateRequest", true);
+                    })
+                };
+
+                var t = Task.WhenAll(tasks);
+                try { t.Wait(); }
+                catch (Exception) { throw; }
+
+                // Send approval notification
+                new Notification(Configuration, DB).SendNotification(data.EmployeeID, data.AXRequestID);
+                return ApiResult<object>.Ok($"TimeAttendance draft '{strAction}' request has been saved");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+HttpStatusCode.BadRequest, $"TimeAttendance draft '{strAction}' is failed :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [HttpPost("mtimeattendance/update")]
+        public IActionResult MUpdateTimeAttendance([FromForm] TimeAttendanceForm param)
+        {
+            var workflowAdapter = new WorkFlowRequestAdapter(Configuration);
+            var strAction = Enum.GetName(typeof(ActionType), ActionType.Update);
+            try
+            {
+                string Filepath = string.Empty;
+                TimeAttendance oldData = new TimeAttendance();
+                TimeAttendance data = new TimeAttendance();
+                data = JsonConvert.DeserializeObject<TimeAttendance>(param.JsonData);
+                // Get existing request
+                var instanceID = workflowAdapter.GetAbsenceInstanceID(data.EmployeeID, data.LoggedDate);
+                if (string.IsNullOrWhiteSpace(instanceID))
+                {
+                    instanceID = new WorkFlowRequestAdapter(Configuration).RequestTimeAttendance(data);
+                }
+                oldData = DB.GetCollection<TimeAttendance>()
+                    .Find(x => x.AXID == data.AXID && x.EmployeeID == data.EmployeeID &&
+                    (x.Status == UpdateRequestStatus.InReview) && (x.LoggedDate == data.LoggedDate))
+                    .FirstOrDefault();
+
+                data.Upload(Configuration, oldData, param.FileUpload, x => String.Format("AbsenceRecomendation_{0}_{1}",
+                    DateTime.Now.ToLocalTime().ToString("ddMMyyyyHHmmssff"), x.EmployeeID));
+
+                if (string.IsNullOrWhiteSpace(instanceID))
+                {
+                    throw new Exception("Unable to get AX Request ID");
+                }
+                data.Action = ActionType.Update;
+                data.AXRequestID = instanceID;
+                var tasks = new List<Task<TaskRequest<object>>>
+                {
+                    Task.Run(() =>
+                    {
+                        DB.Save(data);
+                        return TaskRequest<object>.Create("TimeAttendance", true);
+                    }),
+
+                    Task.Run(() =>
+                    {
+                        DB.Save(new UpdateRequest {
+                                    AXRequestID = instanceID,
+                                    EmployeeID = data.EmployeeID,
+                                    Module = UpdateRequestModule.UPDATE_TIMEATTENDANCE,
+                                    Notes = data.Reason,
+                                    Description = $"Absence Recomendation {Format.StandarizeDate(data.LoggedDate)}",
+                                    UpdateBy = data.EmployeeName
+                                });
+                        return TaskRequest<object>.Create("UpdateRequest", true);
+                    })
+                };
+
+                var t = Task.WhenAll(tasks);
+                try { t.Wait(); }
+                catch (Exception) { throw; }
+
+                // Send approval notification
+                new Notification(Configuration, DB).SendNotification(data.EmployeeID, data.AXRequestID);
+                return ApiResult<object>.Ok($"TimeAttendance draft '{strAction}' request has been saved");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+HttpStatusCode.BadRequest, $"TimeAttendance draft '{strAction}' is failed :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mtimeattendance/remove/{requestID}")]
+        public IActionResult MDiscardAbsenceRecomendation(string requestID = "")
+        {
+            try
+            {
+                TimeAttendance timeAttendance = DB.GetCollection<TimeAttendance>().Find(a => a.Id == requestID).FirstOrDefault();
+                if (!timeAttendance.Equals(null))
+                {
+
+                    UpdateRequest updateRequest = DB.GetCollection<UpdateRequest>().Find(x => x.AXRequestID == timeAttendance.AXRequestID).FirstOrDefault();
+                    updateRequest.Status = UpdateRequestStatus.Cancelled;
+                    DB.Save(updateRequest);
+                    timeAttendance.Status = UpdateRequestStatus.Cancelled;
+                    DB.Save(timeAttendance);
+                    new WorkFlowTrackingAdapter(Configuration).Cancel(Convert.ToInt64(timeAttendance.AXRequestID));
+                    return ApiResult<object>.Ok($"Time Attendance data request has been discarded");
+                }
+                return ApiResult<object>.Ok($"Time Attendance has not found");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+HttpStatusCode.BadRequest, $"Unable to discard Time Attendance request :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mtimeattendance/get/{employeeID}/{axRequestID}")]
+        public IActionResult MGetAbsenceRecomendation(string employeeID, string axRequestID)
+        {
+            try
+            {
+                return ApiResult<TimeAttendance>.Ok(
+                  _timeAttendance.GetByAXRequestID(employeeID, axRequestID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+  HttpStatusCode.BadRequest, $"Unable to get absence recomendation :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mtimeattendance/download/{id}")]
+        public IActionResult MDownload(string id)
+        {
+            var result = _timeAttendance.GetByID(id);
+            try { return File(result.Download(), "application/force-download", Path.GetFileName(result.Filepath)); }
+            catch (Exception e) { throw e; }
+        }
+        [HttpGet("mdownload/{employeeID}/{axRequestID}")]
+        public IActionResult MDownload(string employeeID, string axRequestID)
+        {
+            var result = _timeAttendance.GetByAXRequestID(employeeID, axRequestID);
+            try
+            {
+                if (result.Accessible) { return File(result.Download(), "application/force-download", Path.GetFileName(result.Filepath)); }
+                throw new Exception("Unable to access file");
+            }
+            catch (Exception e) { throw e; }
+        }
+        [Authorize]
+        [HttpPost("magendaget/range")]
+        public IActionResult MAgendaGetRange([FromBody] GridDateRange param)
+        {
+            try
+            {
+                return ApiResult<List<Core.Model.Agenda>>.Ok(
+                  _agenda.GetRangeMobile(param.Username, param.Range));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+  HttpStatusCode.BadRequest, $"Unable to get agenda '' :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [HttpGet("magendadownload/{employeeID}")]
+        public IActionResult MAgendaDownload(string employeeID)
+        {
+            var token = employeeID.Replace("_", @"/");
+            // Download the data
+            try
+            {
+                var file = new FieldAttachment();
+                var decodedToken = WebUtility.UrlDecode(token);
+                file.Filepath = Hasher.Decrypt(decodedToken);
+                var bytes = file.Download();
+                return File(bytes, "application/force-download", file.Filename);
+            }
+            catch (Exception e) { throw e; }
         }
 
         [HttpGet("ping")]

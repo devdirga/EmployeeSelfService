@@ -35,6 +35,8 @@ namespace KANO.Core.Model
         public string Location { get; set; }
         public string Category { get; set; }
         public DateTime CreatedDate { get; set; }
+        public string DateDesc { get; set; }
+        public string TimeDesc { get; set; }
         public KESSCNTServices.KESSAgendaForType AgendaFor { get; set; }
         public string AgendaForDescription { 
             get {
@@ -176,6 +178,34 @@ namespace KANO.Core.Model
             return result.OrderByDescending(x => x.Schedule.Start).ToList();
         }
 
+        public List<Agenda> GetRangeMobile(string employeeID, DateRange dateRange)
+        {
+            var result = new List<Agenda>();
+            var tasks = new List<Task<TaskRequest<List<Agenda>>>>
+            {
+                Task.Run(() =>
+                {
+                    return TaskRequest<List<Agenda>>.Create("agenda",
+                        new ComplaintAdapter(this.Configuration).GetAgendaMobile(employeeID, dateRange));
+                })
+            };
+
+            var t = Task.WhenAll(tasks);
+            try
+            {
+                t.Wait();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
+            if (t.Status == TaskStatus.RanToCompletion)
+                foreach (var r in t.Result)
+                    result.AddRange(r.Result);
+
+            return result.OrderByDescending(x => x.Schedule.Start).ToList();
+        }
     }
 
     public enum AgendaType : int
