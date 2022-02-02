@@ -64,6 +64,7 @@ namespace KANO.Core.Model
         public object OldData { get; set; }
         public object NewData { get; set; }
         public DateTime CreatedDate { get; set; }
+        public DateTime ClosedDate { get; set; }
         public ActionType Action { get; set; } = ActionType.Create;
 
         public void PreSave(IMongoDatabase db)

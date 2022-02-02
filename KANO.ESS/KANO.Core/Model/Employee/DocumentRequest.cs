@@ -88,6 +88,12 @@ namespace KANO.Core.Model
 
             this.LastUpdate = DateTime.Now;
         }
+
+        public DocumentRequest GetByID(string id)
+        {
+            var res = MongoDB.GetCollection<DocumentRequest>().Find(a => a.Id == id).FirstOrDefault();
+            return res;
+        }
     }
 
     public class DocumentRequestForm

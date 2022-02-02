@@ -1737,34 +1737,43 @@ namespace KANO.Api.Employee.Controllers
         public IActionResult SaveDocumentRequest([FromForm] DocumentRequestForm param)
         {
             var updateRequest = new UpdateRequest();
-            var adapter = new EmployeeAdapter(Configuration);            
+            //var adapter = new EmployeeAdapter(Configuration);       
             var data = JsonConvert.DeserializeObject<DocumentRequest>(param.JsonData);
             data.AXID = (data.AXID == -1) ? Tools.RandomInt() * -1 : data.AXID;
-
             var oldData = DB.GetCollection<DocumentRequest>()
                 .Find(x => x.AXID == data.AXID && x.Id == data.Id && (x.Status == UpdateRequestStatus.InReview))
                 .FirstOrDefault();
-
             try
             {
-                var AXRequestID = adapter.UpdateDocumentRequest(data);
+                var AXRequestID = (Tools.RandomInt() * -1).ToString();
+                //var AXRequestID = adapter.UpdateDocumentRequest(data);
                 if (!string.IsNullOrWhiteSpace(AXRequestID))
                 {
                     updateRequest.Create(AXRequestID, data.EmployeeID, UpdateRequestModule.EMPLOYEE_DOCUMENT_REQUEST, $"Request document {data.DocumentType})");
                     data.AXRequestID = AXRequestID;
 
-                    data.Upload(Configuration, oldData, param.FileUpload, x => String.Format("DocumentRequest_{0}_{1}", data.DocumentType, x.EmployeeID));
+                    data.Upload(Configuration, oldData, param.FileUpload, x => String.Format("DocumentRequest{0}{1}", data.DocumentType, x.EmployeeID));
                     DB.Save(data);
                     return ApiResult<object>.Ok(data, "Document request has been saved successfully");
                 }
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to update request to AX");
+            }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
+        }
 
-                return  ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to update request to AX");
-            }
-            catch (Exception e)
+        [HttpPost("documentrequest/update")]
+        public IActionResult UpdateDocumentRequest([FromForm] DocumentRequestForm param)
+        {
+            try
             {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Error saving document request :\n{Format.ExceptionString(e)}");
+                DocumentRequest odata = JsonConvert.DeserializeObject<DocumentRequest>(param.JsonData);
+                DocumentRequest data = DB.GetCollection<DocumentRequest>().Find(a => a.Id == odata.Id).FirstOrDefault();
+                data.Attachment.Upload(Configuration, null, param.FileUpload, x => String.Format("TicketResolutionRes{0}", data.Id));
+                DB.Save(data);
+                return ApiResult<object>.Ok("success");
             }
-            
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
+
         }
 
         [HttpGet("documentRequest/delete/{requestID}")]
@@ -1781,7 +1790,29 @@ namespace KANO.Api.Employee.Controllers
 
             return ApiResult<DocumentRequest>.Ok("Document request has been deleted successfully ");
         }
-        
+
+        [HttpGet("downloaddocumentrequest/{employeeID}")]
+        public IActionResult Downloaddocumentrequest(string employeeID)
+        {
+            try
+            {
+                DocumentRequest t = _documentrequest.GetByID(employeeID);
+                return File(t.Download(), "application/force-download", Path.GetFileName(t.Filepath));
+            }
+            catch (Exception e) { throw e; }
+        }
+
+        [HttpGet("downloaddocrequestresult/{employeeID}")]
+        public IActionResult Downloaddocrequestresult(string employeeID)
+        {
+            try
+            {
+                DocumentRequest t = _documentrequest.GetByID(employeeID);
+                return File(t.Attachment.Download(), "application/force-download", Path.GetFileName(t.Attachment.Filepath));
+            }
+            catch (Exception e) { throw e; }
+        }
+
 
         [HttpGet("applicants/{employeeID}/{applicantID}")]
         public IActionResult GetApplicant(string employeeID, string applicantID)

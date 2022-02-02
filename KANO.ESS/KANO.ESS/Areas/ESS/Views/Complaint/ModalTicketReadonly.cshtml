@@ -4,7 +4,7 @@
             <div class="modal-header">
                 <h5 class="modal-title">
                     <i class="mdi mdi-bag-personal"></i>
-                    Complaint Detail
+                    Complaint Details
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -42,7 +42,7 @@
                         <div class="form-group">
                             <label for="input">Category</label>
                             <div class="form-control-plaintext" data-bind="html:Category.Name()"></div>
-                        </div>                        
+                        </div>
                         <div class="form-group">
                             <label for="input">Requester</label>
                             <div class="form-control-plaintext" data-bind="html:EmployeeName() + `(${EmployeeID()})`"></div>
@@ -50,11 +50,11 @@
                         <div class="form-group">
                             <label for="input">Subject</label>
                             <div class="form-control-plaintext" data-bind="html:Subject()"></div>
-                        </div>                        
+                        </div>
                         <div class="form-group">
                             <label for="input">EmailCC</label>
                             <div class="form-control-plaintext" data-bind="html:EmailCC() || '-'"></div>
-                        </div>                        
+                        </div>
                         <div class="form-group">
                             <label for="input">Description</label>
                             <div class="form-control-plaintext" data-bind="html:Description()"></div>
@@ -65,28 +65,35 @@
                                 <span data-bind="html: model.map.TicketStatus[TicketStatus()]"></span>
                             </span>
                         </div>
-                         <!-- ko if: TicketType() == 0 --> 
+                        <!-- ko if: TicketType() == 0 -->
                         <div class="form-group">
-                            <label for="input">Approval Status</label>                            
+                            <label for="input">Approval Status</label>
                             <span disabled data-bind="css: `w-100 badge badge-outline-${model.map.StatusLabelCSS[InvertedStatus()]}`" style="font-size: 16px;">
                                 <span data-bind="html: camelToTitle(InvertedStatusDescription())"></span>
-                            </span>                                                        
-                        </div>     
-                        <!-- /ko --> 
-                        <!-- ko if: TicketStatus() ==2 && !!ClosedBy() && !!ClosedByEmployeeID() -->
-                        <div class="form-group">
-                            <label for="input">Closed By</label>                            
-                            <div class="form-control-plaintext" data-bind="html:ClosedBy()+` (${ClosedByEmployeeID()})`"></div>                            
-                        </div>    
+                            </span>
+                        </div>
                         <!-- /ko -->
                         <!-- ko if: !!Filename() -->
                         <div class="form-group">
                             <label for="input">Attachment</label>
-                            <a href="" class="btn btn-sm btn-outline-info w-100" data-bind="attr:{title:Filename, href:`/ESS/Complaint/Download/${EmployeeID()}/${AXRequestID()}/${Filename()}`}">
-                                <i class="mdi mdi-download"></i> Download Attachment
+                            <a href="" class="btn btn-sm btn-outline-info w-100" data-bind="attr:{title:Filename, href:`/ESS/Complaint/MDownload/${Id()}/${Filename()}`}">
+                                <i class="mdi mdi-download"></i> Download Ticket Attachment
                             </a>
                         </div>
-                        <!-- /ko -->                        
+                        <!-- /ko -->
+                        <!-- ko if: TicketResolution() != null -->
+                        <div class="form-group">
+                            <label for="Description" class="required">Ticket Resolution</label><br>
+                            <textarea readonly type="text" cols="5" rows="3" class="form-control form-control-sm w-md-xs-100 mb-md-xs-2 w-100" data-bind="value:TicketResolution" placeholder="e.g. Complaint..."></textarea>
+                        </div>
+                        <!-- /ko -->
+                        <!-- ko if: Attachments.Filename() != null -->
+                        <div class="form-group">
+                            <a href="" class="btn btn-sm btn-outline-info w-100" data-bind="attr:{title:Filename, href:`/ESS/Complaint/MRDownload/${Id()}/${Attachments.Filename()}`}">
+                                <i class="mdi mdi-download"></i> Download Attachment Resolution
+                            </a>
+                        </div>
+                        <!-- /ko -->
                     </section>
                 </form>
             </div>

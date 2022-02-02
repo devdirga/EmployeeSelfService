@@ -1230,6 +1230,70 @@ namespace KANO.ESS.Areas.ESS.Controllers
             return new ApiResult<object>(result);
         }
 
+        [AllowAnonymous]
+        public IActionResult DownloadDocumentRequest(string source, string id)
+        {
+            try
+            {
+                var baseUrl = Configuration["Request:GatewayUrl"];
+                if (string.IsNullOrWhiteSpace(baseUrl))
+                    return ApiResult<object>.Error(HttpStatusCode.InternalServerError, "Unable to find gateway url configuration");
+                WebClient wc = new WebClient();
+                using (MemoryStream stream = new MemoryStream(wc.DownloadData($"{baseUrl}{Api}downloaddocumentrequest/{source}")))
+                {
+                    return File(stream.ToArray(), "application/force-download", id);
+                }
+            }
+            catch (Exception e)
+            {
+                ViewBag.ErrorCode = 500;
+                ViewBag.ErrorDescription = "Well it is embarassing, internal server error";
+                ViewBag.ErrorDetail = Format.ExceptionString(e);
+                return View("Error");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateDocumentRequest([FromForm] DocumentRequestForm param)
+        {
+            var documentRequest = JsonConvert.DeserializeObject<DocumentRequest>(param.JsonData);
+            var employeeID = Session.Id();
+            var client = new Client(Configuration);
+            var request = new Request($"api/employee/documentRequest/update", Method.POST);
+
+            documentRequest.EmployeeID = employeeID;
+            request.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(documentRequest));
+            if (param.FileUpload != null)
+            {
+                request.AddFormDataFile("FileUpload", param.FileUpload.FirstOrDefault());
+            }
+            var response = await client.Upload(request);
+            var result = JsonConvert.DeserializeObject<ApiResult<object>.Result>(response.Content);
+            return new ApiResult<object>(result);
+        }
+
+        public IActionResult DownloadDocRequestResult(string source, string id)
+        {
+            try
+            {
+                var baseUrl = Configuration["Request:GatewayUrl"];
+                if (string.IsNullOrWhiteSpace(baseUrl))
+                    return ApiResult<object>.Error(HttpStatusCode.InternalServerError, "Unable to find gateway url configuration");
+                WebClient wc = new WebClient();
+                using (MemoryStream stream = new MemoryStream(wc.DownloadData($"{baseUrl}{Api}downloaddocrequestresult/{source}")))
+                {
+                    return File(stream.ToArray(), "application/force-download", id);
+                }
+            }
+            catch (Exception e)
+            {
+                ViewBag.ErrorCode = 500;
+                ViewBag.ErrorDescription = "Well it is embarassing, internal server error";
+                ViewBag.ErrorDetail = Format.ExceptionString(e);
+                return View("Error");
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetApplicant(string token)
         {
