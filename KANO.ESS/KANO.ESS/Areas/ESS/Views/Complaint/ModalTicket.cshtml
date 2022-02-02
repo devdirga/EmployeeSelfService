@@ -52,7 +52,7 @@
                     <div class="form-group">
                         <label for="Subject" class="required">Subject</label><br>
                         <input class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="value: Subject" />
-                    </div>                    
+                    </div>
 
                     <div class="form-group">
                         <label for="EmailCC">Email CC</label><br>
@@ -66,19 +66,15 @@
                                 dataBound: model.action.onDataBound
                                 }"></select>
                         <small id="resultEmail"></small>
-
-                    </div>                    
-
+                    </div>
                     <div class="form-group d-none">
                         <label for="FullName" class="required">Fullname</label><br>
                         <input class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="value: FullName" />
                     </div>
-
                     <div class="form-group">
                         <label for="Description" class="required">Description</label><br>
                         <textarea type="text" cols="5" rows="3" class="form-control form-control-sm w-md-xs-100 mb-md-xs-2 w-100" data-bind="value:Description" placeholder="e.g. Complaint..."></textarea>
                     </div>
-
                     <div class="form-group">
                         <label class="required">Attachment</label>
                         <input type="file" name="Filepath" id="Filepath" data-bind="kendoUpload: {
@@ -91,6 +87,13 @@
                                }" />
                         <div data-bind="value: Filepath"></div>
                     </div>
+
+                    <!-- ko if: TicketResolution() != null -->
+                    <div class="form-group">
+                        <label for="Description" class="required">Ticket Resolution</label><br>
+                        <textarea type="text" cols="5" rows="3" class="form-control form-control-sm w-md-xs-100 mb-md-xs-2 w-100" data-bind="value:TicketResolution" placeholder="e.g. Complaint..."></textarea>
+                    </div>
+                    <!-- /ko -->
 
                 </form>
             </div>

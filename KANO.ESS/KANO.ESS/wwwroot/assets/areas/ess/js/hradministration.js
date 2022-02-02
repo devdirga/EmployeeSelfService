@@ -92,93 +92,93 @@ model.get.TicketStatusLabelCss = async function () {
 }
 
 model.render.GridTicket = function () {
-    let self = model;
-    let $el = $("#gridListTicket");    
+  let self = model;
+  let $el = $("#gridListTicket");
 
-    if ($el) {
-        let $grid = $el.getKendoGrid();
-        if (!!$grid) {
-            $grid.destroy();
-        }
-        $el.kendoGrid({
-            dataSource: {
-                transport: {
-                    read: {
-                        url: "/ESS/Complaint/GetResolution",
-                        dataType: "json",
-                        type: "POST",
-                        contentType: "application/json",
-                    },
-                    parameterMap: function (data, type) {
-                        data.EmployeeID = ""
-                        data.Range = {
-                            Start: model.data.StartDate(),
-                            Finish: model.data.EndDate()
-                        }
-                        data.Status =  -1;
-                        return JSON.stringify(data);
-                    }
-                },
-                schema: {
-                    data: function (res) {
+  if ($el) {
+    let $grid = $el.getKendoGrid();
+    if (!!$grid) {
+      $grid.destroy();
+    }
+    $el.kendoGrid({
+      dataSource: {
+        transport: {
+          read: {
+            url: "/ESS/Complaint/GetResolution",
+            dataType: "json",
+            type: "POST",
+            contentType: "application/json",
+          },
+          parameterMap: function (data, type) {
+            data.EmployeeID = ""
+            data.Range = {
+              Start: model.data.StartDate(),
+              Finish: model.data.EndDate()
+            }
+            data.Status = -1;
+            return JSON.stringify(data);
+          }
+        },
+        schema: {
+          data: function (res) {
 
-                        if (res.StatusCode !== 200 && res.Status !== '') {
-                            swalFatal("Fatal Error", `Error occured while fetching complaint request(s)\n${res.Message}`)
-                            return []
-                        }
-                        return res.Data || [];
-                    },
-                    total: "Total",
-                },
-                pageSize: 10,
-                serverPaging: true,
-                serverFiltering: true,
-                sort: { field: "CreatedDate", dir: "asc" },
-                serverSorting: true,
-                error: function (e) {
-                    swalFatal("Fatal Error", `Error occured while fetching complaint request(s)\n${e.xhr.responseText}`)
-                },
-                sort: { field: "UpdateRequest.CreatedDate", dir: "desc" },
-            },
-            pageable: {
-                input: false,
-                numeric: true,
-                previousNext: true,
-                butonCount: 5,
-                pageSizes: [10, 50, 100],
-                refresh: true,
-            },
-            sortable: true,
-            filterable: {
-                operators: {
-                    string: {
-                        eq: "Is Equal to",
-                        contains: "Contains",
-                    }
-                },
-                extra: false
-            },
-            noRecords: {
-                template: "No ticket(s) data available."
-            },
-            columns: [
-                {
-                    headerAttributes: {
-                        "class": "text-center",
-                    },
-                    attributes: {
-                        "class": "text-center",
-                    },
-                    field: "TicketID",
-                    title: "#",
-                    width: 150
-                },
-                {                    
-                    field: "FullName",
-                    title: "Requester",
-                    width: 250,
-                    template: function(d){
-                        return `${d.EmployeeName} (${d.EmployeeID})
+            if (res.StatusCode !== 200 && res.Status !== '') {
+              swalFatal("Fatal Error", `Error occured while fetching complaint request(s)\n${res.Message}`)
+              return []
+            }
+            return res.Data || [];
+          },
+          total: "Total",
+        },
+        pageSize: 10,
+        serverPaging: true,
+        serverFiltering: true,
+        sort: { field: "CreatedDate", dir: "asc" },
+        serverSorting: true,
+        error: function (e) {
+          swalFatal("Fatal Error", `Error occured while fetching complaint request(s)\n${e.xhr.responseText}`)
+        },
+        sort: { field: "UpdateRequest.CreatedDate", dir: "desc" },
+      },
+      pageable: {
+        input: false,
+        numeric: true,
+        previousNext: true,
+        butonCount: 5,
+        pageSizes: [10, 50, 100],
+        refresh: true,
+      },
+      sortable: true,
+      filterable: {
+        operators: {
+          string: {
+            eq: "Is Equal to",
+            contains: "Contains",
+          }
+        },
+        extra: false
+      },
+      noRecords: {
+        template: "No ticket(s) data available."
+      },
+      columns: [
+        {
+          headerAttributes: {
+            "class": "text-center",
+          },
+          attributes: {
+            "class": "text-center",
+          },
+          field: "TicketID",
+          title: "#",
+          width: 150
+        },
+        {
+          field: "FullName",
+          title: "Requester",
+          width: 250,
+          template: function (d) {
+            return `${d.EmployeeName} (${d.EmployeeID})
                         <small class="d-block">
                             <strong>Subject : </strong>${d.Subject}
                         </small>
@@ -186,143 +186,143 @@ model.render.GridTicket = function () {
                             <strong>Category: </strong>${d.Category.Name}
                         </small>                        
                         `;
-                    }
-                },
-                    // {
-                    //     headerAttributes: {
-                    //         "class": "text-center",
-                    //     },
-                    //     attributes: {
-                    //         "class": "text-center",
-                    //     },
-                    //     field: "Subject",
-                    //     title: "Subject",
-                    //     width: 150
-                    // },
-                {
-                    headerAttributes: {
-                        "class": "text-center",
-                    },
-                    attributes: {
-                        "class": "text-center",
-                    },
-                    field: "TicketType",
-                    title: "Type",
-                    width: 125,
-                    filterable: {
-                        ui: model.action.TicketTypeFilter
-                    },
-                    template: function (d) {                        
-                        // Ticket Status                    
-                        var ticketTypeString = camelToTitle(model.map.TicketType[d.TicketType] || "");
-                        ticketStatusClass = model.map.ticketStatusCSS[d.TicketType];         
+          }
+        },
+        // {
+        //     headerAttributes: {
+        //         "class": "text-center",
+        //     },
+        //     attributes: {
+        //         "class": "text-center",
+        //     },
+        //     field: "Subject",
+        //     title: "Subject",
+        //     width: 150
+        // },
+        {
+          headerAttributes: {
+            "class": "text-center",
+          },
+          attributes: {
+            "class": "text-center",
+          },
+          field: "TicketType",
+          title: "Type",
+          width: 125,
+          filterable: {
+            ui: model.action.TicketTypeFilter
+          },
+          template: function (d) {
+            // Ticket Status                    
+            var ticketTypeString = camelToTitle(model.map.TicketType[d.TicketType] || "");
+            ticketStatusClass = model.map.ticketStatusCSS[d.TicketType];
 
-                        var badgeTicketStatus = `<span class="badge badge-${ticketStatusClass}">${ticketTypeString.toLowerCase()}</span>`;
-                        if(d.TicketType == 0){
-                            badgeTicketStatus = `<a href="#" onclick="model.app.action.trackTaskEmployee('${d.AXRequestID}','${d.EmployeeID}'); return false;">${badgeTicketStatus}</a>`;                            
-                        }
+            var badgeTicketStatus = `<span class="badge badge-${ticketStatusClass}">${ticketTypeString.toLowerCase()}</span>`;
+            if (d.TicketType == 0) {
+              badgeTicketStatus = `<a href="#" onclick="model.app.action.trackTaskEmployee('${d.AXRequestID}','${d.EmployeeID}'); return false;">${badgeTicketStatus}</a>`;
+            }
 
-                        // Request Status
-                        var statusString = camelToTitle(d.InvertedStatusDescription || "");
-                        statusClass = model.map.StatusLabelCSS[d.InvertedStatus];
-                        
-                        var badgeStatus = `<span class="badge badge-${statusClass}">${statusString.toLowerCase()}</span>`;
-                        if(d.TicketType == 0){
-                            badgeStatus= `<a href="#" onclick="model.app.action.trackTaskEmployee('${d.AXRequestID}','${d.EmployeeID}'); return false;">${badgeStatus}</a>`;
-                        }
-                        
-                        if(d.TicketType == 0){
-                            return `${badgeTicketStatus}<br/>${badgeStatus}`;
-                        }else{
-                            return badgeTicketStatus;
-                        }
-                    }
-                },
-                {
-                    headerAttributes: {
-                        "class": "text-center",
-                    },
-                    attributes: {
-                        "class": "text-center",
-                    },
-                    field: "TicketStatus",
-                    title: "Status",
-                    width: 100,
-                    filterable: {
-                        ui: model.action.TicketStatusFilter
-                    },
-                    template: function (d) {
-                        let statusClass = "secondary";
-                        let statusLabel = (self.map.TicketStatus[d.TicketStatus]) ? self.map.TicketStatus[d.TicketStatus] : "-";
-                        switch (d.TicketStatus) {
-                            case "0":
-                            case 0:
-                                statusClass = "info";
-                                break;
-                            case "1":
-                            case 1:
-                                statusClass = "primary";
-                                break;
-                            case "2":
-                            case 2:
-                                statusClass = "success";
-                                break;
-                            default:
-                                break;
-                        }
-                        var badge = `<span class="badge badge-${statusClass}">${statusLabel.toLowerCase()}</span>`;
-                        if(d.TicketType == 0){
-                            return `<a href="#" onclick="model.app.action.trackTaskEmployee('${d.AXRequestID}','${d.EmployeeID}'); return false;">${badge}</a>`;
-                        }
-                        return badge;
-                    }
-                },
-                {
-                    headerAttributes: {
-                        "class": "text-center",
-                    },
-                    attributes: {
-                        "class": "text-center",
-                    },
-                    field: "CreatedDate",
-                    title: "Open ticket date",
-                    width: 150,
-                    filterable: {
-                        ui: function (element) {
-                            element.kendoDatePicker({
-                                format: "MMM dd, yyyy"
-                            });
-                        }
-                    },
-                    template: function (d) {
-                        return standarizeDateTime(d.CreatedDate, true)
-                    }
-                },
-                {
-                    headerAttributes: {
-                        "class": "text-center",
-                    },
-                    attributes: {
-                        "class": "text-center",
-                    },
-                    field: "ClosedDate",
-                    title: "Close ticket date",
-                    width: 150,
-                    template: function (d) {
-                        return standarizeDateTime(d.ClosedDate, true)
-                    }
-                },
-                {
-                    template: function (d) {
-                        return `<button class="btn btn-xs btn-outline-info" onclick="model.action.OpenTicketDetail('${d.uid}'); return false;">
+            // Request Status
+            var statusString = camelToTitle(d.InvertedStatusDescription || "");
+            statusClass = model.map.StatusLabelCSS[d.InvertedStatus];
+
+            var badgeStatus = `<span class="badge badge-${statusClass}">${statusString.toLowerCase()}</span>`;
+            if (d.TicketType == 0) {
+              badgeStatus = `<a href="#" onclick="model.app.action.trackTaskEmployee('${d.AXRequestID}','${d.EmployeeID}'); return false;">${badgeStatus}</a>`;
+            }
+
+            if (d.TicketType == 0) {
+              return `${badgeTicketStatus}<br/>${badgeStatus}`;
+            } else {
+              return badgeTicketStatus;
+            }
+          }
+        },
+        {
+          headerAttributes: {
+            "class": "text-center",
+          },
+          attributes: {
+            "class": "text-center",
+          },
+          field: "TicketStatus",
+          title: "Status",
+          width: 100,
+          filterable: {
+            ui: model.action.TicketStatusFilter
+          },
+          template: function (d) {
+            let statusClass = "secondary";
+            let statusLabel = (self.map.TicketStatus[d.TicketStatus]) ? self.map.TicketStatus[d.TicketStatus] : "-";
+            switch (d.TicketStatus) {
+              case "0":
+              case 0:
+                statusClass = "info";
+                break;
+              case "1":
+              case 1:
+                statusClass = "primary";
+                break;
+              case "2":
+              case 2:
+                statusClass = "success";
+                break;
+              default:
+                break;
+            }
+            var badge = `<span class="badge badge-${statusClass}">${statusLabel.toLowerCase()}</span>`;
+            if (d.TicketType == 0) {
+              return `<a href="#" onclick="model.app.action.trackTaskEmployee('${d.AXRequestID}','${d.EmployeeID}'); return false;">${badge}</a>`;
+            }
+            return badge;
+          }
+        },
+        {
+          headerAttributes: {
+            "class": "text-center",
+          },
+          attributes: {
+            "class": "text-center",
+          },
+          field: "CreatedDate",
+          title: "Open ticket date",
+          width: 150,
+          filterable: {
+            ui: function (element) {
+              element.kendoDatePicker({
+                format: "MMM dd, yyyy"
+              });
+            }
+          },
+          template: function (d) {
+            return standarizeDateTime(d.CreatedDate, true)
+          }
+        },
+        {
+          headerAttributes: {
+            "class": "text-center",
+          },
+          attributes: {
+            "class": "text-center",
+          },
+          field: "ClosedDate",
+          title: "Close ticket date",
+          width: 150,
+          template: function (d) {
+            return standarizeDateTime(d.ClosedDate, true)
+          }
+        },
+        {
+          template: function (d) {
+            return `<button class="btn btn-xs btn-outline-info" onclick="model.action.OpenTicketDetail('${d.uid}'); return false;">
                                     <i class="fa mdi mdi-pencil"></i>
                                 </button>`
-                    },
-                    width: 50,
-                }
-            ]
-        })
-    }
+          },
+          width: 50,
+        }
+      ]
+    })
+  }
 }
 
 model.action.TicketTypeFilter = function (element) {

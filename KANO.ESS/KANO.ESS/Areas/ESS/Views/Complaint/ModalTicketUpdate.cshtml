@@ -1,10 +1,10 @@
-﻿<div id="OpenTicketDetail" class="modal" role="dialog" data-bind="with:model">
+﻿<div id="OpenTicketUpdate" class="modal" role="dialog" data-bind="with:model">
     <div class="modal-dialog" role="document" data-bind="">
-        <div class="modal-content" data-bind="with:data.Ticket">
+        <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
                     <i class="mdi mdi-bag-personal"></i>
-                    Complaint Detail
+                    Complaint Details
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -12,7 +12,7 @@
             </div>
             <div class="modal-body">
                 <form>
-                    <section>
+                    <section data-bind="with:data.Ticket">
                         <div class="form-group">
                             <div class="form-row">
                                 <div class="col">
@@ -52,40 +52,14 @@
                             <div class="form-control-plaintext" data-bind="html:Subject()"></div>
                         </div>
                         <div class="form-group">
-                            <label for="input">Email CC</label>
-                            <div class="form-control-plaintext" data-bind="html:StrEmailCC() || '-'  "></div>
+                            <label for="input">EmailCC</label>
+                            <div class="form-control-plaintext" data-bind="html:EmailCC() || '-'"></div>
                         </div>
                         <div class="form-group">
                             <label for="input">Description</label>
                             <div class="form-control-plaintext" data-bind="html:Description()"></div>
                         </div>
-                        <div class="form-group">
-                            <label for="Subject" class="required">Ticket Reosution</label><br>
-                            @*<input class="form-control w-md-xs-100 mb-md-xs-2 w-100" data-bind="value: TicketResolution" />*@
-                            <textarea type="text" cols="5" rows="3" class="form-control form-control-sm w-md-xs-100 mb-md-xs-2 w-100" data-bind="value:TicketResolution" placeholder="e.g. Complaint..."></textarea>
-                        </div>
-                        <!-- ko if: Attachments.Filename() != null -->
-                        <div class="form-group">
-                            <a href="" class="btn btn-sm btn-outline-info w-100" data-bind="attr:{title:Filename, href:`/ESS/Complaint/MRDownload/${Id()}/${Attachments.Filename()}`}">
-                                <i class="mdi mdi-download"></i> Download Attachment Resolution
-                            </a>
-                        </div>
-                        <!-- /ko -->
-                        <!-- ko if: Attachments.Filename() == null -->
-                        <div class="form-group">
-                            <label class="required">Attachment file resolution</label>
-                            <input type="file" name="Filepath" id="Filepath" data-bind="kendoUpload: {
-                               multiple: false,
-                               template: kendo.template($('#fileTemplate').html()),
-                               validation: {
-                                    allowedExtensions: model.app.config.upload.allowedExtensions,
-                                    maxFileSize: model.app.config.upload.maxFileSize
-                                }
-                               }" />
-                            <div data-bind="value: Filepath"></div>
-                        </div>
-                        <!-- /ko -->
-                        <!-- ko if: TicketType() != 0 || (TicketType() == 0 && Status() != 0) -->
+
                         <div class="form-group">
                             <label for="input">Ticket Status</label>
                             <select data-bind="kendoDropDownList: {
@@ -96,9 +70,10 @@
                                     optionLabel: 'Select Status',
                                     }" class="form-control"></select>
                         </div>
-                        <!-- /ko -->
+
                         @*<div class="form-group">
-                                <span disabled data-bind="css: `w-100 badge badge-outline-${model.map.TicketStatusLabelCss[TicketStatus()]}`" style="font-size: 16px;">
+                                <label for="input">Ticket Status</label>
+                                <span disabled data-bind="css: `w-100 badge badge-${model.map.TicketStatusLabelCss[TicketStatus()]}`" style="font-size: 16px;">
                                     <span data-bind="html: model.map.TicketStatus[TicketStatus()]"></span>
                                 </span>
                             </div>*@
@@ -115,7 +90,20 @@
                         <div class="form-group">
                             <label for="input">Attachment</label>
                             <a href="" class="btn btn-sm btn-outline-info w-100" data-bind="attr:{title:Filename, href:`/ESS/Complaint/MDownload/${Id()}/${Filename()}`}">
-                                <i class="mdi mdi-download"></i> Download Attachment Ticket
+                                <i class="mdi mdi-download"></i> Download Ticket Attachment
+                            </a>
+                        </div>
+                        <!-- /ko -->
+                        <!-- ko if: TicketResolution() != null -->
+                        <div class="form-group">
+                            <label for="Description" class="required">Ticket Resolution</label><br>
+                            <textarea type="text" cols="5" rows="3" class="form-control form-control-sm w-md-xs-100 mb-md-xs-2 w-100" data-bind="value:TicketResolution" placeholder="e.g. Complaint..."></textarea>
+                        </div>
+                        <!-- /ko -->
+                        <!-- ko if: Attachments.Filename() != null -->
+                        <div class="form-group">
+                            <a href="" class="btn btn-sm btn-outline-info w-100" data-bind="attr:{title:Filename, href:`/ESS/Complaint/MRDownload/${Id()}/${Attachments.Filename()}`}">
+                                <i class="mdi mdi-download"></i> Download Attachment Resolution
                             </a>
                         </div>
                         <!-- /ko -->
@@ -123,12 +111,10 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <!-- ko if: TicketType() != 0 || (TicketType() == 0 && Status() != 0) -->
                 <div class="task-details">
                     <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-info" data-bind="click:model.action.TicketUpdate">Update Status</button>
+                    <button type="button" class="btn btn-info" data-bind="click:model.action.TicketUpdateStatus">Update</button>
                 </div>
-                <!-- /ko -->
             </div>
         </div>
     </div>

@@ -80,7 +80,6 @@ namespace KANO.Api.Administration.Controllers
             Mobile mobile = JsonConvert.DeserializeObject<Mobile>(param.JsonData);
             try
             {
-                Console.WriteLine("START UPLOAD...");
                 mobile.Upload(Configuration, null, param.FileUpload, x => String.Format("ESSMobile_{0}_{1}", mobile.UpdatedDate, mobile.Version));
                 DB.Save(mobile);
                 return ApiResult<object>.Ok($"Android mobile update has been saved");

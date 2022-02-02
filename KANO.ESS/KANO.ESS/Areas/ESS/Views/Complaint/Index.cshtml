@@ -25,14 +25,14 @@ model.proto = {
                 </div>
                 <strong class="float-left"></strong>
                 <div class="float-md-right">
-                    
+
                     @*<select data-bind="kendoDropDownList: {
-                                                value: model.data.TicketStatus,
-                                                data: model.list.TicketStatus,
-                                                dataTextField: 'text',
-                                                dataValueField: 'value',
-                                                optionLabel: 'Select Status',
-                                                }" class="w-md-xs-100 mb-md-xs-2"></select>*@
+                        value: model.data.TicketStatus,
+                        data: model.list.TicketStatus,
+                        dataTextField: 'text',
+                        dataValueField: 'value',
+                        optionLabel: 'Select Status',
+                        }" class="w-md-xs-100 mb-md-xs-2"></select>*@
 
                     @*<input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.StartDate, format: 'dd MMM yyyy' } " />*@
                     @*<input class="w-md-xs-100 mb-md-xs-2" data-bind="kendoDatePicker: { value: model.data.EndDate, format: 'dd MMM yyyy' } " />*@
@@ -41,7 +41,7 @@ model.proto = {
                         <button type="button" class="w-md-xs-100 btn btn-outline-secondary px-3" onclick="model.action.FilterTicketYearly()">Yearly</button>
                     </div>
                     @*<a href="#" class="btn btn-primary" onclick="model.action.RefreshTicket(); return false;">Filter</a>*@
-                    
+
                 </div>
             </div>
             <div class="card-body">
@@ -51,6 +51,7 @@ model.proto = {
     </div>
 </div>
 @await Html.PartialAsync("ModalTicket.cshtml")
+@await Html.PartialAsync("ModalTicketUpdate.cshtml")
 @await Html.PartialAsync("ModalTicketReadonly.cshtml")
 <script>
     $(function () {
