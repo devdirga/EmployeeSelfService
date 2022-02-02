@@ -28,6 +28,7 @@ namespace KANO.ESS.Areas.ESS.Controllers
 
         private IConfiguration Configuration;
         private IUserSession Session;
+        private readonly String Api = "api/administration/";
 
         // Required, this make sure we use Dependency Injection provided by ASP.Core
         public AdministratorController(IConfiguration conf)
@@ -60,6 +61,42 @@ namespace KANO.ESS.Areas.ESS.Controllers
             ViewBag.Title = "Administrator";
             ViewBag.Icon = "mdi mdi-settings";
             return View();
+        }
+
+        public IActionResult ConfigPassword()
+        {
+            ViewBag.Breadcrumbs = new[] {
+                new Breadcrumb{Title="ESS", URL=""},
+                new Breadcrumb{Title="Administrator", URL=""},
+                new Breadcrumb{Title="Config Password ", URL=""}
+            };
+            ViewBag.Title = "Administrator";
+            ViewBag.Icon = "mdi mdi-settings";
+            return View("~/Areas/ESS/Views/Administration/ConfigPassword.cshtml");
+        }
+
+        public IActionResult MobileVersion()
+        {
+            ViewBag.Breadcrumbs = new[] {
+                new Breadcrumb{Title="ESS", URL=""},
+                new Breadcrumb{Title="Administrator", URL=""},
+                new Breadcrumb{Title="Mobile Version ", URL=""}
+            };
+            ViewBag.Title = "Administrator";
+            ViewBag.Icon = "mdi mdi-settings";
+            return View("~/Areas/ESS/Views/Administration/MobileVersion.cshtml");
+        }
+
+        public IActionResult DocumentRequest()
+        {
+            ViewBag.Breadcrumbs = new[] {
+                new Breadcrumb{Title="ESS", URL=""},
+                new Breadcrumb{Title="Administrator", URL=""},
+                new Breadcrumb{Title="Document Request ", URL=""}
+            };
+            ViewBag.Title = "Document Request";
+            ViewBag.Icon = "mdi mdi-settings";
+            return View("~/Areas/ESS/Views/Administration/DocumentRequest.cshtml");
         }
 
         [HttpGet]
@@ -117,6 +154,74 @@ namespace KANO.ESS.Areas.ESS.Controllers
             // var result = JsonConvert.DeserializeObject<ApiResult<List<UserModel>>.Result>(response.Content);
             // return new ApiResult<List<UserModel>>(result);
             
+        }
+
+        [AllowAnonymous]
+        public IActionResult GetConfigPassword()
+        {
+            return new ApiResult<Core.Model.Auth.ConfigPassword>(
+                JsonConvert.DeserializeObject<ApiResult<Core.Model.Auth.ConfigPassword>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}getconfigpassword", Method.GET)).Content));
+        }
+        public async Task<IActionResult> UpdateConfigPassword([FromForm] FamilyForm param)
+        {
+            var req = new Request($"{Api}updateconfigpassword", Method.POST);
+            req.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(JsonConvert.DeserializeObject<Core.Model.Auth.ConfigPassword>(param.JsonData)));
+            if (param.FileUpload != null)
+            {
+                req.AddFormDataFile("FileUpload", param.FileUpload.FirstOrDefault());
+            }
+            return new ApiResult<object>(JsonConvert.DeserializeObject<ApiResult<object>.Result>((await new Client(Configuration).Upload(req)).Content));
+        }
+        [AllowAnonymous]
+        public IActionResult GetMobileVersion()
+        {
+            return new ApiResult<List<Mobile>>(
+                JsonConvert.DeserializeObject<ApiResult<List<Mobile>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}getmobileversion", Method.GET)).Content));
+        }
+        public async Task<IActionResult> UpdateAndroidVersion([FromForm] FamilyForm param)
+        {
+            var req = new Request($"{Api}updateandroidversion", Method.POST);
+            req.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(JsonConvert.DeserializeObject<Mobile>(param.JsonData)));
+            if (param.FileUpload != null)
+            {
+                req.AddFormDataFile("FileUpload", param.FileUpload.FirstOrDefault());
+            }
+            return new ApiResult<object>(JsonConvert.DeserializeObject<ApiResult<object>.Result>(
+                (await new Client(Configuration).Upload(req)).Content));
+        }
+        public async Task<IActionResult> UpdateIOSVersion([FromForm] FamilyForm param)
+        {
+            var req = new Request($"{Api}updateiosversion", Method.POST);
+            req.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(JsonConvert.DeserializeObject<Mobile>(param.JsonData)));
+            if (param.FileUpload != null)
+            {
+                req.AddFormDataFile("FileUpload", param.FileUpload.FirstOrDefault());
+            }
+            return new ApiResult<object>(JsonConvert.DeserializeObject<ApiResult<object>.Result>(
+                (await new Client(Configuration).Upload(req)).Content));
+        }
+        [AllowAnonymous]
+        public IActionResult Download(string source, string id)
+        {
+            try
+            {
+                var baseUrl = Configuration["Request:GatewayUrl"];
+                if (string.IsNullOrWhiteSpace(baseUrl))
+                    return ApiResult<object>.Error(HttpStatusCode.InternalServerError, "Unable to find gateway url configuration");
+                WebClient wc = new WebClient();
+                using (MemoryStream stream = new MemoryStream(wc.DownloadData($"{baseUrl}api/administration/download/{source}")))
+                {
+                    return File(stream.ToArray(), "application/force-download", id);
+                }
+            }
+            catch (Exception)
+            {
+                ViewBag.ErrorCode = 500;
+                ViewBag.ErrorDescription = "Well it is embarassing, internal server error";
+                return View("Error");
+            }
         }
     }
     //DateTime.ParseExact("10/12/2019", "dd/MM/yyyy", null)

@@ -1,0 +1,86 @@
+﻿@using KANO.Core.Model
+@using KANO.Core.Service
+@using KANO.ESS
+@using Newtonsoft.Json;
+@{
+    Layout = "_Layout";
+}
+
+<script>
+    const URL_GET_MOBILE_VERSION = "@Url.Action("GetMobileVersion", "Administrator")";
+    model.proto = {
+        Mobile: ko.observable(@Html.Raw(JsonConvert.SerializeObject(new KANO.Core.Model.Mobile(), Formatting.Indented))),
+    }
+</script>
+
+<script src="~/assets/areas/ess/js/administrator.js?@(Startup.Tick??DateTime.Now.Ticks)"></script>
+<link rel="stylesheet" href="~/assets/areas/ess/css/dashboard.css">
+
+<div class="row">
+    <div class="col-md-8 grid-margin">
+        <div class="card">
+            <div class="card-body p-max-1200-4">
+                <h4 class="card-title"><i class="mdi mdi-clock-fast"></i> Android Version</h4>
+            </div>
+            <div class="modal-body" data-bind="with: model.data.androidmobile">
+                <form id="member-form">
+                    <div class="form-group">
+                        <label for="menu-Title" class="required">Version</label>
+                        <input data-bind="value: Version" class="form-control" type="text" id="Version" name="Version" required validationMessage="Version" />
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Attachment</label>
+                        <input type="file" name="Filepath" id="Filepath" data-bind="kendoUpload: {
+                               multiple: false,
+                               template: kendo.template($('#fileTemplate').html()),
+                               validation: {
+                                    allowedExtensions: model.app.config.upload.allowedExtensions,
+                                    maxFileSize: model.app.config.upload.maxFileSize
+                                }
+                               }" />
+                        <div data-bind="value: Filepath"></div>
+                    </div>
+                </form>
+            </div>
+            <div data-bind="visible: true" class="modal-footer">
+                <button type="button" class="btn btn-info" data-bind="click: model.action.updateAndroidVersion">Update Android Version</button>
+            </div>
+        </div>
+        <br>
+        <div class="card">
+            <div class="card-body p-max-1200-4">
+                <h4 class="card-title"><i class="mdi mdi-clock-fast"></i> IOS Version</h4>
+            </div>
+            <div class="modal-body" data-bind="with: model.data.iosmobile">
+                <form id="member-form2">
+                    <div class="form-group">
+                        <label for="menu-Title" class="required">Version</label>
+                        <input data-bind="value: Version" class="form-control" type="text" id="Version2" name="Version" required validationMessage="Version" />
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Attachment</label>
+                        <input type="file" name="Filepath" id="Filepath2" data-bind="kendoUpload: {
+                               multiple: false,
+                               template: kendo.template($('#fileTemplate').html()),
+                               validation: {
+                                    allowedExtensions: model.app.config.upload.allowedExtensions,
+                                    maxFileSize: model.app.config.upload.maxFileSize
+                                }
+                               }" />
+                        <div data-bind="value: Filepath"></div>
+                    </div>
+                </form>
+            </div>
+            <div data-bind="visible: true" class="modal-footer">
+                <button type="button" class="btn btn-info" data-bind="click: model.action.updateIOSVersion">Update IOS Version</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        @*Render UI Components*@
+        model.render.mobileversion()
+    })
+</script>

@@ -27,6 +27,11 @@ namespace KANO.ESS.Areas.ESS.Controllers
     public class AbsenceController : Controller
     {
         private readonly IConfiguration Configuration;
+        private readonly String Api = "api/absence/";
+        private readonly String BearerAuth = "Bearer ";
+        private readonly String ApiUser = "api/absence/user/";
+        private readonly String ApiEntity = "api/absence/entity/";
+        private readonly String ApiActivity = "api/absence/activity/";
         public AbsenceController(IConfiguration config)
         {
             Configuration = config;
@@ -907,5 +912,158 @@ namespace KANO.ESS.Areas.ESS.Controllers
                 success = string.IsNullOrEmpty(res.Message)
             });
         }
+
+        [AllowAnonymous]
+        [HttpPost("api/absence/inout")]
+        public async Task<IActionResult> InOut([FromForm] TicketForm param)
+        {
+            try
+            {
+                Absences ticketRequest = JsonConvert.DeserializeObject<Absences>(param.JsonData);
+                var req = new Request($"{Api}doinout", Method.POST);
+                req.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(ticketRequest));
+                if (param.FileUpload != null)
+                {
+                    req.AddFormDataFile("FileUpload", param.FileUpload.FirstOrDefault());
+                }
+                var result = JsonConvert.DeserializeObject<ApiResult<object>.Result>((await (new Client(Configuration)).Upload(req)).Content);
+                return new ApiResult<object>(result);
+                //var res = await (new Client(Configuration)).Upload(req);
+                //var result = JsonConvert.DeserializeObject<ApiResult<object>.Result>(res.Content);
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                HttpStatusCode.InternalServerError, $"Well it is embarassing, internal server error : {e.Message}");
+
+            }
+        }
+
+
+
+        [AllowAnonymous]
+        [HttpGet("api/activity/log/lists")]
+        public IActionResult GetActivityLogLists()
+        {
+            //ObjectId entityID = String.IsNullOrEmpty(Request.Query["entityID"]) ? ObjectId.Empty : ObjectId.Parse(Request.Query["entityID"].ToString());
+            int skip = String.IsNullOrEmpty(Request.Query["skip"]) ? 0 : Int32.Parse(Request.Query["skip"]);
+            int limit = String.IsNullOrEmpty(Request.Query["limit"]) ? 0 : Int32.Parse(Request.Query["limit"]);
+            string userID = Request.Query["userID"];
+            //ObjectId activityTypeID = String.IsNullOrEmpty(Request.Query["activityTypeID"]) ? ObjectId.Empty : ObjectId.Parse(Request.Query["activityTypeID"].ToString());
+            //ObjectId locationID = String.IsNullOrEmpty(Request.Query["locationID"]) ? ObjectId.Empty : ObjectId.Parse(Request.Query["locationID"].ToString());
+            //string startDate = String.IsNullOrEmpty(Request.Query["startDate"]) ? DateTime.Now.ToString("dd MMMM yyyy HH:mm:ss") : Convert.ToDateTime(Request.Query["startDate"].ToString()).ToString("dd MMMM yyyy HH:mm:ss");
+            //string endDate = String.IsNullOrEmpty(Request.Query["endDate"]) ? DateTime.Now.ToString("dd MMMM yyyy HH:mm:ss") : Convert.ToDateTime(Request.Query["endDate"].ToString()).ToString("dd MMMM yyyy HH:mm:ss");
+            //string search = Request.Query["search"].ToString();
+
+            //GetUserFromToken
+            var c = new Client(Configuration);
+            var req = new Request("api/absence/user/me", Method.GET);
+            var brrAuth = "Bearer ";
+            if (Request.Headers.TryGetValue("Authorization", out StringValues athToken))
+            {
+                brrAuth = athToken;
+            }
+            req.Self.AddHeader("Authorization", brrAuth);
+            var re = c.Execute(req);
+            if (!re.IsSuccessful)
+            {
+                userID = String.Empty;
+            }
+            else
+            {
+                var r = JsonConvert.DeserializeObject<ApiResult<UserMobileResult>.Result>(re.Content);
+                userID = r.Data.Username;
+            }
+
+            var client = new Client(Configuration);
+            var request = new Request($"api/absence/activity/log/list?skip={skip}&limit={limit}&userID={userID}", Method.GET);
+            var bearerAuth = "Bearer ";
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken))
+            {
+                bearerAuth = authToken;
+            }
+            request.Self.AddHeader("Authorization", bearerAuth);
+            var response = client.Execute(request);
+            if (!response.IsSuccessful)
+            {
+                return Ok(new
+                {
+                    Data = (object)null,
+                    Message = response.StatusDescription,
+                    Success = response.IsSuccessful
+                });
+            }
+            var res = JsonConvert.DeserializeObject<ApiResult<List<ActivityLogMap>>.Result>(response.Content);
+            return Ok(new
+            {
+                Data = res.Data,
+                Message = res.Message,
+                Success = string.IsNullOrEmpty(res.Message)
+            });
+        }
+
+        [AllowAnonymous]
+        [HttpPost("api/absence/doinoutdev")]
+        public async Task<IActionResult> DoInOutDev([FromForm] TicketForm param)
+        {
+            try
+            {
+                Absences ticketRequest = JsonConvert.DeserializeObject<Absences>(param.JsonData);
+                var req = new Request($"{Api}doinoutdev", Method.POST);
+                req.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(ticketRequest));
+                if (param.FileUpload == null)
+                {
+                    return new ApiResult<object>(
+                        JsonConvert.DeserializeObject<ApiResult<object>.Result>(
+                            (await (new Client(Configuration)).Upload(req)).Content));
+                }
+                req.AddFormDataFile("FileUpload", param.FileUpload.FirstOrDefault());
+                return new ApiResult<object>(
+                    JsonConvert.DeserializeObject<ApiResult<object>.Result>(
+                        (await (new Client(Configuration)).Upload(req)).Content));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                HttpStatusCode.InternalServerError, $"Well it is embarassing, internal server error : {e.Message}");
+
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("api/absence/updatedoinoutdev")]
+        public IActionResult UpdateDoInOutDev()
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            try
+            {
+                var request = new Request($"{Api}updatedoinoutdev", Method.GET, "Authorization", bearerAuth);
+                var response = new Client(Configuration).Execute(
+                    new Request($"{Api}updatedoinoutdev", Method.GET, "Authorization", bearerAuth));
+                if (!response.IsSuccessful)
+                {
+                    return Ok(new
+                    {
+                        Data = (object)null,
+                        Message = response.StatusDescription,
+                        Success = response.IsSuccessful
+                    });
+                }
+                var res = JsonConvert.DeserializeObject<ApiResult<object>.Result>(response.Content);
+                return Ok(new
+                {
+                    Data = res.Data,
+                    Message = res.Message,
+                    Success = string.IsNullOrEmpty(res.Message)
+                });
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                HttpStatusCode.InternalServerError, $"Well it is embarassing, internal server error : {e.Message}");
+            }
+        }
+
     }
 }
