@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using KANO.Api.Survey.Helpers;
 using KANO.Api.Survey.Jobs;
 using KANO.Core.Service;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -12,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace KANO.Api.Survey
 {
@@ -43,6 +47,22 @@ namespace KANO.Api.Survey
             services.AddMongoManager();
             services.AddMongoChangeStream();
             services.AddHostedService<SurveyAssignment>();
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(cfg =>
+            {
+                cfg.RequireHttpsMetadata = false;
+                cfg.SaveToken = true;
+                //cfg.SecurityTokenValidators.Clear();
+                cfg.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidIssuer = Configuration["Tokens:Issuer"],
+                    ValidAudience = Configuration["Tokens:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration["Tokens:Key"])),
+                    RequireExpirationTime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,6 +77,11 @@ namespace KANO.Api.Survey
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
+            app.UseAuthentication();
+
+            // custom jwt auth middleware
+            app.UseMiddleware<JwtMiddleware>();
 
             //app.UseHttpsRedirection();
             app.UseMvc();

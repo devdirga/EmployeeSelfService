@@ -5,6 +5,7 @@
   "Path": {
     "UploadDirectory": "D:\\Workspace\\.net\\ess\\files"
   },
+  "Stage": "development",
   "Request": {
     "GatewayUrl": "http://kano.api.gateway:8080/",
     "Username": "<none>",
