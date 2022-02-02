@@ -15,6 +15,8 @@ using System.Security.Claims;
 using Newtonsoft.Json;
 using System.IO;
 using KANO.Core.Lib.Helper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Primitives;
 
 namespace KANO.ESS.Areas.ESS.Controllers
 {
@@ -23,6 +25,8 @@ namespace KANO.ESS.Areas.ESS.Controllers
     {
         private IConfiguration Configuration;
         private IUserSession Session;
+        private readonly String Api = "api/leave/";
+        private readonly String BearerAuth = "Bearer ";
 
         public LeaveController(IConfiguration config, IUserSession session)
         {
@@ -247,5 +251,172 @@ namespace KANO.ESS.Areas.ESS.Controllers
                 return View("Error");
             }
         }
-    }    
+
+        /**
+         * Function for ESS Mobile because ESS Mobile need Authentication except signin
+         * Every function must authorize with token from signin function
+         * This is for security
+         */
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult MGet([FromBody] GridDateRange p)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<Leave>>(
+                JsonConvert.DeserializeObject<ApiResult<List<Leave>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}m/{p.Username}", Method.POST, p.Range, "Authorization", bearerAuth)).Content));
+        }
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult MGetCalendar([FromBody] GridDateRange p)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<LeaveCalendar>(
+                JsonConvert.DeserializeObject<ApiResult<LeaveCalendar>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}mcalendar/{p.Username}", Method.POST, p.Range, "Authorization", bearerAuth)).Content));
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MGetInfo(String token)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<LeaveMaintenance>>(
+                JsonConvert.DeserializeObject<ApiResult<List<LeaveMaintenance>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}minfo/{token}", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MGetInfoAll(String token)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<LeaveInfo>(
+                JsonConvert.DeserializeObject<ApiResult<LeaveInfo>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}minfo/all/{token}", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> MCreate([FromForm] LeaveForm p)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            var leave = JsonConvert.DeserializeObject<Leave>(p.JsonData);
+            var req = new Request($"{Api}msave", Method.POST, "Authorization", bearerAuth);
+            req.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(leave));
+            if (p.FileUpload != null)
+            {
+                req.AddFormDataFile("FileUpload", p.FileUpload.FirstOrDefault());
+            }
+            return new ApiResult<object>(
+                JsonConvert.DeserializeObject<ApiResult<object>.Result>(
+                    (await new Client(Configuration).Upload(req)).Content));
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MRemove(String token)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<object>(
+                JsonConvert.DeserializeObject<ApiResult<object>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}mdelete/{token}", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MGetType(String token)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<LeaveType>>(
+                JsonConvert.DeserializeObject<ApiResult<List<LeaveType>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}mtype/{token}", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MGetSubordinate(String token)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<LeaveSubordinate>>(
+                JsonConvert.DeserializeObject<ApiResult<List<LeaveSubordinate>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}msubordinate/{token}", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MGetHistory(String token)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<LeaveHistory>>(
+                JsonConvert.DeserializeObject<ApiResult<List<LeaveHistory>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}mhistory/{token}", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult MGetHoliday([FromBody] GridDateRange p)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            HolidayParam param = new HolidayParam { Range = p.Range, EmployeeID = p.Username };
+            return new ApiResult<List<HolidaySchedule>>(
+                JsonConvert.DeserializeObject<ApiResult<List<HolidaySchedule>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}mholiday/range", Method.POST, param, "Authorization", bearerAuth)).Content));
+        }
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult MGetHolidayByEmployeeID([FromBody] HolidayParam p)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<HolidaySchedule>>(
+                JsonConvert.DeserializeObject<ApiResult<List<HolidaySchedule>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}mholiday/range", Method.POST, p, "Authorization", bearerAuth)).Content));
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MGetSubtitutions(String token)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<Employee>>(
+                JsonConvert.DeserializeObject<ApiResult<List<Employee>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}msubtitution/{token}", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MGetByInstanceID(string source, string id)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<Leave>(
+                JsonConvert.DeserializeObject<ApiResult<Leave>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}mget/{source}/{id}", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MDownload(string source, string id, string x)
+        {
+            try
+            {
+                var baseUrl = Configuration["Request:GatewayUrl"];
+                if (string.IsNullOrWhiteSpace(baseUrl))
+                {
+                    return ApiResult<object>.Error(HttpStatusCode.InternalServerError, "Unable to find gateway url configuration");
+                }
+                WebClient wc = new WebClient();
+                using (MemoryStream stream = new MemoryStream(wc.DownloadData($"{baseUrl}{Api}mdownload/{source}/{id}")))
+                {
+                    return File(stream.ToArray(), "application/force-download", x);
+                }
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(HttpStatusCode.InternalServerError, $"Well it is embarassing, internal server error : {e.Message}");
+            }
+        }
+    }
 }

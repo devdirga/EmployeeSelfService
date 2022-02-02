@@ -23,6 +23,43 @@ namespace KANO.Core.Lib.Extension
             Self = new RestRequest(destination, method);
         }
 
+        public Request(string destination, Method method, object param)
+        {
+            EndPoint = destination;
+            Self = new RestRequest(destination, method);
+            if (!this.Self.AlwaysMultipartFormData)
+            {
+                Self.AddHeader("Accept", "application/json");
+                Self.Parameters.Clear();
+                Self.AddParameter("application/json; charset=utf-8", JsonConvert.SerializeObject(param), ParameterType.RequestBody);
+            }
+        }
+
+        public Request(string destination, Method method, String headerkey, String headerValue)
+        {
+            EndPoint = destination;
+            Self = new RestRequest(destination, method);
+            if (!this.Self.AlwaysMultipartFormData)
+            {
+                Self.AddHeader("Accept", "application/json");
+                Self.Parameters.Clear();
+                Self.AddHeader(headerkey, headerValue);
+            }
+        }
+
+        public Request(string destination, Method method, object param, String headerkey, String headerValue)
+        {
+            EndPoint = destination;
+            Self = new RestRequest(destination, method);
+            if (!this.Self.AlwaysMultipartFormData)
+            {
+                Self.AddHeader("Accept", "application/json");
+                Self.Parameters.Clear();
+                Self.AddParameter("application/json; charset=utf-8", JsonConvert.SerializeObject(param), ParameterType.RequestBody);
+                Self.AddHeader(headerkey, headerValue);
+            }
+        }
+
         public void AddFormDataParameter(string key, string value) {
             if (!string.IsNullOrWhiteSpace(value)) {
                 FormData.Add(new StringContent(value), key);
