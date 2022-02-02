@@ -10,6 +10,23 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+
+using KANO.Core.Lib;
+using KANO.Core.Lib.Extension;
+using Microsoft.Extensions.Configuration;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
+using Newtonsoft.Json;
+using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace KANO.Core.Model
@@ -260,6 +277,170 @@ namespace KANO.Core.Model
                 this.Timestamp = DateTime.Now;
             }
             
+        }
+
+        public void Save(Notification notif)
+        {
+            MongoDB.Save<Notification>(notif);
+        }
+
+        public void SendNotification(String employeeID, String instanceID, String action = "")
+        {
+            try
+            {
+                var mod = String.Empty;
+                var api = Configuration.GetSection("Request:FcmApi").Value;
+                var key = Configuration.GetSection("Request:FcmKey").Value;
+                var user = new User(MongoDB, Configuration);
+                var uReq = new UpdateRequest(MongoDB, Configuration);
+                List<WorkFlow> approvals = uReq.GetNextApproval(employeeID, instanceID);
+                if (approvals != null && approvals.Any())
+                {
+                    var options = new ParallelOptions() { MaxDegreeOfParallelism = 5 };
+                    Parallel.ForEach(approvals, options, app => {
+                        var ur = uReq.GetByInstanceID(instanceID);
+                        var desc = String.Empty;
+                        switch (app.WorkflowType)
+                        {
+                            case KESSWFServices.KESSWorkflowType.HCM:
+                                mod = "Employee update";
+                                if (ur.Module == UpdateRequestModule.EMPLOYEE_RESUME)
+                                {
+                                    desc = $"{mod} resume request from {app.SubmitByEmployeeName}";
+                                }
+                                else if (ur.Module == UpdateRequestModule.EMPLOYEE_FAMILY)
+                                {
+                                    desc = $"{mod} family request from {app.SubmitByEmployeeName}";
+                                }
+                                else if (ur.Module == UpdateRequestModule.EMPLOYEE_CERTIFICATE)
+                                {
+                                    desc = $"{mod} certificate request from {app.SubmitByEmployeeName}";
+                                }
+                                break;
+                            case KESSWFServices.KESSWorkflowType.TM:
+                                mod = "Absence recommendation";
+                                desc = $"{mod} request from {app.SubmitByEmployeeName}";
+                                break;
+                            case KESSWFServices.KESSWorkflowType.LM:
+                                mod = "Leave";
+                                desc = $"{mod} request from {app.SubmitByEmployeeName}";
+                                break;
+                            case KESSWFServices.KESSWorkflowType.CNT:
+                                mod = "Complaint";
+                                desc = $"{mod} request from {app.SubmitByEmployeeName}";
+                                break;
+                            default:
+                                mod = "Default";
+                                desc = $"{mod} request from {app.SubmitByEmployeeName}";
+                                break;
+                        }
+                        WebRequest wr = WebRequest.Create(new Uri(api));
+                        wr.Method = "POST";
+                        wr.Headers.Add($"Authorization: key={key}");
+                        wr.ContentType = "application/json";
+                        byte[] bytArr = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
+                        {
+                            notification = new { body = desc },
+                            data = new { module = mod, value = String.Empty },
+                            to = user.GetUserByID(app.AssignToEmployeeID).FirebaseToken,
+                            priority = "high",
+                            direct_boot_ok = true
+                        }));
+                        wr.ContentLength = bytArr.Length;
+                        using (Stream dS = wr.GetRequestStream())
+                        {
+                            dS.Write(bytArr, 0, bytArr.Length);
+                            using (WebResponse sResp = wr.GetResponse())
+                            {
+                                using (Stream dSRes = sResp.GetResponseStream())
+                                {
+                                    using (StreamReader tReader = new StreamReader(dSRes))
+                                    {
+                                        tReader.ReadToEnd();
+                                    }
+                                }
+                            }
+                        }
+                        Save(new Notification
+                        {
+                            Sender = app.SubmitByEmployeID,
+                            Receiver = app.AssignToEmployeeID,
+                            Message = desc,
+                            Module = uReq.Module,
+                            Type = NotificationType.Info
+                        });
+                    });
+
+                }
+                else
+                {
+                    var ur = uReq.GetByInstanceID(instanceID);
+                    var desc = String.Empty;
+                    switch (ur.Module)
+                    {
+                        case UpdateRequestModule.EMPLOYEE_RESUME:
+                            desc = $"Your Employee resume request has been {action}";
+                            break;
+                        case UpdateRequestModule.EMPLOYEE_FAMILY:
+                            desc = $"Your Employee family update request has been {action}";
+                            break;
+                        case UpdateRequestModule.EMPLOYEE_CERTIFICATE:
+                            desc = $"Your Employee certificate update request has been {action}";
+                            break;
+                        case UpdateRequestModule.ABSENCE_RECOMMENDATION:
+                            desc = $"Your Absence recommendation request has been {action}";
+                            break;
+                        case UpdateRequestModule.COMPLAINT:
+                            desc = $"Your Complaint request has been {action}";
+                            break;
+                        case UpdateRequestModule.LEAVE:
+                            desc = $"Your Leave request has been {action}";
+                            break;
+                        default:
+                            desc = $"Your Default request has been {action}";
+                            break;
+                    }
+                    WebRequest wr = WebRequest.Create(new Uri(api));
+                    wr.Method = "POST";
+                    wr.Headers.Add($"Authorization: key={key}");
+                    wr.ContentType = "application/json";
+                    byte[] byteArray = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
+                    {
+                        notification = new { body = desc },
+                        data = new { module = ur.Module, value = String.Empty },
+                        to = user.GetUserByID(ur.EmployeeID).FirebaseToken,
+                        priority = "high",
+                        direct_boot_ok = true
+                    }));
+                    wr.ContentLength = byteArray.Length;
+                    using (Stream dataStream = wr.GetRequestStream())
+                    {
+                        dataStream.Write(byteArray, 0, byteArray.Length);
+                        using (WebResponse webResponse = wr.GetResponse())
+                        {
+                            using (Stream dataStreamResponse = webResponse.GetResponseStream())
+                            {
+                                using (StreamReader tReader = new StreamReader(dataStreamResponse))
+                                {
+                                    tReader.ReadToEnd();
+                                }
+                            }
+                        }
+                    }
+                    Save(new Notification
+                    {
+                        Sender = "System",
+                        Receiver = ur.EmployeeID,
+                        Message = desc,
+                        Module = uReq.Module,
+                        Type = NotificationType.Info
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error SendNotification : {e.Message}");
+            }
         }
     }    
 

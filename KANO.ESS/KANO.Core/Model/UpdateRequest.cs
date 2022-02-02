@@ -281,6 +281,12 @@ namespace KANO.Core.Model
             //return result.FindAll(x => x.StepTrackingType == KESSWFServices.KESSWorkflowTrackingType.Approval && (x.ActionApprove || x.ActionReject));
         }
 
+        public UpdateRequest GetByInstanceID(string axRequestID)
+        {
+            var result = MongoDB.GetCollection<UpdateRequest>()
+                .Find(x => x.AXRequestID == axRequestID);
+            return result.FirstOrDefault();
+        }
     }
 
     public class UpdateRequestHistory {

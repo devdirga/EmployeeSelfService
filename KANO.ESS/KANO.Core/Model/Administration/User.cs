@@ -46,6 +46,7 @@ namespace KANO.Core.Model
         public string CreateBy { get; set; }
         public DateTime CreateDate { get; set; }
         private DateTime lastPasswordChangedDate { get; set; }
+        public string FirebaseToken { get; set; }
         public DateTime LastPasswordChangedDate
         {
             get
@@ -320,6 +321,11 @@ namespace KANO.Core.Model
             user.UserData.Add("gender", "Male");
 
             db.Save(user);
+        }
+
+        public User GetUserByID(String username)
+        {
+            return this.MongoDB.GetCollection<User>().Find(a => a.Username == username).FirstOrDefault();
         }
 
         public class AdditionalUserInfo

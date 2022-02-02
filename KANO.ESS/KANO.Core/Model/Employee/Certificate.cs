@@ -229,6 +229,78 @@ namespace KANO.Core.Model
                 MongoDB.Save(request);
             }
         }
+
+        public List<CertificateResult> GetSMobile(string employeeID)
+        {
+            // For mobile, Get only from mongodb, file cannot access from AX
+            var tasks = new List<Task<TaskRequest<List<Certificate>>>>
+            {
+                Task.Run(() =>
+                {
+                    return TaskRequest<List<Certificate>>.Create("AX",
+                        new List<Certificate>());
+                }),
+                Task.Run(() =>
+                {
+                    return TaskRequest<List<Certificate>>.Create("DB", this.MongoDB.GetCollection<Certificate>()
+                        .Find(x => x.EmployeeID == employeeID ).ToList());
+                })
+            };
+
+            var t = Task.WhenAll(tasks);
+            try { t.Wait(); }
+            catch (Exception) { throw; }
+
+            // Combine result
+            var result = new List<CertificateResult>();
+            if (t.Status == TaskStatus.RanToCompletion)
+            {
+                var Certificates = new List<Certificate>();
+                var CertificatesUpdateRequest = new List<Certificate>();
+                foreach (var r in t.Result)
+                    if (r.Label == "AX")
+                        Certificates = r.Result;
+                    else
+                        CertificatesUpdateRequest = r.Result;
+
+                // Merge certificates data
+                foreach (var f in Certificates)
+                {
+                    result.Add(new CertificateResult
+                    {
+                        Certificate = f,
+                    });
+                }
+
+                foreach (var fur in CertificatesUpdateRequest)
+                {
+                    if (fur.AXID > 0)
+                    {
+                        //var f = result.Find(x => x.Certificate.AXID == fur.AXID);
+                        //if (f != null)
+                        //{
+                        //    f.UpdateRequest = fur;
+                        //}                            
+                    }
+                    else
+                    {
+                        result.Add(new CertificateResult
+                        {
+                            UpdateRequest = fur,
+                        });
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public Certificate GetByID(String employeeID, String id)
+        {
+            return this.MongoDB.GetCollection<Certificate>()
+                                .Find(x => x.EmployeeID == employeeID && x.Id == id)
+                                .FirstOrDefault();
+        }
     }
 
     public class CertificateResult

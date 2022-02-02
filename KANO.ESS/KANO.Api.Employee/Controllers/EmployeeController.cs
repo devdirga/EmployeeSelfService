@@ -13,6 +13,7 @@ using KANO.Core.Lib.Helper;
 using KANO.Core.Model;
 using KANO.Core.Service;
 using KANO.Core.Service.AX;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -40,6 +41,8 @@ namespace KANO.Api.Employee.Controllers
         private Document _document;
         private Address _address;
         private UpdateRequest _updateRequest;
+        private readonly String ErrUnableGet = "Unable to get ";
+        private readonly DocumentRequest _documentrequest;
 
         // Required, this make sure we use Dependency Injection provided by ASP.Core
         public EmployeeController(IMongoManager mongo, IConfiguration conf)
@@ -59,6 +62,7 @@ namespace KANO.Api.Employee.Controllers
             _document = new Document(DB, Configuration);
             _address = new Address(DB, Configuration);
             _updateRequest = new UpdateRequest(DB, Configuration);
+            _documentrequest = new DocumentRequest(DB, Configuration);
         }
 
         /**
@@ -2126,6 +2130,1957 @@ namespace KANO.Api.Employee.Controllers
                 return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get all data employees :\n{Format.ExceptionString(e)}");
             }
         }
+
+        [HttpGet("user/get/{employeeID}")]
+        public IActionResult GetUser(String employeeID)
+        {
+            try
+            {
+                var user = DB.GetCollection<User>().Find(x => x.Username == employeeID).FirstOrDefault();
+                return ApiResult<User>.Ok(user);
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get user :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [HttpPost("user/updatetoken")]
+        public IActionResult UpdateUserToken([FromBody] User u)
+        {
+            var user = DB.GetCollection<User>().Find(x => x.Username == u.Username).FirstOrDefault();
+            user.FirebaseToken = u.FirebaseToken;
+            DB.Save(user);
+            return ApiResult<User>.Ok(user);
+        }
+
+        /**
+         * Function for ESS Mobile because ESS Mobile need Authentication except signin
+         * Every function must authorize with token from signin function
+         * This is for security
+         */
+
+        /** Employee */
+
+        [Authorize]
+        [HttpGet("m/{employeeID}")]
+        public IActionResult MGet(string employeeID)
+        {
+            try
+            {
+                return ApiResult<Core.Model.Employee>.Ok(
+                    new EmployeeAdapter(Configuration).GetDetail(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get employee '{employeeID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mget/authInfo/{employeeID}")]
+        public IActionResult MGetAuthInfo(string employeeID)
+        {
+            try
+            {
+                return ApiResult<Core.Model.Employee>.Ok(
+                    new EmployeeAdapter(Configuration).Get(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get employee '{employeeID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mget/fullDetail/{employeeID}")]
+        public IActionResult MGetFullInfo(string employeeID)
+        {
+            try
+            {
+                return ApiResult<EmployeeResult>.Ok(
+                    _employee.GetFullDetail(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get employee '{employeeID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mget/detail/{employeeID}")]
+        public IActionResult MGetDetail(string employeeID)
+        {
+            try
+            {
+                return ApiResult<EmployeeResult>.Ok(
+                    _employee.GetDetail(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get employee '{employeeID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mget/subordinate/{employeeID}")]
+        public IActionResult MGetSubordinate(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<Core.Model.Employee>>.Ok(
+                    new EmployeeAdapter(Configuration).GetSubordinate(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get employee subordinate '{employeeID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mcheck/subordinate/{employeeID}")]
+        public IActionResult MCheckSubordinate(string employeeID)
+        {
+            try
+            {
+                return ApiResult<bool>.Ok(
+                    new EmployeeAdapter(Configuration).HasSubordinate(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get employee subordinate '{employeeID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("muser/{employeeID}")]
+        public IActionResult MGetESSUser(string employeeID)
+        {
+            try
+            {
+                return ApiResult<User>.Ok(
+                    _user.GetEmployeeUser(employeeID), "Success");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get user for employee '{employeeID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mget/{employeeID}/{instanceID}")]
+        public IActionResult MGetEmployee(string employeeID, string instanceID)
+        {
+            try
+            {
+                return ApiResult<Core.Model.Employee>.Ok(
+                    _employee.GetByAXRequestID(employeeID, instanceID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to employee '{employeeID}-{instanceID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mchanges/{employeeID}/{instanceID}")]
+        public IActionResult MGetEmployeeInternal(string employeeID, string instanceID)
+        {
+            try
+            {
+                var result = _employee.GetByAXRequestID(employeeID, instanceID, true);
+                var data = result.Employee.UpdateRequest ?? new Core.Model.Employee();
+                data.Address = result.Address.UpdateRequest;
+                foreach (var d in result.ElectronicAddresses)
+                {
+                    if (d.UpdateRequest != null) { data.ElectronicAddresses.Add(d.UpdateRequest); }
+                }
+                foreach (var d in result.Identifications)
+                {
+                    if (d.UpdateRequest != null) { data.Identifications.Add(d.UpdateRequest); }
+                }
+                foreach (var d in result.BankAccounts)
+                {
+                    if (d.UpdateRequest != null) { data.BankAccounts.Add(d.UpdateRequest); }
+                }
+                foreach (var d in result.Taxes)
+                {
+                    if (d.UpdateRequest != null) { data.Taxes.Add(d.UpdateRequest); }
+                }
+                data.Reason = result.UpdateRequest.Description;
+                return ApiResult<Core.Model.Employee>.Ok(data);
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to employee '{employeeID}-{instanceID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpPost("mupdate")]
+        public IActionResult MUpdate([FromBody] Core.Model.Employee employee)
+        {
+            try
+            {
+                foreach (var d in employee.BankAccounts)
+                {
+                    if (!Tools.Equals(d.NewData, d.OldData))
+                    {
+                        d.EmployeeID = employee.EmployeeID;
+                        _bankAccount.Update(d);
+                    }
+                }
+
+                foreach (var d in employee.Identifications)
+                {
+                    if (!Tools.Equals(d.NewData, d.OldData))
+                    {
+                        d.EmployeeID = employee.EmployeeID;
+                        _identification.Update(d);
+                    }
+
+                }
+
+                foreach (var d in employee.Taxes)
+                {
+                    if (!Tools.Equals(d.NewData, d.OldData))
+                    {
+                        d.EmployeeID = employee.EmployeeID;
+                        _tax.Update(d);
+                    }
+                }
+
+                foreach (var d in employee.ElectronicAddresses)
+                {
+                    if (!Tools.Equals(d.NewData, d.OldData))
+                    {
+                        d.EmployeeID = employee.EmployeeID;
+                        _electronicAddress.Update(d);
+                    }
+                }
+
+                if (employee.Address != null)
+                {
+                    if (!Tools.Equals(employee.Address.NewData, employee.Address.OldData))
+                    {
+                        _address.Update(employee.Address, true);
+                    }
+                }
+
+                employee.Religion = employee.Religion;
+                employee.Gender = employee.Gender;
+                employee.MaritalStatus = employee.MaritalStatus;
+                employee.BankAccounts = new List<BankAccount>();
+                employee.Identifications = new List<Identification>();
+
+                _employee.Update(employee);
+                return ApiResult<User>.Ok("Employee request draft has been saved");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to request employee update :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mdiscardChange/{employeeID}")]
+        public IActionResult MDiscardChange(string employeeID)
+        {
+            try
+            {
+                _employee.Discard(employeeID);
+                _identification.Discard(employeeID);
+                _bankAccount.Discard(employeeID);
+                _tax.Discard(employeeID);
+                _address.Discard(employeeID);
+                _electronicAddress.Discard(employeeID);
+                return ApiResult<object>.Ok($"Employee data request has been discarded");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to discard employee data request :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpPost("mupdateRequest/resume")]
+        public IActionResult MUpdateRequestResume([FromBody] UpdateRequest updateRequest)
+        {
+            updateRequest.Module = UpdateRequestModule.EMPLOYEE_RESUME;
+
+            if (string.IsNullOrWhiteSpace(updateRequest.Notes))
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, "Notes field could not be empty");
+
+            if (string.IsNullOrWhiteSpace(updateRequest.EmployeeID))
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, "Employee ID field could not be empty");
+
+            var employeeID = updateRequest.EmployeeID;
+            var adapter = new WorkFlowRequestAdapter(Configuration);
+            var tasks = new List<Task<TaskRequest<object>>>();
+            try
+            {
+                // Fetch employee
+                EmployeeResult employee = new EmployeeResult();
+                tasks.Add(Task.Run(() => {
+                    return TaskRequest<object>.Create("employee", _employee.GetDetail(employeeID));
+                }));
+                // Fetch identification
+                var identifications = new List<IdentificationResult>();
+                tasks.Add(Task.Run(() => {
+                    return TaskRequest<object>.Create("identification", _identification.GetS(employeeID));
+                }));
+                // Fetch bank account
+                var bankAccounts = new List<BankAccountResult>();
+                tasks.Add(Task.Run(() => {
+                    return TaskRequest<object>.Create("bankAccount", _bankAccount.GetS(employeeID));
+                }));
+                // Fetch tax
+                var taxes = new List<TaxResult>();
+                tasks.Add(Task.Run(() => {
+                    return TaskRequest<object>.Create("tax", _tax.GetS(employeeID));
+                }));
+                // Fetch address
+                var address = new AddressResult();
+                tasks.Add(Task.Run(() => {
+                    return TaskRequest<object>.Create("address", _address.Get(employeeID));
+                }));
+                // Fetch electronic address
+                var electronicAddresses = new List<ElectronicAddressResult>();
+                tasks.Add(Task.Run(() => {
+                    return TaskRequest<object>.Create("electronicAddress", _electronicAddress.GetS(employeeID));
+                }));
+                var t = Task.WhenAll(tasks);
+                try { t.Wait(); }
+                catch (Exception e)
+                {
+                    return ApiResult<object>.Error(
+                        HttpStatusCode.BadRequest, $"Unable request update to server '{employeeID}' :\n{Format.ExceptionString(e)}");
+                }
+
+                // Combine result                
+                if (t.Status == TaskStatus.RanToCompletion)
+                {
+                    foreach (var r in t.Result)
+                        switch (r.Label)
+                        {
+                            case "employee": employee = (EmployeeResult)r.Result; break;
+                            case "identification": identifications = (List<IdentificationResult>)r.Result; break;
+                            case "bankAccount": bankAccounts = (List<BankAccountResult>)r.Result; break;
+                            case "tax": taxes = (List<TaxResult>)r.Result; break;
+                            case "address": address = (AddressResult)r.Result; break;
+                            case "electronicAddress": electronicAddresses = (List<ElectronicAddressResult>)r.Result; break;
+                            default: break;
+                        }
+                }
+
+                var AXRequestID = adapter.RequestEmployee(employee, identifications, bankAccounts, taxes, electronicAddresses, address, updateRequest.Notes);
+                if (string.IsNullOrWhiteSpace(AXRequestID))
+                {
+                    return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to request update to AX server");
+                }
+
+                tasks.Clear();
+
+                // Save Update Request
+                tasks.Add(Task.Run(() =>
+                {
+                    updateRequest.Description = $"Request Update Resume - {employee.Employee.EmployeeName} ({employee.Employee.EmployeeID})";
+                    updateRequest.AXRequestID = AXRequestID;
+                    DB.Save(updateRequest);
+                    return TaskRequest<object>.Create("update_request", true);
+                }));
+                // Update Employee
+                tasks.Add(Task.Run(() => {
+                    return TaskRequest<object>.Create("employee", _employee.SetAXRequestID(employeeID, AXRequestID));
+                }));
+                // Update Identification
+                tasks.Add(Task.Run(() => {
+                    return TaskRequest<object>.Create("identification", _identification.SetAXRequestID(employeeID, AXRequestID));
+                }));
+                // Update Bank Account
+                tasks.Add(Task.Run(() => {
+                    return TaskRequest<object>.Create("bankAccount", _bankAccount.SetAXRequestID(employeeID, AXRequestID));
+                }));
+                // Update Tax
+                tasks.Add(Task.Run(() => {
+                    return TaskRequest<object>.Create("tax", _tax.SetAXRequestID(employeeID, AXRequestID));
+                }));
+                // Update Address
+                tasks.Add(Task.Run(() => {
+                    return TaskRequest<object>.Create("address", _address.SetAXRequestID(employeeID, AXRequestID));
+                }));
+                // Update Electronic Address
+                tasks.Add(Task.Run(() => {
+                    return TaskRequest<object>.Create("electronicAddress", _electronicAddress.SetAXRequestID(employeeID, AXRequestID));
+                }));
+
+                t = Task.WhenAll(tasks);
+                try { t.Wait(); }
+                catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to update employee data '{employeeID}' :\n{Format.ExceptionString(e)}"); }
+
+                // Combine result                
+                if (t.Status == TaskStatus.RanToCompletion)
+                {
+                    foreach (var r in t.Result)
+                    {
+                        if (!(bool)r.Result)
+                        {
+                            Console.WriteLine($"No record acknowledged while updating '${r.Label}' for employee '${employeeID}' with request id '${AXRequestID}'");
+                        }
+                    }
+                }
+
+                // Send approval notification
+                //NotificationModule.EMPLOYEE
+                new Notification(Configuration, DB).SendNotification(employeeID, AXRequestID);
+                return ApiResult<object>.Ok("Employee data has been submitted. You will be notifed once the update request has been approved/rejected.");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to request employee update :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mrequestStatus/resume/{employeeID}")]
+        public IActionResult MCheckRequestStatus(string employeeID)
+        {
+            try
+            {
+                return ApiResult<UpdateRequest>.Ok(
+                    new UpdateRequest(DB).Current(employeeID, UpdateRequestModule.EMPLOYEE_RESUME));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable get current employee request update status :\n{e.Message}");
+            }
+        }
+
+        /** Employee Family */
+
+        [Authorize]
+        [HttpGet("mfamilies/{employeeID}")]
+        public IActionResult MGetFamilies(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<FamilyResult>>.Ok(
+                    _family.GetS(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get family '{employeeID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mfamily/changes/{employeeID}/{instanceID}")]
+        public IActionResult MGetFamilyInternal(string employeeID, string instanceID)
+        {
+            try
+            {
+                var result = _family.GetByAXRequestID(employeeID, instanceID);
+                var updateRequest = _updateRequest.Get(employeeID, instanceID);
+                if (result != null)
+                {
+                    result.Reason = updateRequest?.Notes;
+                }
+                return ApiResult<Family>.Ok(result);
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get family '{employeeID}-{instanceID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [HttpPost("mfamily/create")]
+        public IActionResult MCreateFamily([FromForm] FamilyForm param, ActionType action = ActionType.Create)
+        {
+            var strAction = Enum.GetName(typeof(ActionType), action);
+            var updateRequest = new UpdateRequest();
+            var data = JsonConvert.DeserializeObject<Family>(param.JsonData);
+            data.Gender = data.Gender;
+            data.Religion = data.Religion;
+            data.Relationship = data.Relationship;
+            data.AXID = (data.AXID == -1) ? Tools.RandomInt() * -1 : data.AXID;
+            var oldData = _family.Get(data.EmployeeID, data.AXID, true).UpdateRequest;
+            try
+            {
+                data.Upload(Configuration, oldData, param.FileUpload, x => String.Format("Families_{0}_{1}", data.Relationship, x.EmployeeID));
+                data.Purpose = Tools.ActionToPurpose(action);
+                var AXRequestID = new WorkFlowRequestAdapter(Configuration).RequestFamily(data, param.Reason);
+                if (!string.IsNullOrWhiteSpace(AXRequestID))
+                {
+                    updateRequest.Create(AXRequestID, data.EmployeeID, UpdateRequestModule.EMPLOYEE_FAMILY, $"{Format.TitleCase(strAction)} family member ({data.Name})", param.Reason);
+                    updateRequest.AXRequestID = AXRequestID;
+                    DB.Save(updateRequest);
+
+                    data.AXRequestID = AXRequestID;
+                    data.Action = action;
+                    data.Reason = param.Reason;
+                    DB.Save(data);
+
+                    // Send approval notification
+                    //NotificationModule.FAMILY,
+                    new Notification(Configuration, DB).SendNotification(data.EmployeeID, data.AXRequestID);
+                    return ApiResult<object>.Ok($"family draft '{strAction}' request has been saved");
+                }
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, "Unable to request update to AX");
+            }
+            catch (Exception e) { return ApiResult<object>.Ok($"Family draft '{strAction}' is failed :\n{e.Message}"); }
+        }
+        [HttpPost("mfamily/update")]
+        public IActionResult MUpdateFamily([FromForm] FamilyForm param)
+        {
+            return this.CreateFamily(param, ActionType.Update);
+        }
+        [Authorize]
+        [HttpPost("mfamily/delete")]
+        public IActionResult MDeleteFamily([FromBody] DeleteForm param)
+        {
+            var update = DB.GetCollection<Family>()
+                        .Find(x => x.EmployeeID == param.EmployeeID && x.AXID == long.Parse(param.Id) && (x.Status == UpdateRequestStatus.InReview))
+                        .FirstOrDefault();
+            if (update == null)
+            {
+                var adapter = new EmployeeAdapter(Configuration);
+                var data = adapter.GetFamilies(param.EmployeeID);
+                update = data.Find(x => x.AXID == long.Parse(param.Id));
+            }
+            if (update == null)
+            {
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to request '{ActionType.Delete.ToString()}' family member");
+            }
+            var _param = new FamilyForm
+            {
+                JsonData = JsonConvert.SerializeObject(update),
+                Reason = param.Reason
+            };
+            return this.CreateFamily(new FamilyForm
+            {
+                JsonData = JsonConvert.SerializeObject(update),
+                Reason = param.Reason
+            }, ActionType.Delete);
+        }
+        [Authorize]
+        [HttpGet("mfamily/discardChange/{requestID}")]
+        public IActionResult MDiscardFamilyChange(string requestID = "")
+        {
+            try
+            {
+                _family.Discard(requestID);
+                return ApiResult<object>.Ok($"Employee family data request has been discarded");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to discard family request :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [HttpGet("mfamily/attachment/download/{employeeID}/{axRequestID}")]
+        public IActionResult MDownloadFamilyAttachment(string employeeID, string axRequestID)
+        {
+            var family = _family.GetByAXRequestID(employeeID, axRequestID);
+            // Download the data
+            try
+            {
+                if (family.Accessible)
+                {
+                    return File(family.Download(), "application/force-download", Path.GetFileName(family.Filepath));
+                }
+                else
+                {
+                    throw new Exception("Unable to find file path on database");
+                }
+            }
+            catch (Exception e) { throw e; }
+        }
+        [HttpGet("mfamily/document/download/{employeeID}/{axid}")]
+        public IActionResult MDownloadAddress(string employeeID, long axid)
+        {
+            FamilyResult res = _family.Get(employeeID, axid, true);
+            if (res.UpdateRequest == null)
+            {
+                throw new Exception($"Unable to find employee family {employeeID} - {axid}");
+            }
+            try
+            {
+                return File(res.UpdateRequest.Download(), "application/force-download", Path.GetFileName(res.UpdateRequest.Filepath));
+            }
+            catch (Exception e) { throw e; }
+        }
+        [HttpGet("mfamily/document/filename/{employeeID}/{axid}")]
+        public IActionResult MDownloadFilename(string employeeID, long axid)
+        {
+            FamilyResult result = _family.Get(employeeID, axid, true);
+            if (result.UpdateRequest == null)
+            {
+                throw new Exception($"Unable to find employee family {employeeID} - {axid}");
+            }
+            return ApiResult<object>.Ok(Path.GetFileName(result.UpdateRequest.Filepath));
+        }
+
+        /** Employee Document */
+
+        [Authorize]
+        [HttpGet("mdocuments/{employeeID}")]
+        public IActionResult MGetDocuments(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<DocumentResult>>.Ok(
+              _document.GetS(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get document '{employeeID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+
+        [HttpPost("mdocument/create")]
+        public IActionResult MCreateDocument([FromForm] DocumentForm param, ActionType action = ActionType.Create)
+        {
+            var adapter = new EmployeeAdapter(Configuration);
+            var strAction = Enum.GetName(typeof(ActionType), action);
+            var document = JsonConvert.DeserializeObject<Document>(param.JsonData);
+            var updateRequest = new UpdateRequest();
+            try
+            {
+                if (document.AXID == -1) document.AXID = Tools.RandomInt() * -1;
+
+                document.Action = action;
+
+                // Get old document that is stored in DB
+                Document oldDocument = null;
+                if (!string.IsNullOrWhiteSpace(document.Id))
+                {
+                    oldDocument = DB.GetCollection<Document>().Find(x => x.Id == document.Id).FirstOrDefault();
+                }
+
+                // Compare new document and old document to see if it needs to do uploading
+                var needUpload = (param.FileUpload != null && oldDocument == null)
+                                || (param.FileUpload != null && oldDocument != null && !System.IO.File.Exists(oldDocument.Filepath))
+                                || (param.FileUpload != null && oldDocument != null && System.IO.File.Exists(oldDocument.Filepath) && document.Checksum != Tools.CalculateMD5(oldDocument.Filepath));
+
+                // Directory preparation
+                var uploadDirectory = Tools.UploadPathConfiguration(Configuration);
+
+                if (needUpload)
+                {
+                    // Currently we limit only one file upload
+                    var file = param.FileUpload.FirstOrDefault();
+
+                    // New file path and name preparation
+                    var newFilename = string.Format("{0}_{1}_{2}{3}",
+                        document.DocumentType,
+                        document.EmployeeID,
+                        DateTime.Now.ToLocalTime().ToString("ddMMyyyyHHmmssff"),
+                        Path.GetExtension(file.FileName)
+                    );
+                    var newFilepath = Path.Combine(uploadDirectory, newFilename);
+
+                    // Upload file
+                    using (var fileStream = new FileStream(newFilepath, FileMode.Create))
+                    {
+                        file.CopyTo(fileStream);
+                    }
+
+                    // We do not delete old, just add OLD behind the old file name 
+                    if (oldDocument != null)
+                    {
+                        var oldFilepath = Path.Combine(uploadDirectory, oldDocument.Filepath);
+                        if (System.IO.File.Exists(oldFilepath))
+                        {
+                            var newFileName = string.Format("OLD_{0}{1}", Path.GetFileNameWithoutExtension(oldFilepath), Path.GetExtension(oldFilepath));
+                            var newFilePath = Path.Combine(uploadDirectory, newFileName);
+                            System.IO.File.Move(oldFilepath, newFilePath);
+                        }
+                    }
+
+                    document.Filepath = newFilepath;
+
+                }
+                else if (oldDocument != null)
+                {
+                    // If it doesn't need to be uploaded and the document type change. We change the file name as {NEW_DOCUMENT_TYPE}_{EMPLOYEE_ID}
+                    if (document.DocumentType != oldDocument.DocumentType)
+                    {
+                        var token = oldDocument.Filename.Split($"_{document.EmployeeID}_");
+                        var newFilename = string.Format("{0}_{1}_{2}",
+                            document.DocumentType,
+                            document.EmployeeID,
+                            token[1]
+                        );
+                        var newFilepath = Path.Combine(uploadDirectory, newFilename);
+
+                        System.IO.File.Move(oldDocument.Filepath, newFilepath);
+                        document.Filepath = newFilepath;
+                        document.Filename = newFilename;
+                    }
+                    else if (document.Action != oldDocument.Action && document.Action == ActionType.Delete)
+                    {
+                        if (System.IO.File.Exists(oldDocument.Filepath))
+                        {
+                            System.IO.File.Delete(oldDocument.Filepath);
+                            document.Filepath = "";
+                        }
+                    }
+                    else
+                    {
+                        document.Filepath = oldDocument.Filepath;
+                    }
+                }
+
+                // Create update request
+                var AXRequestID = adapter.UpdateDocument(document);
+                if (!string.IsNullOrWhiteSpace(AXRequestID))
+                {
+                    updateRequest.Create(AXRequestID, document.EmployeeID, UpdateRequestModule.EMPLOYEE_DOCUMENT, $"{Format.TitleCase(strAction)} document {document.DocumentType} ({document.Description})");
+                    document.AXRequestID = AXRequestID;
+
+                    DB.Save(document);
+                    return ApiResult<Document>.Ok($"Employee document data '{strAction}' request has been submitted");
+                }
+
+                return ApiResult<Document>.Error(HttpStatusCode.BadRequest, "Unable to request update to AX");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, Format.ExceptionString(e));
+            }
+        }
+
+        [HttpPost("mdocument/update")]
+        public IActionResult MUpdateDocument([FromForm] DocumentForm param, ActionType action = ActionType.Update)
+        {
+            return this.CreateDocument(param, ActionType.Update);
+        }
+        [Authorize]
+        [HttpGet("mdocument/delete/{employeeID}/{documentID}")]
+        public IActionResult MDeleteDocument(string employeeID, long documentID)
+        {
+
+            var document = DB.GetCollection<Document>()
+                .Find(x => x.EmployeeID == employeeID && x.AXID == documentID && (x.Status == UpdateRequestStatus.InReview))
+                .FirstOrDefault();
+
+            if (document == null)
+            {
+                var adapter = new EmployeeAdapter(Configuration);
+                var data = adapter.GetDocuments(employeeID);
+                document = data.Find(x => x.AXID == documentID);
+            }
+
+            if (document == null)
+            {
+                return ApiResult<Document>.Error(HttpStatusCode.BadRequest, $"Unable to request '{ActionType.Delete.ToString()}' document");
+            }
+
+            document.EmployeeID = employeeID;
+
+            return this.CreateDocument(new DocumentForm { JsonData = JsonConvert.SerializeObject(document) }, ActionType.Delete);
+        }
+        [Authorize]
+        [HttpGet("mdocument/discardChange/{requestID}")]
+        public IActionResult MDiscardDocument(string requestID = "")
+        {
+            try
+            {
+                _document.Discard(requestID);
+                return ApiResult<object>.Ok($"Employee document data request has been discarded");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to discard document request :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [HttpGet("mdocument/download/{employeeID}/{documentID}")]
+        public IActionResult MDownloadDocument(string employeeID, long documentID)
+        {
+            var result = new DocumentResult();
+            var tasks = new List<Task<TaskRequest<Document>>>
+            {
+                Task.Run(() =>
+                {
+                    return TaskRequest<Document>.Create("AX", new EmployeeAdapter(Configuration).GetDocuments(employeeID).Find(x => x.AXID == documentID));
+                }),
+                Task.Run(() =>
+                {
+                    return TaskRequest<Document>.Create("DB", DB.GetCollection<Document>().Find(x => x.EmployeeID == employeeID && x.AXID == documentID && (x.Status == UpdateRequestStatus.InReview)).FirstOrDefault());
+                })
+            };
+            var t = Task.WhenAll(tasks);
+            try { t.Wait(); }
+            catch (Exception e) { throw e; }
+            if (t.Status == TaskStatus.RanToCompletion)
+            {
+                foreach (var r in t.Result)
+                    if (r.Label == "AX")
+                        result.Document = r.Result;
+                    else
+                        result.UpdateRequest = r.Result;
+            }
+            else
+            {
+                throw new Exception("Unable to get file");
+            }
+            try
+            {
+                var documentUpdateRequest = result.UpdateRequest;
+                var document = result.Document;
+                var filepath = String.Empty;
+                if (documentUpdateRequest != null && !string.IsNullOrWhiteSpace(documentUpdateRequest.Filepath))
+                {
+                    filepath = documentUpdateRequest.Filepath;
+                }
+                else if (document != null && !string.IsNullOrWhiteSpace(document.Filepath))
+                {
+                    filepath = document.Filepath;
+                }
+                else
+                {
+                    throw new Exception("Unable to find file path on database");
+                }
+                return File(System.IO.File.ReadAllBytes(filepath), "application/force-download", Path.GetFileName(filepath));
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        /** Employee Address */
+
+        [Authorize]
+        [HttpGet("maddress/{employeeID}")]
+        public IActionResult MGetAddress(string employeeID)
+        {
+            try
+            {
+                var result = _address.Get(employeeID);
+                return ApiResult<AddressResult>.Ok(result);
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get address '{employeeID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+
+        [HttpPost("maddress/save")]
+        public IActionResult MSaveAddress([FromForm] AddressForm param)
+        {
+            Address oldData = new Address();
+            Address data = new Address();
+
+            data = JsonConvert.DeserializeObject<Address>(param.JsonData);
+            oldData = _address.Get(data.EmployeeID, "", true).UpdateRequest;
+
+            try
+            {
+                // Generate random when its new
+                data.AXID = (data.AXID == -1) ? Tools.RandomInt() * -1 : data.AXID;
+                data.Upload(Configuration, oldData, param.FileUpload, x => $"Address_{data.AXID}_{x.EmployeeID}");
+                DB.Save(data);
+                return ApiResult<Address>.Ok(data, $"Employee field attachment has been stored");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<Address>.Error(HttpStatusCode.BadRequest, $"Unable to upload document :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [HttpGet("maddress/download/{employeeID}/{addressID}")]
+        public IActionResult MDownloadAddress(string employeeID, string addressID)
+        {
+            var result = _address.Get(employeeID, long.Parse(addressID));
+            var address = (result.UpdateRequest != null) ? result.UpdateRequest : result.Address;
+
+            // Download the data
+            try
+            {
+                var bytes = address.Download();
+                return File(bytes, "application/force-download", Path.GetFileName(address.Filepath));
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+        [HttpGet("maddress/download/{id}")]
+        public IActionResult MDownloadAddress(string id)
+        {
+            var result = _address.GetByID(id);
+
+            // Download the data
+            try
+            {
+                var bytes = result.Download();
+                return File(bytes, "application/force-download", Path.GetFileName(result.Filepath));
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        /** Employee Attachment */
+
+
+        [HttpPost("mattachment/save")]
+        public IActionResult MSaveAttachment([FromForm] EmployeeFieldAttachmentForm param)
+        {
+            var oldData = new Core.Model.Employee();
+            var data = new Core.Model.Employee();
+
+            data = JsonConvert.DeserializeObject<Core.Model.Employee>(param.JsonData);
+            oldData = _employee.GetDetail(data.EmployeeID).UpdateRequest;
+
+            try
+            {
+                // Generate random when its new
+                data.AXID = (data.AXID == -1) ? Tools.RandomInt() * -1 : data.AXID;
+                if (oldData == null)
+                {
+                    oldData = new Core.Model.Employee();
+                }
+
+                switch (param.Field)
+                {
+                    case "IsExpartiarte":
+                        if (data.IsExpartriateAttachment != null)
+                        {
+                            data.MaritalStatusAttachment = oldData.MaritalStatusAttachment;
+                            data.IsExpartriateAttachment.Upload(Configuration, oldData.IsExpartriateAttachment, param.FileUpload, x => $"{param.Field}_{data.EmployeeID}");
+                            DB.Save(data);
+                        }
+                        break;
+                    case "MaritalStatus":
+                        if (data.MaritalStatusAttachment != null)
+                        {
+                            data.IsExpartriateAttachment = oldData.IsExpartriateAttachment;
+                            data.MaritalStatusAttachment.Upload(Configuration, oldData.MaritalStatusAttachment, param.FileUpload, x => $"{param.Field}_{data.EmployeeID}");
+                            DB.Save(data);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+                return ApiResult<Core.Model.Employee>.Ok(data, $"Employee field attachment has been stored");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<Core.Model.Employee>.Error(HttpStatusCode.BadRequest, $"Unable to upload document :\n{Format.ExceptionString(e)}");
+            }
+        }
+
+        [HttpGet("mattachment/download/{field}/{employeeID}/{axRequestID}")]
+        public IActionResult MDownloadAttachment(string field, string employeeID)
+        {
+            var result = _employee.GetDetail(employeeID);
+            var employee = (result.UpdateRequest != null) ? result.UpdateRequest : result.Employee;
+
+            // Download the data
+            try
+            {
+                FieldAttachment fieldAttachment = null;
+                switch (field)
+                {
+                    case "IsExpartiarte":
+                        fieldAttachment = employee.IsExpartriateAttachment;
+                        break;
+                    case "MaritalStatus":
+                        fieldAttachment = employee.MaritalStatusAttachment;
+                        break;
+                    default:
+                        break;
+                }
+
+                if (fieldAttachment != null)
+                {
+                    var bytes = fieldAttachment.Download();
+                    return File(bytes, "application/force-download", Path.GetFileName(fieldAttachment.Filepath));
+                }
+                throw new Exception("Unable to find file");
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        [HttpGet("mattachment/download/{field}/{id}")]
+        public IActionResult MDownloadAttachmentByID(string field, string id)
+        {
+            var result = _employee.GetByID(id);
+            // Download the data
+            try
+            {
+                FieldAttachment fieldAttachment = null;
+                switch (field)
+                {
+                    case "IsExpartiarte":
+                        fieldAttachment = result.IsExpartriateAttachment;
+                        break;
+                    case "MaritalStatus":
+                        fieldAttachment = result.MaritalStatusAttachment;
+                        break;
+                    default:
+                        break;
+                }
+
+                if (fieldAttachment != null)
+                {
+                    var bytes = fieldAttachment.Download();
+                    return File(bytes, "application/force-download", Path.GetFileName(fieldAttachment.Filepath));
+                }
+                throw new Exception("Unable to find file");
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        /** Employee Identification */
+
+        [Authorize]
+        [HttpGet("midentification/{employeeID}")]
+        public IActionResult MGetIdentifications(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<IdentificationResult>>.Ok(
+              _identification.GetS(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get identification '{employeeID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+
+        [HttpPost("midentification/save")]
+        public IActionResult MSaveIdentification([FromForm] IdentificationForm param)
+        {
+            Identification oldData = new Identification();
+            Identification data = new Identification();
+
+            data = JsonConvert.DeserializeObject<Identification>(param.JsonData);
+            oldData = _identification.Get(data.EmployeeID, data.AXID).UpdateRequest;
+
+            try
+            {
+                // Generate random when its new
+                data.AXID = (data.AXID == -1) ? Tools.RandomInt() * -1 : data.AXID;
+                data.Upload(Configuration, oldData, param.FileUpload, x => $"Identities_{data.Type}_{x.EmployeeID}");
+                DB.Save(data);
+                return ApiResult<Identification>.Ok(data, $"Employee field attachment has been stored");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<Identification>.Error(HttpStatusCode.BadRequest, $"Unable to upload document :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("midentification/download/{employeeID}/{identificationID}")]
+        public IActionResult MDownloadIdentification(string employeeID, long identificationID)
+        {
+            var result = _identification.Get(employeeID, identificationID);
+            var identification = (result.UpdateRequest != null) ? result.UpdateRequest : result.Identification;
+
+            // Download the data
+            try
+            {
+                var bytes = identification.Download();
+                return File(bytes, "application/force-download", Path.GetFileName(identification.Filepath));
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+        [HttpGet("midentification/download/{id}")]
+        public IActionResult MDownloadIdentification(string id)
+        {
+            var result = _identification.GetByID(id);
+
+            // Download the data
+            try
+            {
+                var bytes = result.Download();
+                return File(bytes, "application/force-download", Path.GetFileName(result.Filepath));
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        /** Employee BankAccount */
+
+        [Authorize]
+        [HttpGet("mbankAccount/{employeeID}")]
+        public IActionResult MGetBankAccounts(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<BankAccountResult>>.Ok(
+              _bankAccount.GetS(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get bank account '{employeeID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+
+        [HttpPost("mbankAccount/save")]
+        public IActionResult MSaveBankAccount([FromForm] BankAccountForm param)
+        {
+            BankAccount oldData = new BankAccount();
+            BankAccount data = new BankAccount();
+
+            data = JsonConvert.DeserializeObject<BankAccount>(param.JsonData);
+            oldData = _bankAccount.Get(data.EmployeeID, data.AXID, true).UpdateRequest;
+
+            try
+            {
+                // Generate random when its new
+                data.AXID = (data.AXID == -1) ? Tools.RandomInt() * -1 : data.AXID;
+                data.Upload(Configuration, oldData, param.FileUpload, x => $"BankAccount_{data.Type}_{x.EmployeeID}");
+                DB.Save(data);
+                return ApiResult<BankAccount>.Ok(data, $"Employee field attachment has been stored");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<BankAccount>.Error(HttpStatusCode.BadRequest, $"Unable to upload document :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [HttpGet("mbankAccount/download/{employeeID}/{bankAccountID}")]
+        public IActionResult MDownloadBankAccount(string employeeID, long bankAccountID)
+        {
+            var result = _bankAccount.Get(employeeID, bankAccountID);
+            var bankAccount = (result.UpdateRequest != null) ? result.UpdateRequest : result.BankAccount;
+
+            // Download the data
+            try
+            {
+                var bytes = bankAccount.Download();
+                return File(bytes, "application/force-download", Path.GetFileName(bankAccount.Filepath));
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+        [HttpGet("mbankAccount/download/{id}")]
+        public IActionResult MDownloadBankAccount(string id)
+        {
+            var result = _bankAccount.GetByID(id);
+
+            // Download the data
+            try
+            {
+                var bytes = result.Download();
+                return File(bytes, "application/force-download", Path.GetFileName(result.Filepath));
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        /** Employee Tax */
+        [Authorize]
+        [HttpGet("mtax/{employeeID}")]
+        public IActionResult MGetTaxes(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<TaxResult>>.Ok(
+              _tax.GetS(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get tax '{employeeID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+
+        [HttpPost("mtax/save")]
+        public IActionResult MSaveTax([FromForm] TaxForm param)
+        {
+            Tax oldData = new Tax();
+            Tax data = new Tax();
+
+            data = JsonConvert.DeserializeObject<Tax>(param.JsonData);
+            oldData = _tax.Get(data.EmployeeID, data.AXID, true).UpdateRequest;
+
+            try
+            {
+                // Generate random when its new
+                data.AXID = (data.AXID == -1) ? Tools.RandomInt() * -1 : data.AXID;
+                data.Upload(Configuration, oldData, param.FileUpload, x => $"Tax_{data.Type}_{x.EmployeeID}");
+                DB.Save(data);
+                return ApiResult<Tax>.Ok(data, $"Employee field attachment has been stored");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<Tax>.Error(HttpStatusCode.BadRequest, $"Unable to upload document :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [HttpGet("mtax/download/{employeeID}/{taxID}")]
+        public IActionResult MDownloadTax(string employeeID, long taxID)
+        {
+            var result = _tax.Get(employeeID, taxID);
+            var tax = (result.UpdateRequest != null) ? result.UpdateRequest : result.Tax;
+
+            // Download the data
+            try
+            {
+                var bytes = tax.Download();
+                return File(bytes, "application/force-download", Path.GetFileName(tax.Filepath));
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+        [HttpGet("mtax/download/{id}")]
+        public IActionResult MDownloadTax(string id)
+        {
+            var result = _tax.GetByID(id);
+
+            // Download the data
+            try
+            {
+                var bytes = result.Download();
+                return File(bytes, "application/force-download", Path.GetFileName(result.Filepath));
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        /** Employee Electronic address*/
+        [Authorize]
+        [HttpGet("melectronicAddress/{employeeID}")]
+        public IActionResult MGetElectronicAddresses(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<ElectronicAddressResult>>.Ok(
+              _electronicAddress.GetS(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get electronicAddress '{employeeID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+
+        [HttpPost("melectronicAddress/save")]
+        public IActionResult MSaveElectronicAddress([FromForm] ElectronicAddressForm param)
+        {
+            ElectronicAddress oldData = new ElectronicAddress();
+            ElectronicAddress data = new ElectronicAddress();
+
+            data = JsonConvert.DeserializeObject<ElectronicAddress>(param.JsonData);
+            oldData = _electronicAddress.Get(data.EmployeeID, data.AXID, true).UpdateRequest;
+
+            try
+            {
+                // Generate random when its new
+                data.AXID = (data.AXID == -1) ? Tools.RandomInt() * -1 : data.AXID;
+                data.Upload(Configuration, oldData, param.FileUpload, x => $"ElectronicAddress_{data.Type}_{x.EmployeeID}");
+                DB.Save(data);
+                return ApiResult<ElectronicAddress>.Ok(data, $"Employee field attachment has been stored");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<ElectronicAddress>.Error(HttpStatusCode.BadRequest, $"Unable to upload document :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [HttpGet("melectronicAddress/download/{employeeID}/{electronicAddressID}")]
+        public IActionResult MDownloadElectronicAddress(string employeeID, long electronicAddressID)
+        {
+            var result = _electronicAddress.Get(employeeID, electronicAddressID);
+            var electronicAddress = (result.UpdateRequest != null) ? result.UpdateRequest : result.ElectronicAddress;
+
+            // Download the data
+            try
+            {
+                var bytes = electronicAddress.Download();
+                return File(bytes, "application/force-download", Path.GetFileName(electronicAddress.Filepath));
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+        [HttpGet("melectronicAddress/download/{id}")]
+        public IActionResult MDownloadElectronicAddress(string id)
+        {
+            var result = _electronicAddress.GetByID(id);
+
+            // Download the data
+            try
+            {
+                var bytes = result.Download();
+                return File(bytes, "application/force-download", Path.GetFileName(result.Filepath));
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        /** Employee Information */
+
+        [Authorize]
+        [HttpGet("memployments/{employeeID}")]
+        public IActionResult MGetEmployments(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<Employment>>.Ok(
+              new EmployeeAdapter(Configuration).GetEmployments(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get employee employments :\n{Format.ExceptionString(e)}");
+            }
+        }
+
+        /** Employee Certification */
+
+        [Authorize]
+        [HttpGet("mcertificates/{employeeID}")]
+        public IActionResult MGetCertificates(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<CertificateResult>>.Ok(
+              _certificate.GetSMobile(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get certificate '{employeeID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mcertificate/changes/{employeeID}/{instanceID}")]
+        public IActionResult MGetCertificateInternal(string employeeID, string instanceID)
+        {
+            try
+            {
+                var result = _certificate.GetByAXRequestID(employeeID, instanceID);
+                var updateRequest = _updateRequest.Get(employeeID, instanceID);
+                if (result != null)
+                {
+                    result.Reason = updateRequest?.Notes;
+                }
+
+                return ApiResult<Certificate>.Ok(result);
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get certificate '{employeeID}-{instanceID}' :\n{Format.ExceptionString(e)}");
+            }
+        }
+
+        [HttpPost("mcertificate/create")]
+        public IActionResult MCreateCertificate([FromForm] CertificateForm param, ActionType action = ActionType.Create)
+        {
+            var updateRequest = new UpdateRequest();
+            var adapter = new WorkFlowRequestAdapter(Configuration);
+            var strAction = Enum.GetName(typeof(ActionType), action);
+
+            var data = JsonConvert.DeserializeObject<Certificate>(param.JsonData);
+            data.AXID = (data.AXID == -1) ? Tools.RandomInt() * -1 : data.AXID;
+
+            var oldData = _certificate.Get(data.EmployeeID, data.AXID, true).UpdateRequest;
+
+            try
+            {
+                data.Upload(Configuration, oldData, param.FileUpload, x => String.Format("Certificates_{0}", x.EmployeeID));
+
+                // Create Update Request
+                data.Purpose = Tools.ActionToPurpose(action);
+                var AXRequestID = adapter.RequestCertificate(data, param.Reason);
+                if (!string.IsNullOrWhiteSpace(AXRequestID))
+                {
+                    var description = (!string.IsNullOrWhiteSpace(data.TypeDescription)) ? data.TypeDescription : data.TypeID;
+                    updateRequest.Create(AXRequestID, data.EmployeeID, UpdateRequestModule.EMPLOYEE_CERTIFICATE, $"{Format.TitleCase(strAction)} certificate ({description})", param.Reason);
+                    updateRequest.AXRequestID = AXRequestID;
+                    DB.Save(updateRequest);
+
+                    data.AXRequestID = AXRequestID;
+                    data.Action = action;
+                    DB.Save(data);
+
+                    // Send approval notification
+                    //NotificationModule.CERTIFICATE,
+                    new Notification(Configuration, DB).SendNotification(data.EmployeeID, data.AXRequestID);
+                    return ApiResult<object>.Ok($"Certificate draft '{strAction}' request has been saved");
+                }
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, "Unable to request update to AX");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Certificate draft '{strAction}' is failed :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [HttpPost("mcertificate/update")]
+        public IActionResult MUpdateCertificate([FromForm] CertificateForm param)
+        {
+            return this.CreateCertificate(param, ActionType.Update);
+        }
+        [Authorize]
+        [HttpPost("mcertificate/delete")]
+        public IActionResult MDeleteCertificate([FromBody] DeleteForm param)
+        {
+            var update = DB.GetCollection<Certificate>()
+                        .Find(x => x.EmployeeID == param.EmployeeID && x.AXID == long.Parse(param.Id) && (x.Status == UpdateRequestStatus.InReview))
+                        .FirstOrDefault();
+
+            if (update == null)
+            {
+                var adapter = new EmployeeAdapter(Configuration);
+                var data = adapter.GetCertificates(param.EmployeeID);
+                update = data.Find(x => x.AXID == long.Parse(param.Id));
+            }
+
+            if (update == null)
+            {
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to request '{ActionType.Delete.ToString()}' certificate member");
+            }
+
+
+            var _param = new CertificateForm();
+            _param.JsonData = JsonConvert.SerializeObject(update);
+            _param.Reason = param.Reason;
+            return this.CreateCertificate(_param, ActionType.Delete);
+
+        }
+        [Authorize]
+        [HttpGet("mcertificate/discardChange/{requestID}")]
+        public IActionResult MDiscardCertificateChange(string requestID = "")
+        {
+            try
+            {
+                _certificate.Discard(requestID);
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to discard certificate request :\n{Format.ExceptionString(e)}");
+            }
+
+            return ApiResult<object>.Ok($"Employee certificate data request has been discarded");
+        }
+
+        [HttpGet("mcertificate/download/{employeeID}/{instanceID}")]
+        public IActionResult MDownloadCertificate(string employeeID, string instanceID)
+        {
+            Console.WriteLine($"CertificateID {instanceID}");
+            Certificate result = _certificate.GetByID(employeeID, instanceID);
+            Console.WriteLine($"CertificateID");
+            Console.WriteLine($"CertificateID {result.Filename}");
+            var certificate = result;
+
+            // Download the data
+            try
+            {
+                if (certificate.Accessible)
+                {
+                    var bytes = certificate.Download();
+                    return File(bytes, "application/force-download", Path.GetFileName(certificate.Filepath));
+                }
+                else
+                {
+                    throw new Exception("Unable to find file path on database");
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+        [HttpGet("mcertificate/attachment/download/{employeeID}/{axRequestID}")]
+        public IActionResult MDownloadCertificateAttachment(string employeeID, string axRequestID)
+        {
+            var certificate = _certificate.GetByAXRequestID(employeeID, axRequestID);
+
+            // Download the data
+            try
+            {
+                if (certificate.Accessible)
+                {
+                    var bytes = certificate.Download();
+                    return File(bytes, "application/force-download", Path.GetFileName(certificate.Filepath));
+                }
+                else
+                {
+                    throw new Exception("Unable to find file path on database");
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        /** Employee Warning Letter */
+
+        [Authorize]
+        [HttpGet("mwarningLetters/{employeeID}")]
+        public IActionResult MGetWarningLetters(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<WarningLetter>>.Ok(
+              new EmployeeAdapter(Configuration).GetWarningLetters(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get employee warning letters :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [HttpGet("mwarningLetter/download/{employeeID}/{certificateID}")]
+        public IActionResult MDownloadWarningLetter(string employeeID, long certificateID)
+        {
+            var adapter = new EmployeeAdapter(Configuration);
+            var warningLetter = adapter.GetWarningLetters(employeeID).Find(x => x.AXID == certificateID);
+            try
+            {
+                if (warningLetter.Accessible)
+                {
+                    return File(warningLetter.Download(), "application/force-download", Path.GetFileName(warningLetter.Filepath));
+                }
+                else
+                {
+                    throw new Exception("Unable to find file path on database");
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        /** Employee Medical Record*/
+
+        [Authorize]
+        [HttpGet("mmedicalRecords/{employeeID}")]
+        public IActionResult MGetMedicalRecords(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<MedicalRecord>>.Ok(
+              new EmployeeAdapter(Configuration).GetMedicalRecords(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get employee medical records :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [HttpGet("mmedicalRecord/download/{token}")]
+        public IActionResult MDownloadMedicalRecord(string token)
+        {
+            try
+            {
+                var a = token.Replace("_", @"/");
+                Console.WriteLine($"Token={a}");
+                FieldAttachment file = new FieldAttachment();
+                var decodedToken = WebUtility.UrlDecode(a);
+                file.Filepath = Hasher.Decrypt(decodedToken);
+                return File(file.Download(), "application/force-download", file.Filename);
+            }
+            catch (Exception e) { throw e; }
+        }
+
+        /** Employee Document Request*/
+
+        [Authorize]
+        [HttpGet("mdocumentRequests/{employeeID}")]
+        public IActionResult MGetDocumentRequests(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<DocumentRequest>>.Ok(
+              DB.GetCollection<DocumentRequest>().Find(x => x.EmployeeID == employeeID).ToList());
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Error loading document request :\n{Format.ExceptionString(e)}");
+            }
+        }
+
+        [HttpPost("mdocumentRequest/save")]
+        public IActionResult MSaveDocumentRequest([FromForm] DocumentRequestForm param)
+        {
+            UpdateRequest updateRequest = new UpdateRequest();
+            var adapter = new EmployeeAdapter(Configuration);
+            var data = JsonConvert.DeserializeObject<DocumentRequest>(param.JsonData);
+            data.AXID = (data.AXID == -1) ? Tools.RandomInt() * -1 : data.AXID;
+
+            var oldData = DB.GetCollection<DocumentRequest>()
+                .Find(x => x.AXID == data.AXID && x.Id == data.Id && (x.Status == UpdateRequestStatus.InReview))
+                .FirstOrDefault();
+
+            try
+            {
+                var AXRequestID = (Tools.RandomInt() * -1).ToString();
+                //var AXRequestID = adapter.UpdateDocumentRequest(data);
+                //if (!string.IsNullOrWhiteSpace(AXRequestID))
+                if (true)
+                {
+                    updateRequest.Create(AXRequestID, data.EmployeeID, UpdateRequestModule.EMPLOYEE_DOCUMENT_REQUEST, $"Request document {data.DocumentType})");
+                    data.AXRequestID = AXRequestID;
+
+                    data.Upload(Configuration, oldData, param.FileUpload, x => String.Format("DocumentRequest_{0}_{1}", data.DocumentType, x.EmployeeID));
+                    DB.Save(data);
+                    return ApiResult<object>.Ok(data, "Document request has been saved successfully");
+                }
+
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to update request to AX");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Error saving document request :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mdocumentRequest/delete/{requestID}")]
+        public IActionResult MDeleteDocumentRequest(string requestID)
+        {
+            try
+            {
+                DB.Delete(new DocumentRequest { Id = requestID });
+                return ApiResult<DocumentRequest>.Ok("Document request has been deleted successfully ");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Error saving document request :\n{Format.ExceptionString(e)}");
+            }
+        }
+
+        /** Employee Applicants */
+
+        [Authorize]
+        [HttpGet("mapplicants/{employeeID}/{applicantID}")]
+        public IActionResult MGetApplicant(string employeeID, string applicantID)
+        {
+            return ApiResult<List<Application>>.Ok(new List<Application>());
+        }
+        [Authorize]
+        [HttpGet("mapplicants/{employeeID}")]
+        public IActionResult MGetApplicants(string employeeID)
+        {
+            try
+            {
+                return ApiResult<List<Application>>.Ok(
+              new EmployeeAdapter(Configuration).GetApplications(employeeID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get employee applications :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mtrainings/{employeeID}")]
+        public IActionResult MGetTrainings(string employeeID)
+        {
+            // Get Certificate from AX
+            var trainings = new List<Training>();
+            try
+            {
+                trainings = new EmployeeAdapter(Configuration).GetTrainings(employeeID);
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable get trainings data from ax:\n{Format.ExceptionString(e)}");
+            }
+
+            // Get Document Update Request from Local ESS        
+            var updateRequest = new List<Training>();
+            try
+            {
+                updateRequest = DB.GetCollection<Training>().Find(x => x.EmployeeID == employeeID).ToList();
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable get trainings data :\n{Format.ExceptionString(e)}");
+            }
+            trainings.AddRange(updateRequest);
+            return ApiResult<List<Training>>.Ok(trainings);
+        }
+        [HttpGet("mdocument/type")]
+        [Authorize]
+        public IActionResult MGetDocumentType()
+        {
+            try
+            {
+                return ApiResult<object>.Ok(
+              new EmployeeAdapter(Configuration).GetDocumentTypes());
+            }
+            catch (Exception e)
+            {
+                return ApiResult<Core.Model.Employee>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get document type list :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mdocumentRequest/type")]
+        public IActionResult MGetDocumentRequestType()
+        {
+            try
+            {
+                return ApiResult<object>.Ok(
+              new EmployeeAdapter(Configuration).GetDocumentRequestTypes());
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get document request type list :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mlist/city")]
+        public IActionResult MGetCities()
+        {
+            try
+            {
+                return ApiResult<List<City>>.Ok(
+              new EmployeeAdapter(Configuration).GetCities());
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get document request type list :\n{Format.ExceptionString(e)}");
+            }
+        }
+
+        /** Employee Data List */
+
+        [Authorize]
+        [HttpGet("mlist/familyRelationship")]
+        public IActionResult MGetFamilyRelationship()
+        {
+            try
+            {
+                return ApiResult<List<RelationshipType>>.Ok(
+              new EmployeeAdapter(Configuration).GetRelationshipType());
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get relationship type list :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mlist/certificateType")]
+        public IActionResult MGetCertificateType()
+        {
+            try
+            {
+                return ApiResult<List<CertificateType>>.Ok(
+              new EmployeeAdapter(Configuration).GetCertificateType());
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get certificate type list :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mlist/religion")]
+        public IActionResult MGetReligion()
+        {
+            return ApiResult<List<string>>.Ok(Enum.GetNames(typeof(Religion)).ToList<string>());
+        }
+        [Authorize]
+        [HttpGet("mlist/maritalStatus")]
+        public IActionResult MGetMaritalStatus()
+        {
+            return ApiResult<List<string>>.Ok(Enum.GetNames(typeof(MaritalStatus)).ToList<string>());
+        }
+        [Authorize]
+        [HttpGet("mlist/gender")]
+        public IActionResult MGetGender()
+        {
+            return ApiResult<List<string>>.Ok(Enum.GetNames(typeof(Gender)).ToList<string>());
+        }
+        [Authorize]
+        [HttpGet("mlist/identificationType")]
+        public IActionResult MGetIdentificationType()
+        {
+            try
+            {
+                return ApiResult<List<IdentificationType>>.Ok(
+              new EmployeeAdapter(Configuration).GetIdentificationTypes());
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get identification types :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mlist/electronicAddressType")]
+        public IActionResult MGetElectronicAddressType()
+        {
+            try
+            {
+                return ApiResult<List<ElectronicAddressType>>.Ok(
+              new EmployeeAdapter(Configuration).GetElectronicAddressTypes());
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get identification types :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mget/{employeeID}/{axRequestID}")]
+        public IActionResult MGetEmployeeByInstanceID(string employeeID, string axRequestID)
+        {
+            try
+            {
+                return ApiResult<Core.Model.Employee>.Ok(
+              _employee.GetByAXRequestID(employeeID, axRequestID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get employee data :\n{e.Message}");
+            }
+
+        }
+        [Authorize]
+        [HttpGet("mfamilies/{employeeID}/{axRequestID}")]
+        public IActionResult MGetFamiliesByInstanceID(string employeeID, string axRequestID)
+        {
+            try
+            {
+                return ApiResult<Family>.Ok(
+              _family.GetByAXRequestID(employeeID, axRequestID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get Families data :\n{e.Message}");
+            }
+        }
+        [Authorize]
+        [HttpGet("midentification/{employeeID}/{axRequestID}")]
+        public IActionResult MGetIdentificationByInstanceID(string employeeID, string axRequestID)
+        {
+            try
+            {
+                return ApiResult<Identification>.Ok(
+              _identification.GetByAXRequestID(employeeID, axRequestID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get Identification data :\n{e.Message}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mbankAccount/{employeeID}/{axRequestID}")]
+        public IActionResult MGetBankAccountByInstanceID(string employeeID, string axRequestID)
+        {
+            try
+            {
+                return ApiResult<BankAccount>.Ok(
+              _bankAccount.GetByAXRequestID(employeeID, axRequestID));
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get BankAccount data :\n{e.Message}");
+            }
+
+        }
+        [Authorize]
+        [HttpGet("mdepartments/get")]
+        public IActionResult MGetDepartments()
+        {
+            try
+            {
+                return ApiResult<List<Department>>.Ok(
+              DB.GetCollection<Department>().Find(x => true).ToList());
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Unable to get relationship type list :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("mdepartments/all")]
+        public IActionResult MGetDepartmentAll()
+        {
+            try
+            {
+                return ApiResult<List<Department>>.Ok(
+              DB.GetCollection<Department>().Find(x => true).ToList());
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                  HttpStatusCode.BadRequest, $"{ErrUnableGet}{this.GetType().Name} :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpGet("muser/get/{employeeID}")]
+        public IActionResult MGetUser(String employeeID)
+        {
+            try
+            {
+                return ApiResult<User>.Ok(
+              DB.GetCollection<User>().Find(x => x.Username == employeeID).FirstOrDefault());
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"{ErrUnableGet}{this.GetType().Name} :\n{Format.ExceptionString(e)}");
+            }
+        }
+        [Authorize]
+        [HttpPost("muser/updatetoken")]
+        public IActionResult MUpdateUserToken([FromBody] User u)
+        {
+            try
+            {
+                User user = DB.GetCollection<User>().Find(x => x.Username == u.Username).FirstOrDefault();
+                user.FirebaseToken = u.FirebaseToken;
+                DB.Save(user);
+                return ApiResult<User>.Ok(user);
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"{ErrUnableGet}{this.GetType().Name} :\n{Format.ExceptionString(e)}");
+            }
+        }
+
+
 
         [HttpGet("ping")]
         public IActionResult Ping()
