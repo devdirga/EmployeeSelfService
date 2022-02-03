@@ -23,6 +23,7 @@ using ParameterType = RestSharp.ParameterType;
 using Aspose.Cells.Charts;
 using System.Reflection;
 using System.Drawing;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KANO.ESS.Areas.ESS.Controllers
 {
@@ -31,6 +32,7 @@ namespace KANO.ESS.Areas.ESS.Controllers
     {
         private IConfiguration Configuration;
         private IUserSession Session;
+        private readonly String Api = "api/survey/";
         private string TokenOdoo;
         private string xUrl, xUser, xPass, xDB, errorMessage, statusMessage;
 
@@ -1482,6 +1484,38 @@ namespace KANO.ESS.Areas.ESS.Controllers
             //       o.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(Dictionary<,>));
             bool ck = o is IDictionary;
             return ck;
+        }
+
+        /** ESS Mobile */
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MSummaryById(string token)
+        {
+            var req = new Request($"{Api}summary/{token}", Method.GET);
+            var re = new Client(Configuration).Execute(req);
+            var res = JsonConvert.DeserializeObject<ApiResult<SurveySummary>.Result>(re.Content);
+            return new ApiResult<SurveySummary>(res);
+        }
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult MSummaryId([FromBody] SurveyForm param)
+        {
+            var req = new Request($"{Api}summary", Method.POST);
+            req.AddJsonParameter(param);
+            var re = new Client(Configuration).Execute(req);
+            var res = JsonConvert.DeserializeObject<ApiResult<SurveySummary>.Result>(re.Content);
+            return new ApiResult<SurveySummary>(res);
+        }
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult MParticipant([FromBody] SurveyForm param)
+        {
+            var req = new Request($"{Api}participant", Method.POST);
+            req.AddJsonParameter(param);
+            var re = new Client(Configuration).Execute(req);
+            var res = JsonConvert.DeserializeObject<ApiResult<SurveySummary>.Result>(re.Content);
+            return new ApiResult<SurveySummary>(res);
         }
     }
 

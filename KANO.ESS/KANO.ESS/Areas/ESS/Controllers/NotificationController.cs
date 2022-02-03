@@ -9,9 +9,11 @@ using KANO.Core.Lib;
 using KANO.Core.Lib.Extension;
 using KANO.Core.Model;
 using KANO.Core.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using RestSharp;
 
@@ -26,6 +28,9 @@ namespace KANO.ESS.Areas.ESS.Controllers
         private IConfiguration Configuration;
         private IUserSession Session;
         private static readonly HttpClient _httpClient = new HttpClient();
+        private static readonly string api = "api/notification/";
+        private readonly String ApiNotification = "api/notification/";
+        private readonly String BearerAuth = "Bearer ";
 
         public NotificationController(IConfiguration config, IUserSession session)
         {
@@ -99,6 +104,43 @@ namespace KANO.ESS.Areas.ESS.Controllers
 
             var result = JsonConvert.DeserializeObject<ApiResult<bool>.Result>(response.Content);
             return new ApiResult<bool>(result);
+        }
+
+        /**
+         * Function for ESS Mobile because ESS Mobile need Authentication except signin
+         * Every function must authorize with token from signin function
+         * This is for security
+         */
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult MGet([FromBody] FetchParam param)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            param.Limit = (param.Limit <= 0) ? 10 : param.Limit;
+            param.Offset = (param.Offset < 0) ? 0 : param.Offset;
+            param.Filter = (string.IsNullOrEmpty(param.Filter)) ? "all" : param.Filter;
+            var response = new Client(Configuration).Execute(new Request($"{ApiNotification}mget", Method.POST, param, "Authorization", bearerAuth));
+            if (response.StatusCode != HttpStatusCode.OK && string.IsNullOrWhiteSpace(response.Content))
+            {
+                return ApiResult<object>.Error(response.StatusCode, response.StatusDescription);
+            }
+            return new ApiResult<List<Notification>>(JsonConvert.DeserializeObject<ApiResult<List<Notification>>.Result>(response.Content));
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult MSetRead([FromBody] Notification p)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            var response = new Client(Configuration).Execute(new Request($"{ApiNotification}msetread", Method.POST, p, "Authorization", bearerAuth));
+            if (response.StatusCode != HttpStatusCode.OK && string.IsNullOrWhiteSpace(response.Content))
+            {
+                return ApiResult<Notification>.Error(response.StatusCode, response.StatusDescription);
+            }
+            return new ApiResult<Notification>(JsonConvert.DeserializeObject<ApiResult<Notification>.Result>(response.Content));
         }
 
     }

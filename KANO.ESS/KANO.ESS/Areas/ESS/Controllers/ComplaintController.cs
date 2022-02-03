@@ -17,6 +17,8 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.IO;
 using KANO.Core.Lib.Helper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Primitives;
 
 namespace KANO.ESS.Areas.ESS.Controllers
 {
@@ -25,6 +27,8 @@ namespace KANO.ESS.Areas.ESS.Controllers
     {
         private IConfiguration Configuration;
         private readonly IUserSession Session;
+        private readonly String Api = "api/complaint/";
+        private readonly String BearerAuth = "Bearer ";
 
         // Required, this make sure we use Dependency Injection provided by ASP.Core
         public ComplaintController(IConfiguration conf, IUserSession session)
@@ -131,60 +135,56 @@ namespace KANO.ESS.Areas.ESS.Controllers
             return new ApiResult<List<TicketRequest>>(result);
         }
 
-        public new async Task<IActionResult> Request([FromForm]TicketForm param)
+        [HttpPost]
+        public async Task<IActionResult> Complaint([FromForm] TicketForm p)
         {
-            TicketRequest data;
             try
             {
-                data = JsonConvert.DeserializeObject<TicketRequest>(param.JsonData);
-                data.EmployeeID = Session.Id();
-                data.EmployeeName = Session.DisplayName();
-            }
-            catch (Exception)
-            {
-                throw new ArgumentException("Parameter cannot be null", "jsonData");
-            }
-            var req = new Request("api/complaint/request", Method.POST);
-            
-            req.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(data));
-            if (param.FileUpload != null)
-            {
-                req.AddFormDataFile("FileUpload", param.FileUpload.FirstOrDefault());
-            }
-            var res = await (new Client(Configuration)).Upload(req);
-            var result = JsonConvert.DeserializeObject<ApiResult<object>.Result>(res.Content);
-            if (result.StatusCode == HttpStatusCode.OK)
-            {
-                var response = SendUseTemplate(data, Session.Id());
-                if (!string.IsNullOrWhiteSpace(response)) {
-                    result.StatusCode = HttpStatusCode.BadRequest;
-                    result.Message = response;
+                TicketRequest t = JsonConvert.DeserializeObject<TicketRequest>(p.JsonData);
+                t.EmployeeID = Session.Id();
+                t.EmployeeName = Session.DisplayName();
+                var req = new Request($"{Api}complaint", Method.POST);
+                req.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(t));
+                if (p.FileUpload != null)
+                {
+                    req.AddFormDataFile("FileUpload", p.FileUpload.FirstOrDefault());
                 }
+                var res = JsonConvert.DeserializeObject<ApiResult<object>.Result>((await (new Client(Configuration)).Upload(req)).Content);
+                if (res.StatusCode == HttpStatusCode.OK)
+                {
+                    var response = SendUseTemplate(t, Session.Id());
+                    if (!string.IsNullOrWhiteSpace(response))
+                    {
+                        res.StatusCode = HttpStatusCode.BadRequest;
+                        res.Message = response;
+                    }
+                }
+                return new ApiResult<object>(res);
             }
-            return new ApiResult<object>(result);
+            catch (Exception) { throw; }
         }
 
-        public async Task<IActionResult> RequestUpdateStatus([FromForm] TicketForm param)
+        [HttpPost]
+        public async Task<IActionResult> Resolution([FromForm] TicketForm p)
         {
-            TicketRequest data;
             try
             {
-                data = JsonConvert.DeserializeObject<TicketRequest>(param.JsonData);
-                data.EmployeeID = Session.Id();
+                TicketRequest t = JsonConvert.DeserializeObject<TicketRequest>(p.JsonData);
+                t.EmployeeID = Session.Id();
+                var req = new Request($"{Api}resolution", Method.POST);
+                req.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(t));
+                if (p.FileUpload != null)
+                {
+                    req.AddFormDataFile("FileUpload", p.FileUpload.FirstOrDefault());
+                }
+                var result = JsonConvert.DeserializeObject<ApiResult<object>.Result>((await (new Client(Configuration)).Upload(req)).Content);
+                if (result.StatusCode == HttpStatusCode.OK)
+                {
+                    SendUseTemplate(t, Session.Id());
+                }
+                return new ApiResult<object>(result);
             }
-            catch (Exception)
-            {
-                throw new ArgumentException("Parameter cannot be null", "jsonData");
-            }
-            var req = new Request("api/complaint/updateStatus", Method.POST);
-            req.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(data));
-            var res = await (new Client(Configuration)).Upload(req);
-            var result = JsonConvert.DeserializeObject<ApiResult<object>.Result>(res.Content);
-            if (result.StatusCode == HttpStatusCode.OK)
-            {
-                var response = SendUseTemplate(data, Session.Id());
-            }
-            return new ApiResult<object>(result);
+            catch (Exception) { throw; }
         }
 
         [HttpGet]
@@ -246,7 +246,6 @@ namespace KANO.ESS.Areas.ESS.Controllers
             }
         }
 
-
         private string SendUseTemplate(TicketRequest param, string empId)
         {
             try
@@ -285,6 +284,7 @@ namespace KANO.ESS.Areas.ESS.Controllers
             }
             return $"";
         }
+        
         private ComplaintMailTemplate GetTemplate()
         {
             var client = new Client(Configuration);
@@ -293,7 +293,199 @@ namespace KANO.ESS.Areas.ESS.Controllers
             var result = JsonConvert.DeserializeObject<ApiResult<ComplaintMailTemplate>.Result>(response.Content);
             return result.Data;
 
-        }        
+        }
 
+        [AllowAnonymous]
+        public IActionResult GetComplaints(string token)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<TicketRequest>>(
+                JsonConvert.DeserializeObject<ApiResult<List<TicketRequest>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}getcomplaints/{token}", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+
+        /**
+         * Function for ESS Mobile because ESS Mobile need Authentication except signin
+         * Every function must authorize with token from signin function
+         * This is for security
+         */
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MGetTicketType()
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<TicketTypeObject>>(
+                JsonConvert.DeserializeObject<ApiResult<List<TicketTypeObject>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}mlist/ticketType", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+
+        [AllowAnonymous]
+        public IActionResult MGetTicketStatus()
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<TicketStatusObject>>(
+                JsonConvert.DeserializeObject<ApiResult<List<TicketStatusObject>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}mlist/ticketStatus", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+
+        [AllowAnonymous]
+        public IActionResult MGetTicketMedia()
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<TicketMediaObject>>(
+                JsonConvert.DeserializeObject<ApiResult<List<TicketMediaObject>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}mlist/ticketMedia", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+
+        [AllowAnonymous]
+        public IActionResult MGet([FromBody] KendoGrid p)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            if (p.Filter == null) { p.Filter = new KendoFilters { Logic = "and", Filters = new List<KendoFilter>() }; }
+            p.Filter.Filters.Add(new KendoFilter { Field = "EmployeeID", Operator = "eq", Value = p.EmployeeID });
+            return new ApiResult<List<TicketRequest>>(
+                JsonConvert.DeserializeObject<ApiResult<List<TicketRequest>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}mget", Method.POST, p, "Authorization", bearerAuth)).Content));
+        }
+
+        [AllowAnonymous]
+        public IActionResult MGetResolution([FromBody] KendoGrid p)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            if (p.Filter == null) { p.Filter = new KendoFilters { Logic = "and", Filters = new List<KendoFilter>() }; }
+            p.Filter.Filters.Add(new KendoFilter { Field = "Action", Operator = "eq", Value = "0" });
+            return new ApiResult<List<TicketRequest>>(
+                JsonConvert.DeserializeObject<ApiResult<List<TicketRequest>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}mgetresolution", Method.POST, p, "Authorization", bearerAuth)).Content));
+        }
+
+        [AllowAnonymous]
+        public async Task<IActionResult> MComplaint([FromForm] TicketForm p)
+        {
+            try
+            {
+                TicketRequest t = JsonConvert.DeserializeObject<TicketRequest>(p.JsonData);
+                t.TicketMedia = KESSWRServices.KESSTicketMedia.WalkInCustomer;
+                var req = new Request($"{Api}mcomplaint", Method.POST);
+                req.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(t));
+                if (p.FileUpload != null)
+                {
+                    req.AddFormDataFile("FileUpload", p.FileUpload.FirstOrDefault());
+                }
+                var res = JsonConvert.DeserializeObject<ApiResult<object>.Result>((await (new Client(Configuration)).Upload(req)).Content);
+                if (res.StatusCode == HttpStatusCode.OK)
+                {
+                    var response = SendUseTemplate(t, t.EmployeeID);
+                    if (!string.IsNullOrWhiteSpace(response))
+                    {
+                        res.StatusCode = HttpStatusCode.BadRequest;
+                        res.Message = response;
+                    }
+                }
+                return new ApiResult<object>(res);
+            }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.InternalServerError, e.Message); }
+        }
+
+        [AllowAnonymous]
+        public async Task<IActionResult> MResolution([FromForm] TicketForm p)
+        {
+            try
+            {
+                Console.WriteLine($"data : {p.JsonData}");
+                TicketRequest t = JsonConvert.DeserializeObject<TicketRequest>(p.JsonData);
+                Console.WriteLine($"datas : {t.EmployeeID}");
+                var r = new Request($"{Api}mresolution", Method.POST);
+                r.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(t));
+                if (p.FileUpload != null)
+                {
+                    r.AddFormDataFile("FileUpload", p.FileUpload.FirstOrDefault());
+                }
+                var res = JsonConvert.DeserializeObject<ApiResult<object>.Result>((await (new Client(Configuration)).Upload(r)).Content);
+                if (res.StatusCode == HttpStatusCode.OK)
+                {
+                    //var response = SendUseTemplate(ticket, Session.Id());
+                }
+                return new ApiResult<object>(res);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"ERROR :", e.Message);
+                throw new ArgumentException("Parameter cannot be null", "jsonData");
+            }
+        }
+
+        [AllowAnonymous]
+        public IActionResult MGetTicketCategories()
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<TicketCategory>>(
+                JsonConvert.DeserializeObject<ApiResult<List<TicketCategory>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}mticketcategory/getdata", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+
+        [AllowAnonymous]
+        public IActionResult MGetByInstanceID(string source, string id)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<TicketRequest>(
+                JsonConvert.DeserializeObject<ApiResult<TicketRequest>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}mgetbyinstance/{source}/{id}", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+
+        [AllowAnonymous]
+        public IActionResult MDownload(string source, string id)
+        {
+            try
+            {
+                var baseUrl = Configuration["Request:GatewayUrl"];
+                if (string.IsNullOrWhiteSpace(baseUrl))
+                    return ApiResult<object>.Error(HttpStatusCode.InternalServerError, "Unable to find gateway url configuration");
+                WebClient wc = new WebClient();
+                using (MemoryStream stream = new MemoryStream(wc.DownloadData($"{baseUrl}{Api}download/{source}")))
+                {
+                    return File(stream.ToArray(), "application/force-download", id);
+                }
+            }
+            catch (Exception e)
+            {
+                ViewBag.ErrorCode = 500;
+                ViewBag.ErrorDescription = "Well it is embarassing, internal server error";
+                ViewBag.ErrorDetail = Format.ExceptionString(e);
+                return View("Error");
+            }
+        }
+
+        [AllowAnonymous]
+        public IActionResult MRDownload(string source, string id)
+        {
+            try
+            {
+                var baseUrl = Configuration["Request:GatewayUrl"];
+                if (string.IsNullOrWhiteSpace(baseUrl))
+                    return ApiResult<object>.Error(HttpStatusCode.InternalServerError, "Unable to find gateway url configuration");
+                WebClient wc = new WebClient();
+                using (MemoryStream stream = new MemoryStream(wc.DownloadData($"{baseUrl}{Api}rdownload/{source}")))
+                {
+                    return File(stream.ToArray(), "application/force-download", id);
+                }
+            }
+            catch (Exception e)
+            {
+                ViewBag.ErrorCode = 500;
+                ViewBag.ErrorDescription = "Well it is embarassing, internal server error";
+                ViewBag.ErrorDetail = Format.ExceptionString(e);
+                return View("Error");
+            }
+        }
     }
 }

@@ -327,4 +327,13 @@ namespace KANO.Core.Model
         public DateTime CretaeDate { get; set; }
     }
 
+    public class GridDateRangeSurvey
+    {
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public string OdooId { get; set; }
+        public DateRange Range { get; set; }
+
+    }
+
 }

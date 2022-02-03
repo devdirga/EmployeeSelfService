@@ -90,6 +90,64 @@ namespace KANO.Core.Service.Odoo
             var result = JsonConvert.DeserializeObject<OdooSurveyResponse>(response.Content);
             return result;
         }
+
+        public static OdooSurveyResponse MGetOdooUrl(IConfiguration config, string sessID)
+        {
+            string url = String.Empty;
+            url = config["Odoo:Url"];
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                throw new Exception("Odoo:Url is not set in the configuration!");
+            }
+
+            try
+            {
+                var pa = new ParamSurveyResult();
+                pa.Params.fields = new paramField();
+                var json = JsonConvert.SerializeObject(pa);
+
+                var client = new RestClient(url);
+                client.AddDefaultHeader("Content-Type", "application/json");
+
+                var request = new RestRequest("/web/dataset/search_read", Method.POST);
+                request.AddHeader("Accept", "application/json");
+                request.AddCookie("session_id", sessID);
+                request.AddParameter("application/json", json, ParameterType.RequestBody);
+
+                IRestResponse response = client.Execute(request);
+                var result = JsonConvert.DeserializeObject<OdooSurveyResponse>(response.Content);
+                return result;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Odoo:Url is not set in the configuration!");
+            }
+
+        }
+
+        public static OdooSurveyResponse MGetSurveyResult(IConfiguration config, string sesId)
+        {
+            var url = config["Odoo:Url"];
+            if (string.IsNullOrWhiteSpace(url))
+                throw new Exception("Odoo:Url is not set in the configuration!");
+
+            var pa = new ParamSurveyResult();
+            pa.Params.fields = new paramField();
+            var json = JsonConvert.SerializeObject(pa);
+
+            var client = new RestClient(url);
+            client.AddDefaultHeader("Content-Type", "application/json");
+
+            var request = new RestRequest("/web/dataset/search_read", Method.POST);
+            request.AddHeader("Accept", "application/json");
+            request.AddCookie("session_id", sesId);
+            request.AddParameter("application/json", json, ParameterType.RequestBody);
+
+            IRestResponse response = client.Execute(request);
+            var result = JsonConvert.DeserializeObject<OdooSurveyResponse>(response.Content);
+            return result;
+        }
+
     }
 
     public class OdooRequest{

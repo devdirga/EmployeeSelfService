@@ -22,6 +22,8 @@ using KANO.Core.Service.Odoo;
 using System.Collections;
 using Aspose.Cells;
 using ParameterType = RestSharp.ParameterType;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Primitives;
 
 namespace KANO.ESS.Areas.ESS.Controllers
 {
@@ -30,6 +32,8 @@ namespace KANO.ESS.Areas.ESS.Controllers
     {
         private IConfiguration Configuration;
         private IUserSession Session;
+        private readonly String Api = "api/survey/";
+        private readonly String BearerAuth = "Bearer ";
 
         public SurveyESSController(IConfiguration config, IUserSession session)
         {
@@ -159,6 +163,87 @@ namespace KANO.ESS.Areas.ESS.Controllers
             IRestResponse response = client.Execute(request);
             var result = JsonConvert.DeserializeObject<OdooSurveyResponse>(response.Content);
             return result.Result.Records;
+        }
+
+        /**
+         * Function for ESS Mobile because ESS Mobile need Authentication except signin
+         * Every function must authorize with token from signin function
+         * This is for security
+         */
+
+        [AllowAnonymous]
+        public IActionResult MGetSurvey([FromBody] GridDateRangeSurvey dRange)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            var res = JsonConvert.DeserializeObject<ApiResult<List<Survey>>.Result>(
+                new Client(Configuration).Execute(new Request($"{Api}memployee/{dRange.Username}", Method.GET, "Authorization", bearerAuth)).Content);
+
+            //string domain = Configuration["Odoo:Domain"];
+            //Uri baseUri = new Uri(Configuration["Odoo:Domain"]);
+
+            //foreach (var d in result.Data)
+            //{
+            //    d.SurveyUrl = new Uri(baseUri, d.SurveyUrl.AbsolutePath + "?userid=" + dRange.Username + "&email=" + dRange.Email);
+            //}
+            //OdooSurveyResponse xx = OdooService.MGetOdooUrl(Configuration, dRange.OdooId);
+
+            List<OdooSurveyRecord> surveyRes = OdooService.MGetOdooUrl(Configuration, dRange.OdooId).Result.Records
+                .FindAll(x => x.UserID == dRange.Username && x.Status == "done" && x.CreateDate.ToLocalTime().Date == DateTime.Now.ToLocalTime().Date);
+
+            foreach (var d in res.Data)
+            {
+                d.SurveyUrl = new Uri(new Uri(Configuration["Odoo:Domain"]), d.SurveyUrl.AbsolutePath + "?userid=" + dRange.Username + "&email=" + dRange.Email);
+                d.AlreadyFilled = (surveyRes.FindAll(b => b.SurveyID[0].ToString() == d.OdooID).Count > 0) ? true : false;
+                //if (oSurveyResult.FindAll(b => b.SurveyID[0].ToString() == d.OdooID).Count > 0)
+                //{
+                //    d.AlreadyFilled = true;
+                //}
+                //else
+                //{
+                //    d.AlreadyFilled = false;
+                //    Uri myRev = new Uri(baseUri, d.SurveyUrl.AbsolutePath);
+                //}
+            }
+            return new ApiResult<List<Survey>>(res);
+        }
+
+        [AllowAnonymous]
+        public List<OdooSurveyRecord> MGetHistory([FromBody] GridDateRangeSurvey dateRange)
+        {
+            string sesOdoo = dateRange.OdooId; //Session.OdooSessionID();
+            var url = Configuration["Odoo:Url"];
+            if (string.IsNullOrWhiteSpace(url))
+                throw new Exception("Odoo:Url is not set in the configuration!");
+            var r = Tools.normalizeFilter(dateRange.Range);
+            var pa = new ParamSurveyResult();
+            pa.Params.domain.Add("&");
+            pa.Params.domain.Add(new ArrayList() { "user_id", "=", dateRange.Username });
+            pa.Params.domain.Add(new ArrayList() { "state", "=", "done" });
+            pa.Params.domain.Add(new ArrayList() { "create_date", ">=", r.Start.ToLocalTime() });
+            pa.Params.domain.Add(new ArrayList() { "create_date", "<", r.Finish.AddDays(1).ToLocalTime() });
+            pa.Params.fields = new paramField();
+            var json = JsonConvert.SerializeObject(pa);
+
+            var client = new RestClient(url);
+            client.AddDefaultHeader("Content-Type", "application/json");
+
+            var request = new RestRequest("/web/dataset/search_read", Method.POST);
+            request.AddHeader("Accept", "application/json");
+            request.AddCookie("session_id", sesOdoo);
+            request.AddParameter("application/json", json, ParameterType.RequestBody);
+
+            IRestResponse response = client.Execute(request);
+            var result = JsonConvert.DeserializeObject<OdooSurveyResponse>(response.Content);
+            //return new ApiResult<List<OdooSurveyRecord>>(result.Result);
+
+            return result.Result.Records;
+        }
+
+        [Route("/ESS/SurveyESS/MEmployee/{source}/{id}")]
+        public List<OdooSurveyRecord> MGetSurveyResultEmployee(string source, string id)
+        {
+            return OdooService.MGetSurveyResult(Configuration, source).Result.Records.FindAll(x => x.UserID == id && x.Status == "done");
         }
     }
 }
