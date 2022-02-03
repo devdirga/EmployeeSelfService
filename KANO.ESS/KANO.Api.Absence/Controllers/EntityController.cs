@@ -141,21 +141,14 @@ namespace KANO.Api.Absence.Controllers
         [HttpGet("mlist")]
         public IActionResult MList()
         {
-            try
-            {
-                string employeeID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            try {
                 int skip = String.IsNullOrEmpty(Request.Query["skip"]) ? 0 : Int32.Parse(Request.Query["skip"]);
                 int limit = String.IsNullOrEmpty(Request.Query["limit"]) ? 0 : Int32.Parse(Request.Query["limit"]);
                 string keyword = Request.Query["search"].ToString();
-
-                var result = _entity.MGet(employeeID, skip, limit, keyword);
+                var result = _entity.MGet(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, skip, limit, keyword);
                 return ApiResult<List<EntityMap>>.Ok(result, result.Count);
             }
-            catch (Exception e)
-            {
-                return ApiResult<List<EntityMap>>.Error(
-                    HttpStatusCode.BadRequest, $"Fetching entitylist data error :\n{Format.ExceptionString(e)}");
-            }
+            catch (Exception e) { return ApiResult<List<EntityMap>>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
 
     }
