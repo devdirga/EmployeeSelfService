@@ -2560,8 +2560,8 @@ namespace KANO.Api.Employee.Controllers
                 }
 
                 // Send approval notification
-                //NotificationModule.EMPLOYEE
                 new Notification(Configuration, DB).SendNotification(employeeID, AXRequestID);
+
                 return ApiResult<object>.Ok("Employee data has been submitted. You will be notifed once the update request has been approved/rejected.");
             }
             catch (Exception e)
