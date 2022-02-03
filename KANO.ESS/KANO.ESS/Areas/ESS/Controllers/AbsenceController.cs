@@ -526,43 +526,43 @@ namespace KANO.ESS.Areas.ESS.Controllers
             });
         }
 
-        //[AllowAnonymous]
-        //[HttpGet("api/entity/list")]
-        //public IActionResult GetEntityList()
-        //{
-        //    int skip = String.IsNullOrEmpty(Request.Query["skip"]) ? 0 : Int32.Parse(Request.Query["skip"]);
-        //    int limit = String.IsNullOrEmpty(Request.Query["limit"]) ? 0 : Int32.Parse(Request.Query["limit"]);
-        //    string search = Request.Query["search"].ToString();
-        //    var client = new Client(Configuration);
-        //    var request = new Request($"api/absence/entity/list?&skip={skip}&limit={limit}&search={search}", Method.GET);
-        //    var bearerAuth = "Bearer ";
-        //    if (Request.Headers.TryGetValue("Authorization", out StringValues authToken))
-        //    {
-        //        bearerAuth = authToken;
-        //    }
-        //    request.Self.AddHeader("Authorization", bearerAuth);
-        //    var response = client.Execute(request);
-        //    if (!response.IsSuccessful)
-        //    {
-        //        return Ok(new
-        //        {
-        //            data = (object)null,
-        //            message = response.StatusDescription,
-        //            success = response.IsSuccessful
-        //        });
-        //    }
-        //    var res = JsonConvert.DeserializeObject<ApiResult<List<EntityMap>>.Result>(response.Content);
-        //    return Ok(new
-        //    {
-        //        data = res.Data,
-        //        message = res.Message,
-        //        success = string.IsNullOrEmpty(res.Message)
-        //    });
-        //}
-
         [AllowAnonymous]
         [HttpGet("api/entity/list")]
         public IActionResult GetEntityList()
+        {
+            int skip = String.IsNullOrEmpty(Request.Query["skip"]) ? 0 : Int32.Parse(Request.Query["skip"]);
+            int limit = String.IsNullOrEmpty(Request.Query["limit"]) ? 0 : Int32.Parse(Request.Query["limit"]);
+            string search = Request.Query["search"].ToString();
+            var client = new Client(Configuration);
+            var request = new Request($"api/absence/entity/list?&skip={skip}&limit={limit}&search={search}", Method.GET);
+            var bearerAuth = "Bearer ";
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken))
+            {
+                bearerAuth = authToken;
+            }
+            request.Self.AddHeader("Authorization", bearerAuth);
+            var response = client.Execute(request);
+            if (!response.IsSuccessful)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    message = response.StatusDescription,
+                    success = response.IsSuccessful
+                });
+            }
+            var res = JsonConvert.DeserializeObject<ApiResult<List<EntityMap>>.Result>(response.Content);
+            return Ok(new
+            {
+                data = res.Data,
+                message = res.Message,
+                success = string.IsNullOrEmpty(res.Message)
+            });
+        }
+
+        [AllowAnonymous]
+        [HttpGet("api/entity/mlist")]
+        public IActionResult MGetEntityList()
         {
             string bearerAuth = BearerAuth;
             if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
