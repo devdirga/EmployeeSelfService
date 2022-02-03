@@ -507,6 +507,7 @@ namespace KANO.Api.Employee.Controllers
 
                 // Send approval notification
                 new Notification(Configuration, DB).SendApprovals(employeeID, AXRequestID);
+                new Notification(Configuration, DB).SendNotification(employeeID, AXRequestID);
 
                 return ApiResult<object>.Ok("Employee data has been submitted. You will be notifed once the update request has been approved/rejected.");
             }
@@ -605,6 +606,7 @@ namespace KANO.Api.Employee.Controllers
 
                     // Send approval notification
                     new Notification(Configuration, DB).SendApprovals(data.EmployeeID, data.AXRequestID);
+                    new Notification(Configuration, DB).SendNotification(data.EmployeeID, data.AXRequestID);
 
                     return ApiResult<object>.Ok($"family draft '{strAction}' request has been saved");
                 }
@@ -1529,6 +1531,7 @@ namespace KANO.Api.Employee.Controllers
 
                     // Send approval notification
                     new Notification(Configuration, DB).SendApprovals(data.EmployeeID, data.AXRequestID);
+                    new Notification(Configuration, DB).SendNotification(data.EmployeeID, data.AXRequestID);
 
                     return ApiResult<object>.Ok($"Certificate draft '{strAction}' request has been saved");
                 }
@@ -1700,20 +1703,16 @@ namespace KANO.Api.Employee.Controllers
         [HttpGet("medicalRecord/download/{token}")]
         public IActionResult DownloadMedicalRecord(string token)
         {
-            // Download the data
-            Console.WriteLine($"{DateTime.Now} >>> {token}");
             try
             {
                 var file = new FieldAttachment();
                 var decodedToken = WebUtility.UrlDecode(token);
                 file.Filepath = Hasher.Decrypt(decodedToken);
-                Console.WriteLine($"{DateTime.Now} >>> {file.Filepath}");
                 var bytes = file.Download();
                 return File(bytes, "application/force-download", file.Filename);
             }
             catch (Exception e)
             {
-                Console.WriteLine($"{DateTime.Now} >>> {Format.ExceptionString(e, true)}");
                 throw e;
             }
         }
@@ -3619,10 +3618,7 @@ namespace KANO.Api.Employee.Controllers
         [HttpGet("mcertificate/download/{employeeID}/{instanceID}")]
         public IActionResult MDownloadCertificate(string employeeID, string instanceID)
         {
-            Console.WriteLine($"CertificateID {instanceID}");
             Certificate result = _certificate.GetByID(employeeID, instanceID);
-            Console.WriteLine($"CertificateID");
-            Console.WriteLine($"CertificateID {result.Filename}");
             var certificate = result;
 
             // Download the data
@@ -3729,7 +3725,6 @@ namespace KANO.Api.Employee.Controllers
             try
             {
                 var a = token.Replace("_", @"/");
-                Console.WriteLine($"Token={a}");
                 FieldAttachment file = new FieldAttachment();
                 var decodedToken = WebUtility.UrlDecode(a);
                 file.Filepath = Hasher.Decrypt(decodedToken);
