@@ -13,8 +13,10 @@ using KANO.Core.Lib.Helper;
 using KANO.Core.Model;
 using KANO.Core.Model.Payroll;
 using KANO.Core.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using RestSharp;
 
@@ -26,6 +28,8 @@ namespace KANO.ESS.Areas.ESS.Controllers
 
         private IConfiguration Configuration;
         private IUserSession Session;
+        private readonly String Api = "api/payroll/";
+        private readonly String BearerAuth = "Bearer ";
 
         public PayrollController(IConfiguration config, IUserSession session)
         {
@@ -724,6 +728,142 @@ namespace KANO.ESS.Areas.ESS.Controllers
             List<LoanTypeName> loan = Enum.GetValues(typeof(LoanTypeName)).Cast<LoanTypeName>().ToList();
             //LoanTypeName[] loan = (LoanTypeName[])Enum.GetValues(typeof(LoanTypeName));
             return ApiResult<object>.Ok(loan);
+        }
+
+        /**
+         * Function for ESS Mobile because ESS Mobile need Authentication except signin
+         * Every function must authorize with token from signin function
+         * This is for security
+         */
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MGetPaySlip(String token)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<PaySlip>>(JsonConvert.DeserializeObject<ApiResult<List<PaySlip>>.Result>(
+                new Client(Configuration).Execute(new Request($"{Api}mpayslip/{token}", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MGetLatestPaySlip(String token)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<PaySlip>(JsonConvert.DeserializeObject<ApiResult<PaySlip>.Result>(
+                new Client(Configuration).Execute(new Request($"{Api}mgetlatest/{token}", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MGetEmployee(String token)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<Employee>(JsonConvert.DeserializeObject<ApiResult<Employee>.Result>(
+                new Client(Configuration).Execute(new Request($"{Api}mgetemployee/{token}", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MDownloadPayslip(string source, string id, string x)
+        {
+            try
+            {
+                var baseUrl = Configuration["Request:GatewayUrl"];
+                if (string.IsNullOrWhiteSpace(baseUrl))
+                {
+                    return ApiResult<object>.Error(HttpStatusCode.InternalServerError, "Unable to find gateway url configuration");
+                }
+                WebClient wc = new WebClient();
+                using (MemoryStream stream = new MemoryStream(wc.DownloadData($"{baseUrl}{Api}mpayslip/download/{source}/{id}")))
+                {
+                    return File(stream.ToArray(), "application/force-download", x);
+                }
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(HttpStatusCode.InternalServerError, $"Well it is embarassing, internal server error : {e.Message}");
+            }
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MGetLoanRequest(string token, String source)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<LoanRequest>(JsonConvert.DeserializeObject<ApiResult<LoanRequest>.Result>(
+                new Client(Configuration).Execute(new Request($"{Api}mloanrequest/{token}/{source}", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MGetLoanRequests(String token)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<LoanRequest>>(JsonConvert.DeserializeObject<ApiResult<List<LoanRequest>>.Result>(
+                new Client(Configuration).Execute(new Request($"{Api}mloanrequests/{token}", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult MSaveLoanRequest([FromBody] LoanRequest param)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            var response = new Client(Configuration).Execute(new Request($"{Api}mloanrequest/save", Method.POST, param, "Authorization", bearerAuth));
+            var result = JsonConvert.DeserializeObject<ApiResult<LoanRequest>.Result>(response.Content);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                SendUseTemplate(result.Data, param.EmployeeID);
+            }
+            return new ApiResult<LoanRequest>(result);
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        private LoanMailTemplate MGetTemplate()
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return JsonConvert.DeserializeObject<ApiResult<LoanMailTemplate>.Result>(
+                new Client(Configuration).Execute(new Request($"{Api}mloanrequest/gettemplate", Method.GET, "Authorization", bearerAuth)).Content).Data;
+
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        private List<Identification> MGetIdentification(String token)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return JsonConvert.DeserializeObject<ApiResult<List<Identification>>.Result>(
+                new Client(Configuration).Execute(new Request($"{Api}mloanrequest/getemployee/{token}", Method.GET, "Authorization", bearerAuth)).Content).Data;
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MListLoanType()
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<LoanType>>(JsonConvert.DeserializeObject<ApiResult<List<LoanType>>.Result>(
+                new Client(Configuration).Execute(new Request($"{Api}mloantype", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MListLoanMethod()
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<MLoanMethod>>(JsonConvert.DeserializeObject<ApiResult<List<MLoanMethod>>.Result>(
+                new Client(Configuration).Execute(new Request($"{Api}mloanmethod", Method.GET, "Authorization", bearerAuth)).Content));
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult MListLoanPeriod()
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<List<LoanTypeDetail>>(
+                JsonConvert.DeserializeObject<ApiResult<List<LoanTypeDetail>>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}mloanperiod", Method.GET, "Authorization", bearerAuth)).Content));
         }
     }
 }

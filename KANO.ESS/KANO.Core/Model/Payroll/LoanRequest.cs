@@ -53,6 +53,7 @@ namespace KANO.Core.Model
         public int MinimumRangePeriode { get; set; }
         public int MaximumRangePeriode { get; set; }
         public double MaximumLoan { get; set; }
+        public double MinimumLimitLoan { get; set; }
         public LoanTypeDetail Detail { get; set; }
         public List<string> Email { get; set; }
     }
@@ -95,5 +96,12 @@ namespace KANO.Core.Model
         UangTambahan = 2,
         [Description("Data Mitra")]
         DanaMitra = 3
+    }
+
+    public class MLoanMethod
+    {
+        public int Id { set; get; }
+        public String Name { set; get; }
+
     }
 }
