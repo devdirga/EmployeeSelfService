@@ -55,41 +55,40 @@ namespace KANO.Api.Auth.Service
             var userDetail = new UserDetail();
             var tasks = new List<Task<TaskRequest<Exception>>>();
 
+            // Fetch employee data from AX
+            tasks.Add(Task.Run(() =>
+            {
+                Exception error = null;
+                try
+                {
+                    userDetail.Employee = _employeeAdapter.GetDetail(employeeID);
+
+                }
+                catch (Exception e)
+                {
+
+                    error = e;
+                }
+
+                return TaskRequest<Exception>.Create("employee", error);
+            }));
 
             // Fetch employee data from AX
-            //tasks.Add(Task.Run(() =>
-            //{
-            //    Exception error = null;
-            //    try
-            //    {
-            //        userDetail.Employee = _employeeAdapter.GetDetail(employeeID);
+            tasks.Add(Task.Run(() =>
+            {
+                Exception error = null;
+                try
+                {
+                    userDetail.HasSubordinate = _employeeAdapter.HasSubordinate(employeeID);
+                }
+                catch (Exception e)
+                {
 
-            //    }
-            //    catch (Exception e)
-            //    {
+                    error = e;
+                }
 
-            //        error = e;
-            //    }
-
-            //    return TaskRequest<Exception>.Create("employee", error);
-            //}));
-
-            // Fetch employee data from AX
-            //tasks.Add(Task.Run(() =>
-            //{
-            //    Exception error = null;
-            //    try
-            //    {
-            //        userDetail.HasSubordinate = _employeeAdapter.HasSubordinate(employeeID);
-            //    }
-            //    catch (Exception e)
-            //    {
-
-            //        error = e;
-            //    }
-
-            //    return TaskRequest<Exception>.Create("subordinate", error);
-            //}));
+                return TaskRequest<Exception>.Create("subordinate", error);
+            }));
 
             // Fetch user data from DB
             tasks.Add(Task.Run(() => {
