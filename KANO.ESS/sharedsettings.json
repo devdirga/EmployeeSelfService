@@ -13,10 +13,12 @@
     "Activated": true
   },
   "Request": {
+    "FcmApi": "https://fcm.googleapis.com/fcm/send",
+    "FcmKey": "AAAA54wBvKU:APA91bFrf_f1HVKFqAPNoECYeiESYZjCAqwD_fnGTfmINLgqo8M8wVUtNS42OOrSs1WF_pvP-QgBdilATzftwTJCfhOiz29FcDA45CBNlVGGO73rV2Kvsxm43Lm_uGPsTkWJX3sWD9vq",
     "GatewayUrl": "http://localhost:8080/",
     "NotificationUrl": "http://localhost:8080/api/notification-hub",
     "NotificationHub": "/api/notification-hub",
-    "NotificationProxy":true, 
+    "NotificationProxy": true,
     "PushNotificationPublicKey": "BCaip8rIdaLOm1nZTAOlLzMurxPOTketB1QpbL9GLw-Av3kjgXngcHHBjugvqYQDG3AUiIJfVbjbH33pHcm_McE",
     "PushNotificationPrivateKey": "O-b6Sl0tUqFrOUeoMKOc3JCFtDFXocwB5cGI1ZMg9es",
     "PushNotificationSubject": "mailto:no-reply@tps.co.id",

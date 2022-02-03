@@ -143,5 +143,20 @@ namespace KANO.ESS.Areas.ESS.Controllers
             return new ApiResult<Notification>(JsonConvert.DeserializeObject<ApiResult<Notification>.Result>(response.Content));
         }
 
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult TestNotif([FromBody] Notification p)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            var response = new Client(Configuration).Execute(new Request($"{ApiNotification}msendfromax", Method.POST, p, "Authorization", bearerAuth));
+            if (response.StatusCode != HttpStatusCode.OK && string.IsNullOrWhiteSpace(response.Content))
+            {
+                return ApiResult<Notification>.Error(response.StatusCode, response.StatusDescription);
+            }
+            return new ApiResult<Notification>(JsonConvert.DeserializeObject<ApiResult<Notification>.Result>(response.Content));
+        }
+
+
     }
 }

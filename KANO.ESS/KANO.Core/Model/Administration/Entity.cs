@@ -275,6 +275,7 @@ namespace KANO.Core.Model
                 }
 
                 var activitytypes = this.MongoDB.GetCollection<ActivityType>().Find(x => x.EntityID == ObjectId.Parse(entityMap.Id)).ToList();
+                Console.WriteLine($"LENGTH Activitytypes {activitytypes.Count}");
                 var activitytypesstr = JsonConvert.SerializeObject(activitytypes);
                 entityMap.ActivityTypes = JsonConvert.DeserializeObject<List<ActivityTypeResult>>(activitytypesstr);
 

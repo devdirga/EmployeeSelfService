@@ -66,12 +66,12 @@
                             </span>
                         </div>
                         <!-- ko if: TicketType() == 0 -->
-                        <div class="form-group">
+                        @*<div class="form-group">
                             <label for="input">Approval Status</label>
                             <span disabled data-bind="css: `w-100 badge badge-outline-${model.map.StatusLabelCSS[InvertedStatus()]}`" style="font-size: 16px;">
                                 <span data-bind="html: camelToTitle(InvertedStatusDescription())"></span>
                             </span>
-                        </div>
+                        </div>*@
                         <!-- /ko -->
                         <!-- ko if: !!Filename() -->
                         <div class="form-group">

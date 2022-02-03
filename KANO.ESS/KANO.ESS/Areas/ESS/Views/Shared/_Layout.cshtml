@@ -98,7 +98,8 @@
                     maxNotification: 5,
                     readonly: true,
                     lastchangepassword: "@UserSession.GetLastChangedPassword()",
-                    thresholdChangePassword : 100
+                    thresholdChangePassword: 100,
+                    configPassword: @Html.Raw(Json.Serialize(new KANO.Core.Model.Auth.ConfigPassword() ) )
                 }),
                 notifications: ko.observableArray([]),
                 menu: ko.observableArray([]),
@@ -245,6 +246,19 @@
                         <br clear="all" />
                     </form>
                 </div>
+
+                <div class="modal-body" data-bind="with:data.configPassword">
+                    <form id="formConfigPassword" name="formChangePassword">
+                        <div class="form-group">
+                            <label data-bind="visible:ContainLowercase"><i class="mdi mdi-bell-ring text-danger"></i> Password must contain lowercase</label><br>
+                            <label data-bind="visible:ContainNumeric"><i class="mdi mdi-bell-ring text-danger"></i> Password must contain numeric</label>
+                            <label data-bind="visible:ContainSpecialCharacter"><i class="mdi mdi-bell-ring text-danger"></i> Password must contain special character</label>
+                            <label data-bind="visible:ContainUppercase"><i class="mdi mdi-bell-ring text-danger"></i> Password must contain uppercase</label>
+                            <label><i class="mdi mdi-bell-ring text-danger"></i> Password must have minimum <span data-bind="text:MinimumLength"></span> character</label>
+                        </div>
+                    </form>
+                </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-info" data-bind="click: model.app.action.changePassword">Change Password</button>

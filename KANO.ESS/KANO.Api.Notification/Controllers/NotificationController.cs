@@ -379,6 +379,7 @@ HttpStatusCode.BadRequest, $"Send notification error : {Format.ExceptionString(e
                 webRequest.Method = "POST";
                 webRequest.Headers.Add($"Authorization: key={key}");
                 webRequest.ContentType = "application/json";
+                string to = user.GetUserByID(param.Receiver).FirebaseToken;
                 byte[] byteArray = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
                 {
                     notification = new { body = param.Message },
@@ -403,7 +404,7 @@ HttpStatusCode.BadRequest, $"Send notification error : {Format.ExceptionString(e
                     }
                 }
                 DB.Save(param);
-                return ApiResult<object>.Ok("Notification has been sent successfully");
+                return ApiResult<object>.Ok("success");
             }
             catch (Exception e)
             {
