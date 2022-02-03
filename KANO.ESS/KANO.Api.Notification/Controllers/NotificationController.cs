@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using KANO.Api.Notification.Hubs;
 using KANO.Core.Lib;
@@ -10,6 +12,7 @@ using KANO.Core.Lib.Helper;
 using KANO.Core.Model;
 using KANO.Core.Service;
 using KANO.Core.Service.AX;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
@@ -268,6 +271,145 @@ namespace KANO.Api.Notification.Controllers
         {
             VapidDetails vapidKeys = VapidHelper.GenerateVapidKeys();
             return ApiResult<VapidDetails>.Ok(vapidKeys);
+        }
+
+        /**
+         * Function for ESS Mobile because ESS Mobile need Authentication except signin
+         * Every function must authorize with token from signin function
+         * This is for security
+         */
+
+        [Authorize]
+        [HttpPost("msend")]
+        public IActionResult MSend([FromBody] Core.Model.Notification param)
+        {
+            param.Timestamp = DateTime.Now;
+            if (string.IsNullOrWhiteSpace(param.Receiver))
+            {
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, "Receiver could not be empty");
+            }
+            if (string.IsNullOrWhiteSpace(param.Sender))
+            {
+                param.Sender = Core.Model.Notification.DEFAULT_SENDER;
+            }
+            try
+            {
+                DB.Save(param);
+                return ApiResult<object>.Ok("Notification has been sent successfully");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+HttpStatusCode.BadRequest, $"Send notification error : {Format.ExceptionString(e, true)}");
+            }
+        }
+
+        [Authorize]
+        [HttpPost("mget")]
+        public IActionResult MGet([FromBody] FetchParam param)
+        {
+            if (string.IsNullOrWhiteSpace(param.EmployeeID))
+            {
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, "Employee id could not be empty");
+            }
+            var notifications = new List<Core.Model.Notification>();
+            var collection = DB.GetCollection<Core.Model.Notification>();
+            long total = 0;
+            IFindFluent<Core.Model.Notification, Core.Model.Notification> collectionFind;
+            switch (param.Filter)
+            {
+                case "all":
+                    collectionFind = collection.Find(x => x.Receiver == param.EmployeeID);
+                    total = collectionFind.CountDocuments();
+                    break;
+                case "unread":
+                    collectionFind = collection.Find(x => x.Receiver == param.EmployeeID && x.Read == false);
+                    total = collectionFind.CountDocuments();
+                    break;
+                case "read":
+                    collectionFind = collection.Find(x => x.Receiver == param.EmployeeID && x.Read == true);
+                    total = collectionFind.CountDocuments();
+                    break;
+                default:
+                    collectionFind = collection.Find(x => x.Receiver == param.EmployeeID);
+                    total = collectionFind.CountDocuments();
+                    break;
+            }
+            var result = collectionFind.SortByDescending(x => x.Timestamp).Limit(param.Limit).Skip(param.Offset);
+            if (result.Any())
+            {
+                notifications = result.ToList();
+            }
+            return ApiResult<List<Core.Model.Notification>>.Ok(notifications, total);
+        }
+
+        [Authorize]
+        [HttpPost("msetread")]
+        public IActionResult MSetRead([FromBody] Core.Model.Notification param)
+        {
+            Core.Model.Notification notif = DB.GetCollection<Core.Model.Notification>().Find(x => x.Id == param.Id).FirstOrDefault();
+            notif.Read = true;
+            DB.Save(notif);
+            return ApiResult<Core.Model.Notification>.Ok(notif);
+        }
+
+        /**
+         * Send from Microsoft Dynamic AX 2012
+         * 
+         */
+        [HttpPost("msendfromax")]
+        public IActionResult MSendFromAx([FromBody] Core.Model.Notification param)
+        {
+            param.Timestamp = DateTime.Now;
+            if (string.IsNullOrWhiteSpace(param.Receiver))
+            {
+                return ApiResult<object>.Error(HttpStatusCode.BadRequest, "Receiver could not be empty");
+            }
+            if (string.IsNullOrWhiteSpace(param.Sender))
+            {
+                param.Sender = Core.Model.Notification.DEFAULT_SENDER;
+            }
+            try
+            {
+                var api = Configuration.GetSection("Request:FcmApi").Value;
+                var key = Configuration.GetSection("Request:FcmKey").Value;
+                var user = new User(DB, Configuration);
+                //SendToFirebase
+                WebRequest webRequest = WebRequest.Create(new Uri(api));
+                webRequest.Method = "POST";
+                webRequest.Headers.Add($"Authorization: key={key}");
+                webRequest.ContentType = "application/json";
+                byte[] byteArray = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
+                {
+                    notification = new { body = param.Message },
+                    data = new { module = param.Module, value = param.Message },
+                    to = user.GetUserByID(param.Receiver).FirebaseToken,
+                    priority = "high",
+                    direct_boot_ok = true
+                }));
+                webRequest.ContentLength = byteArray.Length;
+                using (Stream dataStream = webRequest.GetRequestStream())
+                {
+                    dataStream.Write(byteArray, 0, byteArray.Length);
+                    using (WebResponse webResponse = webRequest.GetResponse())
+                    {
+                        using (Stream dataStreamResponse = webResponse.GetResponseStream())
+                        {
+                            using (StreamReader tReader = new StreamReader(dataStreamResponse))
+                            {
+                                tReader.ReadToEnd();
+                            }
+                        }
+                    }
+                }
+                DB.Save(param);
+                return ApiResult<object>.Ok("Notification has been sent successfully");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<object>.Error(
+                    HttpStatusCode.BadRequest, $"Send notification error : {Format.ExceptionString(e, true)}");
+            }
         }
 
         [HttpGet("ping")]

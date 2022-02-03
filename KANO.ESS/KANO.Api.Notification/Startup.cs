@@ -14,6 +14,10 @@ using Microsoft.Extensions.Options;
 using KANO.Api.Notification.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json.Serialization;
+using KANO.Api.Notification.Helpers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace KANO.Api.Notification
 {
@@ -44,6 +48,21 @@ namespace KANO.Api.Notification
 
             services.AddMongoManager();
             services.AddMongoChangeStream();
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(cfg =>
+            {
+                cfg.RequireHttpsMetadata = false;
+                cfg.SaveToken = true;
+                //cfg.SecurityTokenValidators.Clear();
+                cfg.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidIssuer = Configuration["Tokens:Issuer"],
+                    ValidAudience = Configuration["Tokens:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration["Tokens:Key"])),
+                    RequireExpirationTime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
 
 
             services.Configure<JsonHubProtocolOptions>(options =>
@@ -73,6 +92,11 @@ namespace KANO.Api.Notification
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
+            app.UseAuthentication();
+
+            // custom jwt auth middleware
+            app.UseMiddleware<JwtMiddleware>();
 
             //app.UseHttpsRedirection();
             app.UseCors(builder => builder
