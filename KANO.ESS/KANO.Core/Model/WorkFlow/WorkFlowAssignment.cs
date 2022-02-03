@@ -119,7 +119,12 @@ namespace KANO.Core.Model
             var result = adapter.GetAssignment(employeeID, true);
             return result.Count();           
         }
-       
+
+        public int MCountActive(String EmployeeID)
+        {
+            return new WorkFlowTrackingAdapter(Configuration).MGetAssignmentCount(EmployeeID, true);
+        }
+
     }
 
     public class ParamTask {

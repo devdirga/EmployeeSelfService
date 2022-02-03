@@ -454,5 +454,27 @@ namespace KANO.Core.Service.AX
             this.Do(action);
         }
 
+        public int MGetAssignmentCount(string employeeID, bool activeOnly = false)
+        {
+            var Client = this.GetClient();
+            var Context = this.GetContext();
+            int count = 0;
+            try
+            {
+                Task<KESSWFServices.KESSWFServiceGetWFTrackingAssignResponse> data = Client.getWFTrackingAssignAsync(Context, employeeID, activeOnly);
+                List<KESSWFServices.WFTrackingAssign> c = new List<KESSWFServices.WFTrackingAssign>(data.Result.response);
+                count = c.FindAll(a => a.AssignToEmplId != a.SubmitByEmplId).Count;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait();
+            }
+            return count;
+        }
+
     }
 }
