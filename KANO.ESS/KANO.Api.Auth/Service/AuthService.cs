@@ -109,7 +109,6 @@ namespace KANO.Api.Auth.Service
                             .FirstOrDefault();
                         userDetail.Group = role;
                     }
-                    
                 }
                 catch (Exception e)
                 {
