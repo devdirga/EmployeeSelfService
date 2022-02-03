@@ -117,112 +117,68 @@ namespace KANO.Api.Absence.Controllers
         }
         
         [HttpPost("doinout")]
-        public IActionResult DoInOut([FromForm] TicketForm param)
+        public IActionResult DoInOut([FromForm] TicketForm p)
         {
-            Absences absence = JsonConvert.DeserializeObject<Absences>(param.JsonData);
-            User user = _user.GetEmployeeUser(absence.EmployeeID);
-            AbsenceInOut inout = new AbsenceInOut()
-            {
-                EmplIdField = user.Id,
-                EmplNameField = user.FullName,
-                InOutField = absence.InOut,
-                Clock = 0,
+            Absences abs = JsonConvert.DeserializeObject<Absences>(p.JsonData);
+            User user = _user.GetEmployeeUser(abs.EmployeeID);
+            AbsenceInOut inout = new AbsenceInOut() {
+                EmplIdField = user.Id, EmplNameField = user.FullName,
+                InOutField = abs.InOut, Clock = 0,
                 PresenceDateField = DateTime.Now,
-                RecIdField = 1,
-                TermNo = absence.LocationID
+                RecIdField = 1, TermNo = abs.LocationID
             };
-            try
-            {
+            try {
                 string result = String.Empty;
-                if (absence.typeID == "Photo")
-                {
-                    absence.UploadAbsence(Configuration, null, param.FileUpload, x => String.Format("Absence{0}{1}{2}",
-                        absence.EntityID, x.EmployeeID, DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)));
+                if (abs.typeID.Equals("Photo")) {
+                    abs.UploadAbsence(Configuration, null, p.FileUpload, x => String.Format("absence{0}{1}{2}", abs.EntityID, x.EmployeeID, DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)));
                 }
-                DateTime actionDatetime = Core.Lib.Helper.Configuration.GetStageApp(Configuration) == "development" ? DateTime.UtcNow.AddHours(7) : DateTime.UtcNow;
-                DB.Save(new ActivityLog()
-                {
-                    EntityID = ObjectId.Parse(absence.EntityID),
-                    ActivityTypeID = ObjectId.Parse(absence.ActivityTypeID),
-                    LocationID = absence.LocationID,
-                    UserID = user.Id,
-                    Latitude = absence.Latitude,
-                    Longitude = absence.Longitude,
-                    DateTime = actionDatetime, // DateTime.UtcNow
-                    CreatedBy = user.Id,
-                    UpdateBy = user.Id,
-                    SubmittedBy = user.Id,
-                    CreatedDate = actionDatetime,
-                    LastUpdatedDate = actionDatetime,
-                    Status = "active",
-                    Temporary = absence.Temporary
+                DateTime actionDatetime = Core.Lib.Helper.Configuration.GetStageApp(Configuration).Equals("development") ? DateTime.UtcNow.AddHours(7) : DateTime.UtcNow;
+                DB.Save(new ActivityLog() {
+                    EntityID = ObjectId.Parse(abs.EntityID), ActivityTypeID = ObjectId.Parse(abs.ActivityTypeID),
+                    LocationID = abs.LocationID, UserID = user.Id, Latitude = abs.Latitude, Longitude = abs.Longitude,
+                    DateTime = actionDatetime, CreatedBy = user.Id, UpdateBy = user.Id, SubmittedBy = user.Id,
+                    CreatedDate = actionDatetime, LastUpdatedDate = actionDatetime, Status = "active", Temporary = abs.Temporary
                 });
-                CreateAbsenceFile(absence.InOut, inout);
-                return ApiResult<object>.Ok($"Absence has been saved");
+                CreateAbsenceFile(abs.InOut, inout);
+                return ApiResult<object>.Ok("success");
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Absence request is failed :\n{e.Message}");
-            }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
 
         [HttpPost("doinoutdev")]
-        public IActionResult DoInOutDev([FromForm] TicketForm param)
+        public IActionResult DoInOutDev([FromForm] TicketForm p)
         {
-            Absences absence = JsonConvert.DeserializeObject<Absences>(param.JsonData);
-            User user = _user.GetEmployeeUser(absence.EmployeeID);
-            AbsenceInOut inout = new AbsenceInOut()
-            {
-                EmplIdField = user.Id,
-                EmplNameField = user.FullName,
-                InOutField = absence.InOut,
-                Clock = 0,
+            Absences abs = JsonConvert.DeserializeObject<Absences>(p.JsonData);
+            User user = _user.GetEmployeeUser(abs.EmployeeID);
+            AbsenceInOut inout = new AbsenceInOut() {
+                EmplIdField = user.Id, EmplNameField = user.FullName,
+                InOutField = abs.InOut, Clock = 0,
                 PresenceDateField = DateTime.Now,
-                RecIdField = 1,
-                TermNo = absence.LocationID
+                RecIdField = 1, TermNo = abs.LocationID
             };
 
-            try
-            {
+            try {
                 string result = String.Empty;
-                if (absence.typeID == "Photo")
-                {
-                    absence.UploadAbsence(Configuration, null, param.FileUpload, x => String.Format("Absence{0}{1}{2}",
-                        absence.EntityID, x.EmployeeID, DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)));
+                if (abs.typeID.Equals("Photo")) {
+                    abs.UploadAbsence(Configuration, null, p.FileUpload, x => String.Format("absence{0}{1}{2}", abs.EntityID, x.EmployeeID, DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)));
                 }
-                DateTime actionDatetime = Core.Lib.Helper.Configuration.GetStageApp(Configuration) == "development" ? DateTime.UtcNow.AddHours(7) : DateTime.UtcNow;
-
-                if (!absence.Temporary)
-                {
-                    var adapter = new AbsenceAdapter(Configuration);
-                    result = adapter.DoAbsenceClockInOut(inout);
-                    if (result == "Failed")
-                    {
+                DateTime actionDatetime = Core.Lib.Helper.Configuration.GetStageApp(Configuration).Equals("development") ? DateTime.UtcNow.AddHours(7) : DateTime.UtcNow;
+                if (!abs.Temporary) {
+                    result = new AbsenceAdapter(Configuration).DoAbsenceClockInOut(inout);
+                    if (result.Equals("Failed")) {
                         throw new Exception(result);
                     }
                 }
-
-                DB.Save(new ActivityLog()
-                {
-                    EntityID = ObjectId.Parse(absence.EntityID),
-                    ActivityTypeID = ObjectId.Parse(absence.ActivityTypeID),
-                    LocationID = absence.LocationID,
-                    UserID = user.Id,
-                    Latitude = absence.Latitude,
-                    Longitude = absence.Longitude,
-                    DateTime = actionDatetime, // DateTime.UtcNow
-                    CreatedBy = user.Id,
-                    UpdateBy = user.Id,
-                    SubmittedBy = user.Id,
-                    CreatedDate = actionDatetime,
-                    LastUpdatedDate = actionDatetime,
-                    Status = "active",
-                    Temporary = absence.Temporary
+                DB.Save(new ActivityLog() {
+                    EntityID = ObjectId.Parse(abs.EntityID), ActivityTypeID = ObjectId.Parse(abs.ActivityTypeID),
+                    LocationID = abs.LocationID, UserID = user.Id, Latitude = abs.Latitude, Longitude = abs.Longitude,
+                    DateTime = actionDatetime,  CreatedBy = user.Id, UpdateBy = user.Id, SubmittedBy = user.Id,
+                    CreatedDate = actionDatetime, LastUpdatedDate = actionDatetime, Status = "active", Temporary = abs.Temporary
                 });
 
-                if (!absence.Temporary)
+                if (!abs.Temporary)
                 {
-                    CreateAbsenceFile(absence.InOut, inout);
+                    CreateAbsenceFile(abs.InOut, inout);
                 }
 
                 return ApiResult<object>.Ok($"Absence has been saved");
