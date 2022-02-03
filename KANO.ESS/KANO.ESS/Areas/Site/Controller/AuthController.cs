@@ -24,6 +24,8 @@ using MongoDB.Driver;
 using System.Linq;
 using System.Collections.Generic;
 using KANO.Core.Service.Odoo;
+using Microsoft.Extensions.Primitives;
+using KANO.Core.Lib.Response;
 
 namespace KANO.ESS.Areas.Site
 {
@@ -34,6 +36,8 @@ namespace KANO.ESS.Areas.Site
         private IConfiguration Configuration;
         private IUserSession Session;
         private IHostingEnvironment Env;
+        private readonly String Api = "api/auth/";
+        private readonly String BearerAuth = "Bearer ";
         public AuthController(IConfiguration config, IUserSession session, IHostingEnvironment env)
         {
             Configuration = config;
@@ -523,6 +527,127 @@ namespace KANO.ESS.Areas.Site
             }
 
             user.UserData["profilePicture"] = "";
+        }
+
+        /**
+         * Function for ESS Mobile because ESS Mobile need Authentication except signin
+         * Every function must authorize with token from signin function
+         * This is for security
+         */
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult SignIn([FromBody] LoginParam param)
+        {
+            HttpContext.Session.SetString(CustomClaimTypes.UserPageAction, String.Empty);
+            String pageRef = HttpContext.Session.GetString("ref") ?? String.Empty;
+            try
+            {
+                IRestResponse authResponse = null;
+                String odooSessionID = String.Empty;
+                var tasks = new List<Task<TaskRequest<Exception>>>
+                {
+                    Task.Run(() => {
+                        Exception error = null;
+                        try { authResponse = new Client(Configuration).Execute(new Request($"{Api}signin", Method.POST, param)); }
+                        catch (Exception e) { error = e;}
+                        return TaskRequest<Exception>.Create("ess_auth", error);
+                    }),
+                    Task.Run(() =>
+                    {
+                        Exception error = null;
+                        try { odooSessionID = OdooService.Authenticate(Configuration); }
+                        catch (Exception e) { error = e; }
+                        return TaskRequest<Exception>.Create("odoo_auth", error);
+                    })
+                };
+
+                var t = Task.WhenAll(tasks);
+                try { t.Wait(); }
+                catch (Exception e) { throw e; }
+
+                if (t.Status == TaskStatus.RanToCompletion)
+                {
+                    foreach (var r in t.Result)
+                    {
+                        var e = (Exception)r.Result;
+                        if (e != null) { throw e; }
+                    }
+                }
+
+                if (authResponse != null && authResponse.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    var authResult = JsonConvert.DeserializeObject<ApiResult<AuthResult>.Result>(authResponse.Content).Data;
+                    authResult.User.OdooID = odooSessionID;
+                    if (!authResult.Success)
+                    {
+                        return ApiResult<AuthResult>.Error(HttpStatusCode.BadRequest, authResult.Message);
+                    }
+                    if (authResult.AuthState == AuthState.Authenticated)
+                    {
+                        return ApiResult<AuthResult>.Ok(authResult, authResult.Message);
+                    }
+                }
+                else if (authResponse.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    return ApiResult<AuthResult>.Error(HttpStatusCode.Unauthorized, $"Invalid password or employee id");
+                }
+                return ApiResult<AuthResult>.Error(HttpStatusCode.BadRequest, $"Unable to authenticate with server :\n{authResponse.StatusCode} {authResponse.ErrorMessage}");
+            }
+            catch (Exception ex) { return ApiResult<AuthResult>.Error(HttpStatusCode.BadRequest, ex.Message); }
+        }
+
+        [AllowAnonymous]
+        public IActionResult MRequestResetPassword([FromBody] SendResetPasswordEmailParam param)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            param.BaseURL = $"{this.Request.Scheme}://{this.Request.Host}/Site/Auth/ResetPassword";
+            var response = new Client(Configuration).Execute(new Request($"{Api}resetpassword/request", Method.POST, param, "Authorization", bearerAuth));
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var data = JsonConvert.DeserializeObject<ApiResult<AuthResult>.Result>(response.Content).Data;
+                if (data != null && data.Success)
+                {
+                    try
+                    {
+                        string Body = "Dear {0},<br/><br/>Please click on the below button to reset your password<br/><br/><a href='{1}'>Click here to reset</a><br/><br/>If the button didn't work in your browser, try this link instead:<br/><a href='{2}'>{3}</a><br/><br/>Copyright © 2019 TPS";
+                        var message = new MailMessage()
+                        {
+                            Subject = "Reset Password",
+                            Body = string.Format(Body, data.User.FullName, param.BaseURL + "/" + data.Data, param.BaseURL + "/" + data.Data, param.BaseURL + "/" + data.Data)
+                        };
+                        message.To.Add(param.Email);
+                        new Mailer(Configuration).SendMail(message);
+                        return ApiResult<object>.Ok($"Reset password mail has been sent to  {param.Email}");
+                    }
+                    catch (Exception e)
+                    {
+                        return ApiResult<AuthResult>.Error(HttpStatusCode.BadRequest, e.Message);
+                    }
+                }
+                return ApiResult<AuthResult>.Error(HttpStatusCode.BadRequest, data.Message);
+            }
+            return ApiResult<AuthResult>.Error(HttpStatusCode.BadRequest, $"Unable to request password reset :\n{response.StatusCode} {response.ErrorMessage}");
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult MChangePassword([FromBody] ChangePasswordParam param)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<APIResponse>(JsonConvert.DeserializeObject<ApiResult<APIResponse>.Result>(
+                (new Client(Configuration).Execute(new Request($"{Api}mchangepassword", Method.POST, param, "Authorization", bearerAuth))).Content));
+        }
+
+        [AllowAnonymous]
+        public IActionResult MIsMustChangePassword(String token)
+        {
+            string bearerAuth = BearerAuth;
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
+            return new ApiResult<APIResponse>(JsonConvert.DeserializeObject<ApiResult<APIResponse>.Result>(
+                (new Client(Configuration).Execute(new Request($"{Api}mismustchangepassword/{token}", Method.GET, "Authorization", bearerAuth))).Content));
         }
 
     }

@@ -179,6 +179,109 @@ model.data.employeeName = ko.observableArray([]);
 model.data.userGroup = ko.observableArray([]);
 model.data.authentication = ko.observableArray([]);
 
+// Update Config Password
+model.data.ConfigPassword = ko.observable(_.cloneDeep(model.proto.ConfigPassword));
+model.render.ConfigPassword = function () {
+  const url = URL_GET_CONFIG_PASSWORD;
+  ajax(url, "GET", {}, function (res) {
+    model.data.ConfigPassword(res.Data);
+  });
+}
+
+model.action.updateConfig = function () {
+  let formData = new FormData()
+  formData.append("JsonData", JSON.stringify(ko.mapping.toJS(model.data.ConfigPassword())))
+  isLoading(true)
+  ajaxPostUpload("/ESS/Administrator/UpdateConfigPassword", formData, function (res) {
+    console.log(res)
+    isLoading(false)
+    if (res.StatusCode == 200) {
+      swalSuccess(`Config Password`, res.Message);
+    } else {
+      swalFatal(dialogTitle, res.Message)
+    }
+  }, function (res) {
+    isLoading(false)
+    swalFatal(dialogTitle, res.Message)
+  })
+}
+
+//MobileVersion
+model.data.androidmobile = ko.observable(_.cloneDeep(model.proto.Mobile))
+model.data.iosmobile = ko.observable(_.cloneDeep(model.proto.Mobile))
+model.render.mobileversion = () => {
+  ajax(URL_GET_MOBILE_VERSION, "GET", {}, function (res) {
+    res.Data.forEach((d) => {
+      if (d.Type == "android") {
+        model.data.androidmobile(d)
+      }
+      if (d.Type == "ios") {
+        model.data.iosmobile(d)
+      }
+    })
+  })
+}
+
+model.action.updateAndroidVersion_ = () => {
+  let dialogTitle = `Mobile Version`
+  let formData = new FormData()
+  formData.append(`JsonData`, JSON.stringify(ko.mapping.toJS(model.data.androidmobile())))
+  var files = $('#Filepath').getKendoUpload().getFiles()
+  if (files.length > 0) {
+    formData.append(`FileUpload`, files[0].rawFile)
+  } else {
+    swalAlert(dialogTitle, `Document attachment could not be empty`)
+    return
+  }
+  try {
+    isLoading(true)
+    ajaxPostUpload(`/ESS/Administrator/UpdateAndroidVersion`, formData, function (data) {
+      isLoading(false);
+      if (data.StatusCode == 200) {
+        swalSuccess(dialogTitle, data.Message)
+      } else {
+        swalFatal(dialogTitle, data.Message)
+      }
+    }, (data) => {
+      isLoading(false);
+      swalFatal(dialogTitle, data.Message)
+    })
+  } catch (e) {
+    isLoading(false)
+  }
+  return false
+}
+
+model.action.updateIOSVersion_ = () => {
+  let dialogTitle = `Mobile Version`
+  let formData = new FormData()
+  formData.append(`JsonData`, JSON.stringify(ko.mapping.toJS(model.data.iosmobile())))
+  var files = $('#Filepath2').getKendoUpload().getFiles()
+  if (files.length > 0) {
+    formData.append(`FileUpload`, files[0].rawFile)
+  } else {
+    swalAlert(dialogTitle, `Document attachment could not be empty`)
+    return
+  }
+  try {
+    isLoading(true);
+    ajaxPostUpload(`/ESS/Administrator/UpdateIOSVersion`, formData, function (data) {
+      isLoading(false)
+      if (data.StatusCode == 200) {
+        swalSuccess(dialogTitle, data.Message)
+      } else {
+        swalFatal(dialogTitle, data.Message)
+      }
+    }, (data) => {
+      isLoading(false)
+      swalFatal(dialogTitle, data.Message)
+    })
+  } catch (e) {
+    isLoading(false)
+  }
+  return false
+}
+
 // Document Request
 model.list.documentType = ko.observableArray([]);
 model.list.documentRequestType = ko.observableArray([]);

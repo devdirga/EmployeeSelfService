@@ -24,8 +24,8 @@ namespace KANO.Core.Model
         [JsonIgnore]
         protected IConfiguration Configuration;
 
-        [BsonIgnore]
-        [JsonIgnore]
+        //[BsonIgnore]
+        //[JsonIgnore]
         public string OdooID { get; set; }
 
         [BsonId]

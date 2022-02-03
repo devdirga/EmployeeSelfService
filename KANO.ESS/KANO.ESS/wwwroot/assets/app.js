@@ -49,8 +49,13 @@ model.app.newRedeem = function (data) {
     return ko.mapping.fromJS(Object.assign(_.clone(this.proto.Redeem), { PICName: "" }));
 };
 
+model.app.newConfigPassword = function () {
+  return ko.mapping.fromJS(Object.assign({}, this.config.configPassword));
+};
+
 model.app.data = {};
 model.app.data.changePassword = ko.observable(model.app.newChangePassword());
+model.app.data.configPassword = ko.observable(model.app.newConfigPassword());
 model.app.data.taskCounter = ko.observable(0);
 model.app.data.redeem = ko.observable(model.app.newRedeem());
 model.app.data.updateRequest = ko.observableArray([]);
@@ -78,7 +83,12 @@ model.app.list.canteen = ko.observableArray([]);
 model.app.action = {};
 
 model.app.action.openChangePasswordModal = function () {
-    model.app.data.changePassword(model.app.newChangePassword());
+  model.app.data.changePassword(model.app.newChangePassword());
+
+  let response = await ajax("/ess/administrator/getconfigpassword", "GET");
+  if (response.StatusCode == 200) {
+    model.app.data.configPassword(response.Data)
+  }
 
     var container = $("#formChangePassword");
     kendo.init(container);

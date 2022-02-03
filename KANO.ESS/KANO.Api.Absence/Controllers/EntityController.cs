@@ -46,33 +46,54 @@ namespace KANO.Api.Absence.Controllers
             _user = new User(DB, Configuration);
         }
 
+        //[Authorize]
+        //[HttpGet("list")]
+        //public IActionResult GetList()
+        //{
+        //    try
+        //    {
+        //        int skip = String.IsNullOrEmpty(Request.Query["skip"]) ? 0 : Int32.Parse(Request.Query["skip"]);
+        //        int limit = String.IsNullOrEmpty(Request.Query["limit"]) ? 0 : Int32.Parse(Request.Query["limit"]);
+        //        string keyword = Request.Query["search"].ToString();
+
+        //        var result = _entity.Get(skip, limit, keyword);
+
+        //        return Ok(new
+        //        {
+        //            data = result,
+        //            message = "",
+        //            success = true
+        //        });
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return Ok(new
+        //        {
+        //            data = (object)null,
+        //            message = Format.ExceptionString(e),
+        //            success = false
+        //        });
+        //    }
+        //}
+
         [Authorize]
         [HttpGet("list")]
         public IActionResult GetList()
         {
             try
             {
+                string employeeID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 int skip = String.IsNullOrEmpty(Request.Query["skip"]) ? 0 : Int32.Parse(Request.Query["skip"]);
                 int limit = String.IsNullOrEmpty(Request.Query["limit"]) ? 0 : Int32.Parse(Request.Query["limit"]);
                 string keyword = Request.Query["search"].ToString();
 
-                var result = _entity.Get(skip, limit, keyword);
-                
-                return Ok(new
-                {
-                    data = result,
-                    message = "",
-                    success = true
-                });
+                var result = _entity.MGet(employeeID, skip, limit, keyword);
+                return ApiResult<List<EntityMap>>.Ok(result, result.Count);
             }
             catch (Exception e)
             {
-                return Ok(new
-                {
-                    data = (object)null,
-                    message = Format.ExceptionString(e),
-                    success = false
-                });
+                return ApiResult<List<EntityMap>>.Error(
+                    HttpStatusCode.BadRequest, $"Fetching entitylist data error :\n{Format.ExceptionString(e)}");
             }
         }
 
