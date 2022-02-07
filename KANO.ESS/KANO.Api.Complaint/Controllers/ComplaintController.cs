@@ -103,66 +103,50 @@ namespace KANO.Api.Complaint.Controllers
             }
         }
 
-        [HttpPost("request")]
-        public new IActionResult Request([FromForm] TicketForm param)
+        [HttpPost("complaint")]
+        public IActionResult Complaint([FromForm] TicketForm p)
         {
-            var updateRequest = new UpdateRequest();
-            var data = JsonConvert.DeserializeObject<TicketRequest>(param.JsonData);
-            var adapter = new WorkFlowRequestAdapter(Configuration);
-            try
-            {
-                var AXRequestID = "";
-
-                if(data.TicketType == KESSWRServices.KESSTicketType.Complaint)
+            try {
+                UpdateRequest ur = new UpdateRequest();
+                TicketRequest t = JsonConvert.DeserializeObject<TicketRequest>(p.JsonData);
+                if (t.TicketType == KESSWRServices.KESSTicketType.Complaint)
                 {
-                    AXRequestID =  adapter.RequestComplaint(data);
-                    if (!string.IsNullOrWhiteSpace(AXRequestID))
+                    var AXRID = new WorkFlowRequestAdapter(Configuration).RequestComplaint(t);
+                    if (!string.IsNullOrWhiteSpace(AXRID))
                     {
-                        updateRequest.Create(AXRequestID, data.EmployeeID, UpdateRequestModule.COMPLAINT, $"Complaint");
-                        data.AXRequestID = AXRequestID;
-                        DB.Save(updateRequest);
-
-                        // Send approval notification
-                        new Notification(Configuration, DB).SendApprovals(data.EmployeeID, data.AXRequestID);
+                        ur.Create(AXRID, t.EmployeeID, UpdateRequestModule.COMPLAINT, "Complaint");
+                        t.AXRequestID = AXRID;
+                        DB.Save(ur);
+                        new Notification(Configuration, DB).SendApprovals(t.EmployeeID, t.AXRequestID);
+                        new Notification(Configuration, DB).SendNotification(t.EmployeeID, t.AXRequestID);
                     }
-                    else 
-                    {
-                        throw new Exception("Unable to request to AX");
-                    }                    
+                    else throw new Exception("Unable to request to AX");
                 }
-                else
-                {
-                    data.AXRequestID = Tools.RandomInt().ToString();                    
-                }
-                
-                data.Upload(Configuration, null, param.FileUpload, x => String.Format("Ticket_{0}_{1}_{2}", data.CreatedDate, data.CreatedDate, x.EmployeeID));
-
-                DB.Save(data);
-                return ApiResult<object>.Ok($"Ticket request has been saved");
+                else t.AXRequestID = Tools.RandomInt().ToString();
+                t.Upload(Configuration, null, p.FileUpload, x => String.Format("Ticket{0}{1}", t.CreatedDate.ToString("yyyyMMdHHmmss"), x.EmployeeID));
+                t.TicketNumber = DateTime.Now.ToLocalTime().ToString("yyyyMMTmmss");
+                DB.Save(t);
+                return ApiResult<object>.Ok("success");
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Ticket request is failed :\n{e.Message}");
-            }
-
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
 
-        [HttpPost("updateStatus")]
-        public IActionResult RequestUpdateStatus([FromForm] TicketForm param)
+        [HttpPost("resolution")]
+        public IActionResult Resolution([FromForm] TicketForm p)
         {
-            var data = JsonConvert.DeserializeObject<TicketRequest>(param.JsonData);
-            try
-            {
-                TicketRequest Ticket = (_ticket.GetByAXID(data.AXID)).UpdateRequest;
-                Ticket.Id = data.Id;
-                Ticket.TicketStatus = data.TicketStatus;
-                DB.Save(Ticket);
-                return ApiResult<object>.Ok($"Ticket request status has been update");
+            try {
+                TicketRequest ot = JsonConvert.DeserializeObject<TicketRequest>(p.JsonData);
+                TicketRequest t = _ticket.GetByID(ot.Id);
+                t.Id = ot.Id;
+                t.TicketStatus = ot.TicketStatus;
+                t.TicketResolution = ot.TicketResolution;
+                if (p.FileUpload != null) {
+                    t.Attachments.Upload(Configuration, null, p.FileUpload, x => String.Format("TicketResolution{0}{1}", t.CreatedDate, x.Filename));
+                }
+                DB.Save(t);
+                return ApiResult<object>.Ok("success");
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Ticket request update status is failed :\n{e.Message}");
-            }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
 
         [HttpGet("list/ticketType")]

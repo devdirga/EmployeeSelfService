@@ -650,6 +650,12 @@ namespace KANO.ESS.Areas.Site
                 (new Client(Configuration).Execute(new Request($"{Api}mismustchangepassword/{token}", Method.GET, "Authorization", bearerAuth))).Content));
         }
 
+        [AllowAnonymous]
+        public IActionResult Policy()
+        {
+            return View("~/Areas/ESS/Views/Administration/Policy.cshtml");
+        }
+
     }
 
 }

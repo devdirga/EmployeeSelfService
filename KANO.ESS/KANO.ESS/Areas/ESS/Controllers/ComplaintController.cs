@@ -145,14 +145,12 @@ namespace KANO.ESS.Areas.ESS.Controllers
                 t.EmployeeName = Session.DisplayName();
                 var req = new Request($"{Api}complaint", Method.POST);
                 req.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(t));
-                if (p.FileUpload != null)
-                {
+                if (p.FileUpload != null) {
                     req.AddFormDataFile("FileUpload", p.FileUpload.FirstOrDefault());
                 }
                 var res = JsonConvert.DeserializeObject<ApiResult<object>.Result>((await (new Client(Configuration)).Upload(req)).Content);
-                if (res.StatusCode == HttpStatusCode.OK)
-                {
-                    var response = SendUseTemplate(t, Session.Id());
+                if (res.StatusCode == HttpStatusCode.OK) {
+                    var response = SendUseTemplate(t);
                     if (!string.IsNullOrWhiteSpace(response))
                     {
                         res.StatusCode = HttpStatusCode.BadRequest;
@@ -180,7 +178,7 @@ namespace KANO.ESS.Areas.ESS.Controllers
                 var result = JsonConvert.DeserializeObject<ApiResult<object>.Result>((await (new Client(Configuration)).Upload(req)).Content);
                 if (result.StatusCode == HttpStatusCode.OK)
                 {
-                    SendUseTemplate(t, Session.Id());
+                    SendUseTemplate(t);
                 }
                 return new ApiResult<object>(result);
             }
@@ -246,53 +244,38 @@ namespace KANO.ESS.Areas.ESS.Controllers
             }
         }
 
-        private string SendUseTemplate(TicketRequest param, string empId)
+        private string SendUseTemplate(TicketRequest param)
         {
-            try
-            {
-                var mailTemplate = GetTemplate();
+            try {
+                ComplaintMailTemplate mailTemplate = JsonConvert.DeserializeObject<ApiResult<ComplaintMailTemplate>.Result>(
+                    new Client(Configuration).Execute(new Request($"{Api}gettemplate", Method.GET)).Content).Data;
                 string bodyTemplate = mailTemplate.Body;
-
                 bodyTemplate = bodyTemplate.Replace("#NIPP#", param.EmployeeID);
                 bodyTemplate = bodyTemplate.Replace("#NAMA#", param.EmployeeName);
                 bodyTemplate = bodyTemplate.Replace("#KETERANGAN#", param.Description);
-
                 var mailer = new Mailer(Configuration);               
-
                 var message = new MailMessage();
-                foreach (var m in param.EmailTo)
-                {
+                foreach (var m in param.EmailTo) {
                     message.To.Add(m);
                 }
-
-                if (!string.IsNullOrWhiteSpace(param.EmailCC))
-                {
+                if (!string.IsNullOrWhiteSpace(param.EmailCC)) {
                     List<string> mailCC = JsonConvert.DeserializeObject<List<string>>(param.EmailCC);
-                    foreach (var m in mailCC)
-                    {
+                    foreach (var m in mailCC) {
                         message.CC.Add(m);
                     }
                 }
                 message.Subject = mailTemplate.Subject;
-
                 message.Body = string.Format(bodyTemplate, param.Id);
                 mailer.SendMail(message);
+                return "success";
             }
-            catch (Exception e)
-            {
-                return $"Error send email :\n{e.Message}";
-            }
-            return $"";
+            catch (Exception e) { return e.Message; }
         }
         
         private ComplaintMailTemplate GetTemplate()
         {
-            var client = new Client(Configuration);
-            var request = new Request($"api/complaint/gettemplate", Method.GET);
-            var response = client.Execute(request);
-            var result = JsonConvert.DeserializeObject<ApiResult<ComplaintMailTemplate>.Result>(response.Content);
-            return result.Data;
-
+            return JsonConvert.DeserializeObject<ApiResult<ComplaintMailTemplate>.Result>(
+                new Client(Configuration).Execute(new Request($"{Api}gettemplate", Method.GET)).Content).Data;
         }
 
         [AllowAnonymous]
@@ -382,7 +365,7 @@ namespace KANO.ESS.Areas.ESS.Controllers
                 var res = JsonConvert.DeserializeObject<ApiResult<object>.Result>((await (new Client(Configuration)).Upload(req)).Content);
                 if (res.StatusCode == HttpStatusCode.OK)
                 {
-                    var response = SendUseTemplate(t, t.EmployeeID);
+                    var response = SendUseTemplate(t);
                     if (!string.IsNullOrWhiteSpace(response))
                     {
                         res.StatusCode = HttpStatusCode.BadRequest;
