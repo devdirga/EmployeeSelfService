@@ -159,26 +159,26 @@ namespace KANO.ESS.Areas.ESS.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult SendFirebase([FromBody] Notification param)
+        public IActionResult SendFirebase([FromBody] Notification p)
         {
             var apiFirebase = Configuration.GetSection("Request:FcmApi").Value;
             var key = Configuration.GetSection("Request:FcmKey").Value;
             try {
-                param.Timestamp = DateTime.Now;
-                if (string.IsNullOrWhiteSpace(param.Receiver)) {
+                p.Timestamp = DateTime.Now;
+                if (string.IsNullOrWhiteSpace(p.Receiver)) {
                     return ApiResult<object>.Error(HttpStatusCode.BadRequest, "Receiver could not be empty");
                 }
-                if (string.IsNullOrWhiteSpace(param.Sender)) {
-                    param.Sender = Notification.DEFAULT_SENDER;
+                if (string.IsNullOrWhiteSpace(p.Sender)) {
+                    p.Sender = Notification.DEFAULT_SENDER;
                 }
-                User user = JsonConvert.DeserializeObject<ApiResult<User>.Result>(new Client(Configuration).Execute(new Request($"{apiAbsenceUser}userbyusername/{param.Receiver}", Method.GET)).Content).Data;
+                User user = JsonConvert.DeserializeObject<ApiResult<User>.Result>(new Client(Configuration).Execute(new Request($"{apiAbsenceUser}userbyusername/{p.Receiver}", Method.GET)).Content).Data;
                 WebRequest webRequest = WebRequest.Create(new Uri(apiFirebase));
                 webRequest.Method = "POST";
                 webRequest.Headers.Add($"Authorization: key={key}");
                 webRequest.ContentType = "application/json";
                 byte[] byteArray = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new {
-                    notification = new { body = param.Message },
-                    data = new { module = param.Module, value = param.Message },
+                    notification = new { body = p.Message },
+                    data = new { module = p.Module, value = p.Message },
                     to = user.FirebaseToken,
                     priority = "high",
                     direct_boot_ok = true
