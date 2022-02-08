@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using KANO.Core.Lib;
 using KANO.Core.Lib.Extension;
@@ -29,6 +31,7 @@ namespace KANO.ESS.Areas.ESS.Controllers
         private IUserSession Session;
         private static readonly HttpClient _httpClient = new HttpClient();
         private static readonly string api = "api/notification/";
+        private static readonly string apiAbsenceUser = "api/absence/user/";
         private readonly String ApiNotification = "api/notification/";
         private readonly String BearerAuth = "Bearer ";
 
@@ -122,8 +125,7 @@ namespace KANO.ESS.Areas.ESS.Controllers
             param.Offset = (param.Offset < 0) ? 0 : param.Offset;
             param.Filter = (string.IsNullOrEmpty(param.Filter)) ? "all" : param.Filter;
             var response = new Client(Configuration).Execute(new Request($"{ApiNotification}mget", Method.POST, param, "Authorization", bearerAuth));
-            if (response.StatusCode != HttpStatusCode.OK && string.IsNullOrWhiteSpace(response.Content))
-            {
+            if (response.StatusCode != HttpStatusCode.OK && string.IsNullOrWhiteSpace(response.Content)) {
                 return ApiResult<object>.Error(response.StatusCode, response.StatusDescription);
             }
             return new ApiResult<List<Notification>>(JsonConvert.DeserializeObject<ApiResult<List<Notification>>.Result>(response.Content));
@@ -136,8 +138,7 @@ namespace KANO.ESS.Areas.ESS.Controllers
             string bearerAuth = BearerAuth;
             if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
             var response = new Client(Configuration).Execute(new Request($"{ApiNotification}msetread", Method.POST, p, "Authorization", bearerAuth));
-            if (response.StatusCode != HttpStatusCode.OK && string.IsNullOrWhiteSpace(response.Content))
-            {
+            if (response.StatusCode != HttpStatusCode.OK && string.IsNullOrWhiteSpace(response.Content)) {
                 return ApiResult<Notification>.Error(response.StatusCode, response.StatusDescription);
             }
             return new ApiResult<Notification>(JsonConvert.DeserializeObject<ApiResult<Notification>.Result>(response.Content));
@@ -150,13 +151,53 @@ namespace KANO.ESS.Areas.ESS.Controllers
             string bearerAuth = BearerAuth;
             if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
             var response = new Client(Configuration).Execute(new Request($"{ApiNotification}msendfromax", Method.POST, p, "Authorization", bearerAuth));
-            if (response.StatusCode != HttpStatusCode.OK && string.IsNullOrWhiteSpace(response.Content))
-            {
+            if (response.StatusCode != HttpStatusCode.OK && string.IsNullOrWhiteSpace(response.Content)) {
                 return ApiResult<Notification>.Error(response.StatusCode, response.StatusDescription);
             }
             return new ApiResult<Notification>(JsonConvert.DeserializeObject<ApiResult<Notification>.Result>(response.Content));
         }
 
-
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult SendFirebase([FromBody] Notification param)
+        {
+            var apiFirebase = Configuration.GetSection("Request:FcmApi").Value;
+            var key = Configuration.GetSection("Request:FcmKey").Value;
+            try {
+                param.Timestamp = DateTime.Now;
+                if (string.IsNullOrWhiteSpace(param.Receiver)) {
+                    return ApiResult<object>.Error(HttpStatusCode.BadRequest, "Receiver could not be empty");
+                }
+                if (string.IsNullOrWhiteSpace(param.Sender)) {
+                    param.Sender = Notification.DEFAULT_SENDER;
+                }
+                User user = JsonConvert.DeserializeObject<ApiResult<User>.Result>(new Client(Configuration).Execute(new Request($"{apiAbsenceUser}userbyusername/{param.Receiver}", Method.GET)).Content).Data;
+                WebRequest webRequest = WebRequest.Create(new Uri(apiFirebase));
+                webRequest.Method = "POST";
+                webRequest.Headers.Add($"Authorization: key={key}");
+                webRequest.ContentType = "application/json";
+                byte[] byteArray = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new {
+                    notification = new { body = param.Message },
+                    data = new { module = param.Module, value = param.Message },
+                    to = user.FirebaseToken,
+                    priority = "high",
+                    direct_boot_ok = true
+                }));
+                webRequest.ContentLength = byteArray.Length;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls;
+                using (Stream dataStream = webRequest.GetRequestStream()) {
+                    dataStream.Write(byteArray, 0, byteArray.Length);
+                    using (WebResponse webResponse = webRequest.GetResponse()) {
+                        using (Stream dataStreamResponse = webResponse.GetResponseStream()) {
+                            using (StreamReader tReader = new StreamReader(dataStreamResponse)) {
+                                tReader.ReadToEnd();
+                            }
+                        }
+                    }
+                }
+                return ApiResult<Notification>.Ok("success");
+            }
+            catch (Exception e) { return ApiResult<Notification>.Error(HttpStatusCode.BadGateway, e.Message); }
+        }
     }
 }

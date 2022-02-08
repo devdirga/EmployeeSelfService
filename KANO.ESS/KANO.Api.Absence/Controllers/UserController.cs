@@ -464,5 +464,10 @@ namespace KANO.Api.Absence.Controllers
             return newFilepath;
         }
 
+        [HttpGet("userbyusername/{employeeID}")]
+        public IActionResult Userbyusername(string employeeID) 
+        {
+            return ApiResult<User>.Ok(DB.GetCollection<User>().Find(x => x.Username == employeeID).FirstOrDefault());
+        }
     }
 }

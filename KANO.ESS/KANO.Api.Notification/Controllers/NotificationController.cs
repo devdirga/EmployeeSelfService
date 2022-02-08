@@ -284,32 +284,24 @@ namespace KANO.Api.Notification.Controllers
         public IActionResult MSend([FromBody] Core.Model.Notification param)
         {
             param.Timestamp = DateTime.Now;
-            if (string.IsNullOrWhiteSpace(param.Receiver))
-            {
+            if (string.IsNullOrWhiteSpace(param.Receiver)) {
                 return ApiResult<object>.Error(HttpStatusCode.BadRequest, "Receiver could not be empty");
             }
-            if (string.IsNullOrWhiteSpace(param.Sender))
-            {
+            if (string.IsNullOrWhiteSpace(param.Sender)) {
                 param.Sender = Core.Model.Notification.DEFAULT_SENDER;
             }
-            try
-            {
+            try {
                 DB.Save(param);
-                return ApiResult<object>.Ok("Notification has been sent successfully");
+                return ApiResult<object>.Ok("success");
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(
-HttpStatusCode.BadRequest, $"Send notification error : {Format.ExceptionString(e, true)}");
-            }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message );}
         }
 
         [Authorize]
         [HttpPost("mget")]
         public IActionResult MGet([FromBody] FetchParam param)
         {
-            if (string.IsNullOrWhiteSpace(param.EmployeeID))
-            {
+            if (string.IsNullOrWhiteSpace(param.EmployeeID)) {
                 return ApiResult<object>.Error(HttpStatusCode.BadRequest, "Employee id could not be empty");
             }
             var notifications = new List<Core.Model.Notification>();
@@ -361,27 +353,22 @@ HttpStatusCode.BadRequest, $"Send notification error : {Format.ExceptionString(e
         public IActionResult MSendFromAx([FromBody] Core.Model.Notification param)
         {
             param.Timestamp = DateTime.Now;
-            if (string.IsNullOrWhiteSpace(param.Receiver))
-            {
+            if (string.IsNullOrWhiteSpace(param.Receiver)) {
                 return ApiResult<object>.Error(HttpStatusCode.BadRequest, "Receiver could not be empty");
             }
-            if (string.IsNullOrWhiteSpace(param.Sender))
-            {
+            if (string.IsNullOrWhiteSpace(param.Sender)) {
                 param.Sender = Core.Model.Notification.DEFAULT_SENDER;
             }
-            try
-            {
+            try {
                 var api = Configuration.GetSection("Request:FcmApi").Value;
                 var key = Configuration.GetSection("Request:FcmKey").Value;
                 var user = new User(DB, Configuration);
-                //SendToFirebase
                 WebRequest webRequest = WebRequest.Create(new Uri(api));
                 webRequest.Method = "POST";
                 webRequest.Headers.Add($"Authorization: key={key}");
                 webRequest.ContentType = "application/json";
                 string to = user.GetUserByID(param.Receiver).FirebaseToken;
-                byte[] byteArray = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
-                {
+                byte[] byteArray = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new {
                     notification = new { body = param.Message },
                     data = new { module = param.Module, value = param.Message },
                     to = user.GetUserByID(param.Receiver).FirebaseToken,
@@ -389,15 +376,11 @@ HttpStatusCode.BadRequest, $"Send notification error : {Format.ExceptionString(e
                     direct_boot_ok = true
                 }));
                 webRequest.ContentLength = byteArray.Length;
-                using (Stream dataStream = webRequest.GetRequestStream())
-                {
+                using (Stream dataStream = webRequest.GetRequestStream()) {
                     dataStream.Write(byteArray, 0, byteArray.Length);
-                    using (WebResponse webResponse = webRequest.GetResponse())
-                    {
-                        using (Stream dataStreamResponse = webResponse.GetResponseStream())
-                        {
-                            using (StreamReader tReader = new StreamReader(dataStreamResponse))
-                            {
+                    using (WebResponse webResponse = webRequest.GetResponse()) {
+                        using (Stream dataStreamResponse = webResponse.GetResponseStream()) {
+                            using (StreamReader tReader = new StreamReader(dataStreamResponse)) {
                                 tReader.ReadToEnd();
                             }
                         }
@@ -406,11 +389,7 @@ HttpStatusCode.BadRequest, $"Send notification error : {Format.ExceptionString(e
                 DB.Save(param);
                 return ApiResult<object>.Ok("success");
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(
-                    HttpStatusCode.BadRequest, $"Send notification error : {Format.ExceptionString(e, true)}");
-            }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message ); }
         }
 
         [HttpGet("ping")]
