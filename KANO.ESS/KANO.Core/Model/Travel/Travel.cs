@@ -40,7 +40,7 @@ namespace KANO.Core.Model
         public string Description { get; set; }
         //public FieldAttachment SPPD { get; set; }
         [BsonIgnore]
-        public List<SPPD> SPPD { get; set; }
+        public List<SPPD> SPPD { get; set; } = new List<SPPD>();
         
         // update 
         public string CreatedBy { get; set; }
