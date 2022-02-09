@@ -53,90 +53,49 @@ namespace KANO.Api.Auth.Service
         private UserDetail getUserDetail(string employeeID)
         {
             var userDetail = new UserDetail();
-            var tasks = new List<Task<TaskRequest<Exception>>>();
-
-            // Fetch employee data from AX
-            //tasks.Add(Task.Run(() =>
-            //{
-            //    Exception error = null;
-            //    try
-            //    {
-            //        userDetail.Employee = _employeeAdapter.GetDetail(employeeID);
-
-            //    }
-            //    catch (Exception e)
-            //    {
-
-            //        error = e;
-            //    }
-
-            //    return TaskRequest<Exception>.Create("employee", error);
-            //}));
-
-            // Fetch employee data from AX
-            //tasks.Add(Task.Run(() =>
-            //{
-            //    Exception error = null;
-            //    try
-            //    {
-            //        userDetail.HasSubordinate = _employeeAdapter.HasSubordinate(employeeID);
-            //    }
-            //    catch (Exception e)
-            //    {
-
-            //        error = e;
-            //    }
-
-            //    return TaskRequest<Exception>.Create("subordinate", error);
-            //}));
-
-            // Fetch user data from DB
-            tasks.Add(Task.Run(() => {
-                Exception error = null;
-                try
+            var tasks = new List<Task<TaskRequest<Exception>>>
+            {
+                Task.Run(() =>
                 {
-                     var user = DB.GetCollection<User>()
-                        .Find(x => x.Username == employeeID)
-                        .FirstOrDefault();
-
-                    if (user != null)
-                    {
-                        userDetail.User = user;
-
-                        var userRole = user.Roles.First();
-                        var role = DB.GetCollection<Group>()
-                            .Find(x => x.Id == userRole)
-                            .FirstOrDefault();
-                        userDetail.Group = role;
+                    Exception error = null;
+                    try { userDetail.Employee = _employeeAdapter.GetDetail(employeeID);}
+                    catch (Exception e) { error = e; }
+                    return TaskRequest<Exception>.Create("employee", error);
+                }),
+                Task.Run(() =>
+                {
+                    Exception error = null;
+                    try { userDetail.HasSubordinate = _employeeAdapter.HasSubordinate(employeeID); }
+                    catch (Exception e) { error = e; }
+                    return TaskRequest<Exception>.Create("subordinate", error);
+                }),
+                Task.Run(() =>
+                {
+                    Exception error = null;
+                    try {
+                        var user = DB.GetCollection<User>().Find(x => x.Username == employeeID).FirstOrDefault();
+                        if (user != null) {
+                            userDetail.User = user;
+                            var userRole = user.Roles.First();
+                            var role = DB.GetCollection<Group>().Find(x => x.Id == userRole).FirstOrDefault();
+                            userDetail.Group = role;
+                        }
                     }
-                }
-                catch (Exception e)
-                {
-                    error = e;
-                }
-
-                return TaskRequest<Exception>.Create("user", error);
-            }));
+                    catch (Exception e) { error = e; }
+                    return TaskRequest<Exception>.Create("user", error);
+                })
+            };
 
             var t = Task.WhenAll(tasks);
-            try
-            {
-                t.Wait();
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
+            
+            try { t.Wait(); }
+            catch (Exception e) { throw e; }
 
-            // Combine result
-            if (t.Status == TaskStatus.RanToCompletion)
-            {
-                foreach (var r in t.Result)
-                {
+            if (t.Status == TaskStatus.RanToCompletion) {
+                foreach (var r in t.Result) {
                     var e = (Exception)r.Result;
                     if (e != null)
-                        switch (r.Label)
-                        {
+                        switch (r.Label) {
                             case "employee":
                                 throw new Exception("Unable to get employee from AX", e);
                             case "user":
