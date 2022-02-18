@@ -656,6 +656,12 @@ namespace KANO.ESS.Areas.Site
             return View("~/Areas/ESS/Views/Administration/Policy.cshtml");
         }
 
+        [AllowAnonymous]
+        public IActionResult PrivacyPolicy()
+        {
+            return View("~/Areas/ESS/Views/Administration/Policy.cshtml");
+        }
+
     }
 
 }

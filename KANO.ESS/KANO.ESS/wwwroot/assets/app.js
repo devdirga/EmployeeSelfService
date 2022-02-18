@@ -82,7 +82,7 @@ model.app.list.canteen = ko.observableArray([]);
 
 model.app.action = {};
 
-model.app.action.openChangePasswordModal = function () {
+model.app.action.openChangePasswordModal = async function () {
   model.app.data.changePassword(model.app.newChangePassword());
 
   let response = await ajax("/ess/administrator/getconfigpassword", "GET");

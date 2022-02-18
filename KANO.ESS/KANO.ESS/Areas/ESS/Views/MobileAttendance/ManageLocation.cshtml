@@ -1,5 +1,4 @@
 ﻿@{
-    //ViewData["Title"] = "Index";
     Layout = "_Layout";
 }
 
@@ -31,7 +30,7 @@
                 <div class="card box">
                     <div class="card-header clearfix pb-xs-0">
                         <div class="float-left mb-md-xs-2 no-display">
-                        <a href="#" onclick="model.action.showModal()" class="btn btn-info float-md-right w-md-xs-100">Create</a>
+                            <a href="#" onclick="model.action.showModal()" class="btn btn-info float-md-right w-md-xs-100">Create</a>
                         </div>
                     </div>
                     <div class="card-body">
@@ -108,7 +107,7 @@
                     </div>
                 </div>
 
-                <div class="form-group" style="position:relative" data-bind="visible: model.map.visible">
+                <div class="form-group" style="position:relative" data-bind="visible: true">
                     <div id='map' style='width: 100%; height: 400px;'></div>
                     <pre id="coordinates" class="coordinates"></pre>
                 </div>
@@ -149,19 +148,19 @@
 </div>
 
 @*<div id="mapModal" class="modal fade" role="dialog" data-bind="with:model">
-    <div class="modal-dialog" role="document" data-bind="">
-        <div class="modal-content">
-            <div class="modal-body">
-                <div id='map' style='width: 100%; height: 450px;'></div>
-                <pre id="coordinates" class="coordinates"></pre>
+        <div class="modal-dialog" role="document" data-bind="">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div id='map' style='width: 100%; height: 450px;'></div>
+                    <pre id="coordinates" class="coordinates"></pre>
+                </div>
             </div>
         </div>
-    </div>
-</div>*@
+    </div>*@
 
 <script>
     $(function () {
-        model.init.location();
-        model.init.map();
+        model.init.managelocation();
+        @*model.init.map();*@
     })
 </script>

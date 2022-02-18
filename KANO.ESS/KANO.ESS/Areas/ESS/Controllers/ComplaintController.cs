@@ -151,7 +151,12 @@ namespace KANO.ESS.Areas.ESS.Controllers
                 var res = JsonConvert.DeserializeObject<ApiResult<object>.Result>((await (new Client(Configuration)).Upload(req)).Content);
                 if (res.StatusCode == HttpStatusCode.OK) {
                     var response = SendUseTemplate(t);
-                    if (!string.IsNullOrWhiteSpace(response))
+                    if (response.Equals("success"))
+                    {
+                        res.StatusCode = HttpStatusCode.OK;
+                        res.Message = response;
+                    } 
+                    else
                     {
                         res.StatusCode = HttpStatusCode.BadRequest;
                         res.Message = response;
@@ -178,7 +183,7 @@ namespace KANO.ESS.Areas.ESS.Controllers
                 var result = JsonConvert.DeserializeObject<ApiResult<object>.Result>((await (new Client(Configuration)).Upload(req)).Content);
                 if (result.StatusCode == HttpStatusCode.OK)
                 {
-                    SendUseTemplate(t);
+                    //SendUseTemplate(t);
                 }
                 return new ApiResult<object>(result);
             }
@@ -366,7 +371,12 @@ namespace KANO.ESS.Areas.ESS.Controllers
                 if (res.StatusCode == HttpStatusCode.OK)
                 {
                     var response = SendUseTemplate(t);
-                    if (!string.IsNullOrWhiteSpace(response))
+                    if (response.Equals("success"))
+                    {
+                        res.StatusCode = HttpStatusCode.OK;
+                        res.Message = response;
+                    }
+                    else
                     {
                         res.StatusCode = HttpStatusCode.BadRequest;
                         res.Message = response;
@@ -382,9 +392,7 @@ namespace KANO.ESS.Areas.ESS.Controllers
         {
             try
             {
-                Console.WriteLine($"data : {p.JsonData}");
                 TicketRequest t = JsonConvert.DeserializeObject<TicketRequest>(p.JsonData);
-                Console.WriteLine($"datas : {t.EmployeeID}");
                 var r = new Request($"{Api}mresolution", Method.POST);
                 r.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(t));
                 if (p.FileUpload != null)
