@@ -54,9 +54,10 @@ namespace KANO.Api.Absence.Controllers
         [HttpPost("docheckinout")]
         public IActionResult CheckInOut([FromBody] AbsenceForm absence)
         {
+            return Ok(new { data = (object)null, message = "Please use up-to-date mobile apps", success = false });
+            /*
             User user = _user.GetEmployeeUser(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            AbsenceInOut inout = new AbsenceInOut()
-            {
+            AbsenceInOut inout = new AbsenceInOut() {
                 EmplIdField = user.Id,
                 EmplNameField = user.FullName,
                 InOutField = absence.InOut,
@@ -68,18 +69,15 @@ namespace KANO.Api.Absence.Controllers
             try
             {
                 string result = String.Empty;
-                if(absence.typeID == "Photo")
+                if (absence.typeID.Equals("Photo"))
                 {
                     string newPath = Upload(Configuration, user.Username, absence.LogoContent);
                 }
-                var adapter = new AbsenceAdapter(Configuration);
-                result = adapter.DoAbsenceClockInOut(inout);
-                if (result == "Failed")
-                {
+                result = new AbsenceAdapter(Configuration).DoAbsenceClockInOut(inout);
+                if (result.Equals("Failed")) {
                     throw new Exception(result);
                 }
-                DB.Save(new ActivityLog()
-                {
+                DB.Save(new ActivityLog() {
                     EntityID = ObjectId.Parse(absence.EntityID),
                     ActivityTypeID = ObjectId.Parse(absence.ActivityTypeID),
                     LocationID = absence.LocationID,
@@ -94,26 +92,11 @@ namespace KANO.Api.Absence.Controllers
                     LastUpdatedDate = DateTime.UtcNow,
                     Status = "active"
                 });
-
-                // Create absence file
                 CreateAbsenceFile(absence.InOut, inout);
-
-                return Ok(new
-                {
-                    data = result,
-                    message = "",
-                    success = true
-                });
+                return Ok(new { data = result, message = String.Empty, success = true });
             }
-            catch (Exception e)
-            {
-                return Ok(new
-                {
-                    data = (object)null,
-                    message = Format.ExceptionString(e),
-                    success = false
-                });
-            }
+            catch (Exception e) { return Ok(new { data = (object)null, message = Format.ExceptionString(e), success = false }); }
+            */
         }
         
         [HttpPost("doinout")]

@@ -421,7 +421,37 @@
       ],
       "DangerousAcceptAnyServerCertificateValidator": true,
       "UpstreamPathTemplate": "/api/survey"
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/recruitment{all}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.recruitment",
+          "Host": "tpsaxapp01",
+          "Port": 7015
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/live/api/recruitment{all}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/recruitment",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "_Host": "kano.api.recruitment",
+          "Host": "tpsaxapp01",
+          "Port": 7015
+        }
+      ],
+      "DangerousAcceptAnyServerCertificateValidator": true,
+      "UpstreamPathTemplate": "/live/api/recruitment"
     }
+
+
+
   ],
   "GlobalConfiguration": {
     "_BaseUrl": "http://kano.api.gateway:8080",
