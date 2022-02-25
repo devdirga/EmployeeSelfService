@@ -27,12 +27,12 @@ namespace KANO.Api.Common.Controllers
     [ApiController]
     public class TaskController : ControllerBase
     {
-        private IMongoManager Mongo;
-        private IMongoDatabase DB;
-        private IConfiguration Configuration;
-        private Leave _leave;
-        private TimeAttendance _timeAttendance;
-        private WorkFlowAssignment _assignment;
+        private readonly IMongoManager Mongo;
+        private readonly IMongoDatabase DB;
+        private readonly IConfiguration Configuration;
+        private readonly Leave _leave;
+        private readonly TimeAttendance _timeAttendance;
+        private readonly WorkFlowAssignment _assignment;
         private readonly String ErrMessage = "Unable to get tasks for";
 
         // Required, this make sure we use Dependency Injection provided by ASP.Core
@@ -45,170 +45,116 @@ namespace KANO.Api.Common.Controllers
        }
 
         [HttpGet("{employeeID}")]
-        public async Task<IActionResult> Get(string employeeID)
+        public IActionResult Get(string employeeID)
         {
-            List<WorkFlowAssignment> result;
-            try
-            {
-                var workFlowAssignment = new WorkFlowAssignment(DB, Configuration);
-                result = workFlowAssignment.GetS(employeeID);
+            try { 
+                return ApiResult<List<WorkFlowAssignment>>.Ok(
+                    (new WorkFlowAssignment(DB, Configuration).GetS(employeeID)).OrderByDescending(x => x.SubmitDateTime).ToList());
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get tasks for {employeeID} :\n{Format.ExceptionString(e)}");
-            }
-
-            return ApiResult<List<WorkFlowAssignment>>.Ok(result.OrderByDescending(x => x.SubmitDateTime).ToList());
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
         }
 
         [HttpPost("range/{employeeID}")]
-        public async Task<IActionResult> GetRange(string employeeID, [FromBody] ParamTaskFilter param)
+        public IActionResult GetRange(string employeeID, [FromBody] ParamTaskFilter p)
         {
-
             List<WorkFlowAssignment> result = new List<WorkFlowAssignment>();
             try
             {
-                var workFlowAssignment = new WorkFlowAssignment(DB, Configuration);
-
-                if (param.Range == null)
-                    result = workFlowAssignment.GetS(employeeID);
+                if (p.Range == null)
+                    result = new WorkFlowAssignment(DB, Configuration).GetS(employeeID);
                 else
                 {
-
                     var defaultStart = new DateTime(1992, 12, 07);
                     var defaultFinish = DateTime.Now;
-                    if (param.Range.Start.Year == 1 && param.Range.Finish.Year == 1)
-                        param.Range = new DateRange(defaultStart, defaultFinish);
-                    else if (param.Range.Start.Year == 1 && param.Range.Finish.Year != 1)
-                        param.Range = new DateRange(defaultStart, param.Range.Finish);
-                    else if (param.Range.Start.Year != 1 && param.Range.Finish.Year == 1)
-                        param.Range = new DateRange(param.Range.Start, defaultFinish);
-
+                    if (p.Range.Start.Year == 1 && p.Range.Finish.Year == 1)
+                        p.Range = new DateRange(defaultStart, defaultFinish);
+                    else if (p.Range.Start.Year == 1 && p.Range.Finish.Year != 1)
+                        p.Range = new DateRange(defaultStart, p.Range.Finish);
+                    else if (p.Range.Start.Year != 1 && p.Range.Finish.Year == 1)
+                        p.Range = new DateRange(p.Range.Start, defaultFinish);
                     List<Task<TaskRequest<List<WorkFlowAssignment>>>> tasks = new List<Task<TaskRequest<List<WorkFlowAssignment>>>> {
                         Task.Run(() => {
-                            var wfAssignment = new WorkFlowAssignment(DB, Configuration);
-                            result = wfAssignment.GetSRange(employeeID, param.Range);
-                            return TaskRequest<List<WorkFlowAssignment>>.Create("AX", result);
+                            return TaskRequest<List<WorkFlowAssignment>>.Create("AX", 
+                                new WorkFlowAssignment(DB, Configuration).GetSRange(employeeID, p.Range));
                         }),
                         Task.Run(() => {
-                            List<SurveySchedule> sv = new Survey(DB, Configuration).GetRange(employeeID, param.Range);
-                            List<WorkFlowAssignment> workflowdb = new List<WorkFlowAssignment>();
-                            foreach (var s in sv)
-                            {
-                                workflowdb.Add(mapSurveyToAX(s));
-                            }
-                            return TaskRequest<List<WorkFlowAssignment>>.Create("DB", workflowdb);
+                            List<WorkFlowAssignment> surveys = new List<WorkFlowAssignment>();
+                            foreach (var survey in (new Survey(DB, Configuration).GetRange(employeeID, p.Range)))
+                                surveys.Add(MapSurveyToAX(survey));
+                            return TaskRequest<List<WorkFlowAssignment>>.Create("DB", surveys);
                         })
                     };
-                    
+
                     var t = Task.WhenAll(tasks);
-                    try
-                    {
-                        t.Wait();
-                    }
-                    catch (Exception e)
-                    {
-                        throw e;
-                    }
+                    try { t.Wait(); }
+                    catch (Exception e) { throw e; }
 
                     if (t.Status == TaskStatus.RanToCompletion)
-                    {
                         foreach (var r in t.Result)
-                        {
                             result.AddRange(r.Result);
-                        }
-                    }
-
                 }
-
+                return ApiResult<List<WorkFlowAssignment>>.Ok(result.OrderByDescending(x => x.SubmitDateTime).ToList());
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get tasks for {employeeID} :\n{Format.ExceptionString(e)}");
-            }
-
-            return ApiResult<List<WorkFlowAssignment>>.Ok(result.OrderByDescending(x => x.SubmitDateTime).ToList());
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }            
         }
 
         [HttpGet("assignee/{axid}")]
-        public async Task<IActionResult> GetAssignee(string axid)
+        public IActionResult GetAssignee(string axid)
         {
-            List<Employee> result;
-            try
-            {
-                var adapter = new WorkFlowTrackingAdapter(Configuration);
-                result = adapter.GetAssignee(Convert.ToInt64(axid));
+            try {
+                return ApiResult<List<Employee>>.Ok(
+                    new WorkFlowTrackingAdapter(Configuration).GetAssignee(Convert.ToInt64(axid)));
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get delegation assignee :\n{Format.ExceptionString(e)}");
-            }            
-
-            return ApiResult<List<Employee>>.Ok(result);
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
         }
 
         [HttpGet("active/{employeeID}")]
-        public async Task<IActionResult> GetActive(string employeeID)
+        public IActionResult GetActive(string employeeID)
         {
-            
             List<WorkFlowAssignment> result = new List<WorkFlowAssignment>();
-            try
-            {
+            try {
                 List<Task<TaskRequest<List<WorkFlowAssignment>>>> tasks = new List<Task<TaskRequest<List<WorkFlowAssignment>>>> {
                     Task.Run(() => {
-                        var workFlowAssignment = new WorkFlowAssignment(DB, Configuration);
-                        result = workFlowAssignment.GetS(employeeID, true);
-                        return TaskRequest<List<WorkFlowAssignment>>.Create("AX", result);
+                        return TaskRequest<List<WorkFlowAssignment>>.Create("AX", new WorkFlowAssignment(DB, Configuration).GetS(employeeID, true));
                     }),
                     Task.Run(() => {
-                        List<SurveySchedule> survey = new Survey(DB, Configuration).Get(employeeID);
-                        List<WorkFlowAssignment> workflowdb = new List<WorkFlowAssignment>();
-                        foreach (var s in survey)
-                        {
-                            workflowdb.Add(mapSurveyToAX(s));
-                        }
-                        return TaskRequest<List<WorkFlowAssignment>>.Create("DB", workflowdb);
+                        List<WorkFlowAssignment> surveys = new List<WorkFlowAssignment>();
+                        foreach (var survey in (new Survey(DB, Configuration).GetOne(employeeID)))
+                            surveys.Add(MapSurveyToAX(survey));
+                        return TaskRequest<List<WorkFlowAssignment>>.Create("DB", surveys);
                     })
                 };
 
                 var t = Task.WhenAll(tasks);
-                try
-                {
-                    t.Wait();
-                }
-                catch (Exception e)
-                {
-                    throw e;
-                }
+                try { t.Wait(); }
+                catch (Exception e) { throw e; }
 
                 if (t.Status == TaskStatus.RanToCompletion)
-                {
                     foreach (var r in t.Result)
-                    {
                         result.AddRange(r.Result);
-                    }    
-                }
 
+                return ApiResult<List<WorkFlowAssignment>>.Ok(result.OrderByDescending(x => x.SubmitDateTime).ToList());
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get active tasks for {employeeID} :\n{Format.ExceptionString(e)}");
-            }
-
-            return ApiResult<List<WorkFlowAssignment>>.Ok(result.OrderByDescending(x => x.SubmitDateTime).ToList());
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }            
         }
 
-        private WorkFlowAssignment mapSurveyToAX(SurveySchedule data)
-        {
-            return new WorkFlowAssignment
-            {
+        private WorkFlowAssignment MapSurveyToAX(SurveySchedule d) {
+            String OdooSurveyId = String.Empty;
+            try {
+                Survey survey = this.DB.GetCollection<Survey>().Find(x => x.Id == d.SurveyID).FirstOrDefault();
+                string[] url1 = survey.SurveyUrl.ToString().Split("start/");
+                string[] url2 = url1[1].Split("?");
+                OdooSurveyId = url2[0];
+            }
+            catch (Exception){}
+            return new WorkFlowAssignment {
                 ActionApprove = NoYes.Yes == NoYes.No,
                 ActionCancel = NoYes.Yes == NoYes.No,
-                Comment = data.Title,
-                ActionDateTime = data.CreatedDate,
+                Comment = d.Title,
+                ActionDateTime = d.CreatedDate,
                 ActionDelegate = NoYes.Yes == NoYes.No,
-                ActionDelegateToEmployeeID = data.ParticipantID,
-                ActionDelegateToEmployeeName = data.ParticipantID,
+                ActionDelegateToEmployeeID = d.ParticipantID,
+                ActionDelegateToEmployeeName = d.ParticipantID,
                 ActionReject = NoYes.Yes == NoYes.No,
                 AssignApprove = NoYes.Yes == NoYes.No,
                 AssignCancel = NoYes.Yes == NoYes.No,
@@ -216,211 +162,125 @@ namespace KANO.Api.Common.Controllers
                 AssignReject = NoYes.Yes == NoYes.No,
                 AssignType = KESSWFServices.KESSWorkflowAssignType.Originator,
                 AssignTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowAssignType), (KESSWFServices.KESSWorkflowAssignType)KESSWFServices.KESSWorkflowAssignType.Originator),
-                AssignToEmployeeID = data.ParticipantID,
-                AssignToEmployeeName = data.ParticipantID,
+                AssignToEmployeeID = d.ParticipantID,
+                AssignToEmployeeName = d.ParticipantID,
                 RequestType = KESSWFServices.KESSWorkerRequestType.CNTickets,
                 RequestTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkerRequestType), (KESSWFServices.KESSWorkerRequestType)KESSWFServices.KESSWorkerRequestType.CNTickets),
                 StepTrackingType = KESSWFServices.KESSWorkflowTrackingType.Creation,
                 StepTrackingTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowTrackingType), (KESSWFServices.KESSWorkflowTrackingType)KESSWFServices.KESSWorkflowTrackingType.Creation),
                 Sequence = 0,
-                InstanceId = data.OdooID,
-                AXID = long.Parse(data.OdooID) ,
-                SubmitEmployeeID = data.ParticipantID,
-                SubmitEmployeeName = data.ParticipantID,
-                SubmitDateTime = data.CreatedDate,
+                InstanceId = d.OdooID,
+                AXID = long.Parse(d.OdooID) ,
+                SubmitEmployeeID = d.ParticipantID,
+                SubmitEmployeeName = d.ParticipantID,
+                SubmitDateTime = d.CreatedDate,
                 TrackingStatus = KESSWFServices.KESSWorkflowTrackingStatus.InReview,
                 TrackingStatusDescription = KESSWFServices.KESSWorkflowTrackingStatus.InReview.ToString(),
-                WorkflowId = data.OdooID,
+                WorkflowId = d.OdooID,
                 WorkflowType = KESSWFServices.KESSWorkflowType.HRM,
                 TaskType = TaskType.Fill,
                 WorkflowTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowType), (KESSWFServices.KESSWorkflowType)KESSWFServices.KESSWorkflowType.HRM),
-                Title = data.Title,
+                Title = d.Title,
+                OdooSurveyID = OdooSurveyId
             };
 
         }
 
         [HttpGet("active/count/{employeeID}")]
-        public async Task<IActionResult> CountActive(string employeeID)
+        public IActionResult CountActive(string employeeID)
         {
-            try
-            {
-                var result = _assignment.CountActive(employeeID);
-                return ApiResult<object>.Ok(null, result, null);
+            try {
+                return ApiResult<object>.Ok(null, _assignment.CountActive(employeeID), null);
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get active task  :\n{Format.ExceptionString(e)}");
-            }            
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
         }
 
         [HttpPost("approve")]
-        public async Task<IActionResult> Approve([FromBody] ParamTask param)
-        {           
-            try
-            {
-                var adapter = new WorkFlowTrackingAdapter(Configuration);
-                adapter.Approve(param.AXID);
-
-                // Update
-                this.UpdateHistory(param, UpdateRequestStatus.Approved);
-
-                // Send approval notification
-                new Notification(Configuration, DB).SendApprovals(param.OriginatorEmployeeID, param.InstanceID);
+        public IActionResult Approve([FromBody] ParamTask p)
+        {
+            try {
+                new WorkFlowTrackingAdapter(Configuration).Approve(p.AXID);
+                this.UpdateHistory(p, UpdateRequestStatus.Approved);
+                new Notification(Configuration, DB).SendApprovals(p.OriginatorEmployeeID, p.InstanceID);
+                return ApiResult<bool>.Ok("Request has been approved");
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get approve :\n{Format.ExceptionString(e)}");
-            }
-
-            return ApiResult<bool>.Ok("Request has been approved");
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
         }
 
         [HttpPost("approve/invert")]
-        public async Task<IActionResult> ApproveInvert([FromBody] ParamTask param)
-        {           
-            try
-            {
-                var adapter = new WorkFlowTrackingAdapter(Configuration);
-                adapter.Reject(param.AXID);
-
-                // Update
-                this.UpdateHistory(param, UpdateRequestStatus.Approved);
+        public IActionResult ApproveInvert([FromBody] ParamTask p)
+        {
+            try {
+                new WorkFlowTrackingAdapter(Configuration).Reject(p.AXID);
+                this.UpdateHistory(p, UpdateRequestStatus.Approved);
+                return ApiResult<bool>.Ok("Request has been approved");
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get to approve:\n{Format.ExceptionString(e)}");
-            }
-
-            return ApiResult<bool>.Ok("Request has been approved");
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
         }
 
         [HttpPost("reject")]
-        public async Task<IActionResult> Reject([FromBody] ParamTask param)
+        public IActionResult Reject([FromBody] ParamTask p)
         {
-            try
-            {
-                var adapter = new WorkFlowTrackingAdapter(Configuration);
-                adapter.Reject(param.AXID, param.Notes);
-
-                // Update                
-                this.UpdateHistory(param, UpdateRequestStatus.Rejected);
+            try {
+                new WorkFlowTrackingAdapter(Configuration).Reject(p.AXID, p.Notes);
+                this.UpdateHistory(p, UpdateRequestStatus.Rejected);
+                return ApiResult<bool>.Ok("Request has been rejected");
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get reject :\n{Format.ExceptionString(e)}");
-            }
-
-            return ApiResult<bool>.Ok("Request has been rejected");
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
         }
 
         [HttpPost("reject/invert")]
-        public async Task<IActionResult> RejectInvert([FromBody] ParamTask param)
+        public IActionResult RejectInvert([FromBody] ParamTask p)
         {
-            try
-            {
-                var adapter = new WorkFlowTrackingAdapter(Configuration);
-                adapter.Approve(param.AXID, param.Notes);
-
-                // Update                
-                this.UpdateHistory(param, UpdateRequestStatus.Rejected);
+            try {
+                new WorkFlowTrackingAdapter(Configuration).Approve(p.AXID, p.Notes);
+                this.UpdateHistory(p, UpdateRequestStatus.Rejected);
+                return ApiResult<bool>.Ok("Request has been rejected");
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get reject :\n{Format.ExceptionString(e)}");
-            }
-
-            return ApiResult<bool>.Ok("Request has been rejected");
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
         }
 
         [HttpPost("delegate")]
-        public async Task<IActionResult> Delegate([FromBody] ParamTask param)
+        public IActionResult Delegate([FromBody] ParamTask p)
         {
-            try
-            {
-                var adapter = new WorkFlowTrackingAdapter(Configuration);
-                adapter.Delegate(param.DelegateToEmployeeID, param.AXID);
+            try {
+                new WorkFlowTrackingAdapter(Configuration).Delegate(p.DelegateToEmployeeID, p.AXID);
+                return ApiResult<bool>.Ok("Request has been delegated");
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get delegate :\n{Format.ExceptionString(e)}");
-            }
-
-            return ApiResult<bool>.Ok("Request has been delegated");
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
         }
 
         [HttpPost("cancel")]
-        public async Task<IActionResult> Cancel([FromBody] ParamTask param)
-        {           
-            try
-            {
-                var adapter = new WorkFlowTrackingAdapter(Configuration);
-                adapter.Cancel(param.AXID);
-
-                // Update
-                this.UpdateHistory(param, UpdateRequestStatus.Cancelled);
+        public IActionResult Cancel([FromBody] ParamTask p)
+        {
+            try {
+                new WorkFlowTrackingAdapter(Configuration).Cancel(p.AXID);
+                this.UpdateHistory(p, UpdateRequestStatus.Cancelled);
+                return ApiResult<bool>.Ok("Request has been canceled");
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get cancel :\n{Format.ExceptionString(e)}");
-            }
-
-            return ApiResult<bool>.Ok("Request has been canceled");
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
         }
 
-        private void UpdateHistory(ParamTask task, UpdateRequestStatus status)
+        private void UpdateHistory(ParamTask t, UpdateRequestStatus s)
         {
-            var updateRequest = this.DB.GetCollection<UpdateRequest>()
-                              .Find(x => x.AXRequestID == task.InstanceID && x.EmployeeID == task.OriginatorEmployeeID)
+            var ur = this.DB.GetCollection<UpdateRequest>()
+                              .Find(x => x.AXRequestID == t.InstanceID && x.EmployeeID == t.OriginatorEmployeeID)
                               .FirstOrDefault();
-
-            if (updateRequest != null)
+            if (ur != null)
             {
-                updateRequest.AddHistory(task.ActionEmployeeID, task.ActionEmployeeName, status, task.Notes);
-                //updateRequest.Status = status;
-                DB.Save(updateRequest);
-
-                //var updateOptions = new UpdateOptions();
-                //updateOptions.IsUpsert = false;
-                //switch (updateRequest.Module)
-                //{
-                //    case UpdateRequestModule.LEAVE:
-                //        this.DB.GetCollection<Leave>().UpdateMany(
-                //                    x => x.AXRequestID == task.InstanceID,
-                //                    Builders<Leave>.Update
-                //                        .Set(d => d.Status, status),
-                //                    updateOptions
-                //                );
-                //        break;
-                //    case UpdateRequestModule.UPDATE_TIMEATTENDANCE:
-                //        this.DB.GetCollection<TimeAttendance>().UpdateMany(
-                //                    x => x.AXRequestID == task.InstanceID,
-                //                    Builders<TimeAttendance>.Update
-                //                        .Set(d => d.Status, status),
-                //                    updateOptions
-                //                );
-                //        break;
-                //    default:
-                //        break;
-                //}
+                ur.AddHistory(t.ActionEmployeeID, t.ActionEmployeeName, s, t.Notes);
+                DB.Save(ur);
             }
         }
 
         [HttpGet("agenda/{employeeID}")]
-        public async Task<IActionResult> GetAgenda(string employeeID)
+        public IActionResult GetAgenda(string employeeID)
         {
-            List<WorkFlowAssignment> result;
-            try
-            {
-                //var travel = adapter.GetTravelByStatus(employeeID, (KESSTEServices.KESSTrvExpTravelReqStatus)status);
-                var workFlowAssignment = new WorkFlowAssignment(DB, Configuration);
-                result = workFlowAssignment.GetS(employeeID);
+            try {
+                return ApiResult<List<WorkFlowAssignment>>.Ok(
+                    (new WorkFlowAssignment(DB, Configuration).GetS(employeeID)).OrderByDescending(x => x.SubmitDateTime).ToList());
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Unable to get tasks for {employeeID} :\n{Format.ExceptionString(e)}");
-            }
-
-            return ApiResult<List<WorkFlowAssignment>>.Ok(result.OrderByDescending(x => x.SubmitDateTime).ToList());
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
         }
 
         /**

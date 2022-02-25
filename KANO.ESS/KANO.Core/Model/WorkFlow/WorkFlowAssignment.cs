@@ -58,6 +58,7 @@ namespace KANO.Core.Model
         public string WorkflowId{set; get;}
         public KESSWFServices.KESSWorkflowType WorkflowType {set; get;}
         public string WorkflowTypeDescription {set; get;}
+        public string OdooSurveyID { set; get; } = String.Empty;
         public bool Inverted {
             get{
                 return Array.IndexOf(InvertedWorkflowType, (int) WorkflowType) > -1;
@@ -78,17 +79,17 @@ namespace KANO.Core.Model
         public List<WorkFlowAssignment> GetS(string employeeID, bool activeOnly = false) {                        
             var adapter = new WorkFlowTrackingAdapter(Configuration);
             var result = adapter.GetAssignment(employeeID, activeOnly);
-            return groupWorkflowAssignment(result);
+            return GroupWorkflowAssignment(result);
         }
 
         public List<WorkFlowAssignment> GetSRange(string employeeID, DateRange range, bool activeOnly = false)
         {
             var adapter = new WorkFlowTrackingAdapter(Configuration);               
             var result = adapter.GetAssignmentRange(employeeID, range, activeOnly);
-            return groupWorkflowAssignment(result);
+            return GroupWorkflowAssignment(result);
         }
 
-        private List<WorkFlowAssignment>  groupWorkflowAssignment(List<WorkFlowAssignment> result) {
+        private List<WorkFlowAssignment>  GroupWorkflowAssignment(List<WorkFlowAssignment> result) {
             var updateRequest = new UpdateRequest(MongoDB, Configuration);
 
             var instanceIDs = result.Select(x => x.InstanceId).Distinct();
@@ -101,28 +102,24 @@ namespace KANO.Core.Model
             var mapTitle = updateRequest.GetTitles(instanceIDs);
             foreach (var r in groupedResult)
             {
-                var title = "";
-                if (!mapTitle.TryGetValue(r.InstanceId, out title))
+                if (!mapTitle.TryGetValue(r.InstanceId, out string title))
                 {
                     r.Title = updateRequest.GenerateTitle(r.WorkflowType);
                     continue;
                 }
                 r.Title = title;
             }
-
             return groupedResult;
         }
 
-        public int CountActive(string employeeID)
-        {            
-            var adapter = new WorkFlowTrackingAdapter(Configuration);
-            var result = adapter.GetAssignment(employeeID, true);
-            return result.Count();           
+        public int CountActive(string emp)
+        {
+            return new WorkFlowTrackingAdapter(Configuration).GetAssignment(emp, true).Count;           
         }
 
-        public int MCountActive(String EmployeeID)
+        public int MCountActive(String emp) 
         {
-            return new WorkFlowTrackingAdapter(Configuration).MGetAssignmentCount(EmployeeID, true);
+            return new WorkFlowTrackingAdapter(Configuration).MGetAssignmentCount(emp, true);
         }
 
     }

@@ -66,7 +66,7 @@
                         <form data-bind="with:data.survey, afterRender:model.on.renderForm">
                             <div class="form-group">
                                 <div class="form-group">
-                                    <iframe id="survey-form-container" class="w-100" src="/odoo/survey/start/bc5babc6-80f3-4442-abed-78d69b4964ee?employee_id=@UserSession.Id()" title="Survey"></iframe>
+                                    <iframe id="survey-form-container" class="w-100" src="/survey/start/@ViewBag.ID?employee_id=@UserSession.Id()" title="Survey"></iframe>
                                 </div>
                             </div>
                         </form>

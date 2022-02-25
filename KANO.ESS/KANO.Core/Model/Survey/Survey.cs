@@ -127,9 +127,10 @@ namespace KANO.Core.Model
         }
 
         // Currenly not used
-        public List<Survey> GetS(DateRange range) {                              
-            var tasks = new List<Task<TaskRequest<List<Survey>>>>();
+        public List<Survey> GetS(DateRange range) {
             var newRange = Tools.normalizeFilter(range);
+            var tasks = new List<Task<TaskRequest<List<Survey>>>>();
+            
             
             // Fetch data from AX
             tasks.Add(Task.Run(() =>
@@ -187,6 +188,14 @@ namespace KANO.Core.Model
 
             return result;
         }
+
+        public List<SurveySchedule> GetOne(String emp) {
+            DateTime today = DateTime.Now;
+            return this.MongoDB.GetCollection<SurveySchedule>()
+                .Find(x => (x.Done == false) && x.ParticipantID == emp && x.SurveyDate >= today.AddDays(-1))
+                .ToList();
+        }
+
 
         public List<SurveySchedule> GetRange(String employeeID, DateRange dateRange)
         {

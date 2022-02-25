@@ -146,7 +146,7 @@
                                                     @*Normal*@
                                                     <!-- ko ifnot: $data.Inverted() -->
                                                     <!-- ko if: $data.TaskType() == 1 -->
-                                                    <a class="mt-xs-1 btn btn-sm btn-outline-success" data-bind="css:{'d-none' :  $data.ActionCancel()}, text:($data.ActionApprove())?'Approved':'Fill'" href="/ESS/Survey/Fill/5efd63541e44273afc50e2a7" target="_blank">
+                                                    <a class="mt-xs-1 btn btn-sm btn-outline-success" data-bind="css:{'d-none' :  $data.ActionCancel()}, text:($data.ActionApprove())?'Approved':'Fill'" href="/ESS/Survey/Fill/$data.OdooSurveyID()" target="_blank">
                                                         Fill Survey
                                                     </a> 
                                                     <!-- /ko -->
