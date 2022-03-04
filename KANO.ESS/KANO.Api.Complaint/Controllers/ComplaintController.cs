@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-
 using System.Net;
 using Newtonsoft.Json;
 using MongoDB.Driver;
@@ -13,10 +12,7 @@ using KANO.Core.Model;
 using KANO.Core.Lib;
 using KANO.Core.Lib.Extension;
 using KANO.Core.Lib.Helper;
-
 using KANO.Core.Service.AX;
-
-using KANO.Core.Lib.Middleware.ServerSideAnalytics.Mongo;
 using Microsoft.AspNetCore.Authorization;
 using System.IO;
 
@@ -26,13 +22,12 @@ namespace KANO.Api.Complaint.Controllers
     [ApiController]
     public class ComplaintController : ControllerBase
     {
-        private IMongoManager Mongo;
-        private IMongoDatabase DB;
-        private IConfiguration Configuration;
-        private TicketRequest _ticket;
+        private readonly IMongoManager Mongo;
+        private readonly IMongoDatabase DB;
+        private readonly IConfiguration Configuration;
+        private readonly TicketRequest _ticket;
         private ComplaintMailTemplate mailTemplate;
 
-        // Required, this make sure we use Dependency Injection provided by ASP.Core
         public ComplaintController(IMongoManager mongo, IConfiguration conf)
         {
             Mongo = mongo;
@@ -42,65 +37,32 @@ namespace KANO.Api.Complaint.Controllers
         }
 
         [HttpPost("get")]
-        public IActionResult Get([FromBody] KendoGrid param)
+        public IActionResult Get([FromBody] KendoGrid p)
         {
-            var filter = KendoMongoBuilder<TicketRequest>.BuildFilter(param);
-            var sort = KendoMongoBuilder<TicketRequest>.BuildSort(param);
-
-            try
-            {
+            var filter = KendoMongoBuilder<TicketRequest>.BuildFilter(p);
+            var sort = KendoMongoBuilder<TicketRequest>.BuildSort(p);
+            try {
                 var tasks = new List<Task<TaskRequest<List<TicketRequest>>>> {
-                    Task.Run(() =>
-                    {
-                    var TicketRequests = DB.GetCollection<TicketRequest>("Tickets")
-                                        .Find(filter)
-                                        .Limit(param.Take)
-                                        .Skip(param.Skip)
-                                        .Sort(sort)
-                                        .ToList();
-                    return TaskRequest<List<TicketRequest>>.Create("DB", TicketRequests);
+                    Task.Run(() => {
+                        return TaskRequest<List<TicketRequest>>.Create("DB", DB.GetCollection<TicketRequest>()
+                            .Find(filter).Limit(p.Take).Skip(p.Skip).Sort(sort).ToList());
                     })
                 };
-
                 var t = Task.WhenAll(tasks);
-
-                try
-                {
-                    t.Wait();
-                }
-                catch (Exception)
-                {
-                    throw;
-                }
-
-                var result = new List<TicketRequest>();
-
-                if (t.Status == TaskStatus.RanToCompletion)
-                {
+                try { t.Wait(); }
+                catch (Exception) { throw; }
+                var res = new List<TicketRequest>();
+                if (t.Status == TaskStatus.RanToCompletion) {
                     var TicketUpdateRequest = new List<TicketRequest>();
-
                     foreach (var r in t.Result)
-                    {
                         if (r.Label == "DB")
-                        {
                             TicketUpdateRequest = r.Result;
-                        }
-                    }
-                        
                     foreach (var fur in TicketUpdateRequest)
-                    {
-                        result.Add(fur);
-                    }
+                        res.Add(fur);
                 }
-
-                var total = DB.GetCollection<TicketRequest>("Tickets").CountDocuments(filter);
-
-                return ApiResult<List<TicketRequest>>.Ok(result, total);
+                return ApiResult<List<TicketRequest>>.Ok(res, DB.GetCollection<TicketRequest>().CountDocuments(filter));
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"Fetching ticketRrequest data error :\n{Format.ExceptionString(e)}");
-            }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message ); }
         }
 
         [HttpPost("complaint")]
