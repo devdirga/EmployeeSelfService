@@ -195,7 +195,8 @@ namespace KANO.ESS.Areas.ESS.Controllers
             ViewBag.Icon = "mdi mdi-checkbox-multiple-marked-outline";
             ViewBag.ID = token;
 
-            var result = this.getByID(token);
+            var employeeID = Session.Id();
+            var result = this.getByURLID(token, employeeID);
             ViewBag.StatusCode = result.StatusCode;
             ViewBag.Message = result.Message;
             ViewBag.Data = result.Data;
@@ -277,6 +278,12 @@ namespace KANO.ESS.Areas.ESS.Controllers
             var result = JsonConvert.DeserializeObject<ApiResult<Survey>.Result>(response.Content);
             return result;
 
+        }
+
+        private ApiResult<Survey>.Result getByURLID(string id, string employeeID)
+        {
+            var response = new Client(Configuration).Execute(new Request($"api/survey/url/{id}/{employeeID}", Method.GET));
+            return JsonConvert.DeserializeObject<ApiResult<Survey>.Result>(response.Content);
         }
 
         public async Task<IActionResult> GetHistories([FromBody] DateRange range)

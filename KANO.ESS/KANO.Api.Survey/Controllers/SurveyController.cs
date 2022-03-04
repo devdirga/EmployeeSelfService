@@ -79,6 +79,33 @@ namespace KANO.Api.Survey.Controllers
             }
         }
 
+        [HttpGet("url/{employeeID}/{axRequestID}")]
+        public IActionResult GetByURL(string employeeID, string axRequestID)
+        {
+            string token = employeeID;
+            string empl = axRequestID;
+
+            try {
+                
+                var result = this.DB.GetCollection<Core.Model.Survey>().Find(x => x.Participants.Contains(axRequestID)).ToList();
+                foreach(var sur in result)
+                {
+                    if (sur.SurveyUrl.ToString().Contains(token))
+                    {
+                        return ApiResult<Core.Model.Survey>.Ok(sur);
+                    }
+                }
+                if (result != null) {
+                    return ApiResult<Core.Model.Survey>.Ok(result.FirstOrDefault());
+                }
+                return ApiResult<Core.Model.Survey>.Error(HttpStatusCode.BadRequest, $"Unable to find survey with id {token}");
+            }
+            catch (Exception e)
+            {
+                return ApiResult<Core.Model.Survey>.Error(HttpStatusCode.BadRequest, e.Message);
+            }
+        }
+
         [HttpPost("save")]
         public IActionResult Save([FromBody] Core.Model.Survey param)
         {

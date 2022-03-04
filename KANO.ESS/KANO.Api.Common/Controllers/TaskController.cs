@@ -30,10 +30,11 @@ namespace KANO.Api.Common.Controllers
         private readonly IMongoManager Mongo;
         private readonly IMongoDatabase DB;
         private readonly IConfiguration Configuration;
-        private readonly Leave _leave;
-        private readonly TimeAttendance _timeAttendance;
+        //private readonly Leave _leave;
+        //private readonly TimeAttendance _timeAttendance;
         private readonly WorkFlowAssignment _assignment;
-        private readonly String ErrMessage = "Unable to get tasks for";
+        //private readonly String ErrMessage = "Unable to get tasks for";
+        private readonly String success = "success";
 
         // Required, this make sure we use Dependency Injection provided by ASP.Core
         public TaskController(IMongoManager mongo, IConfiguration conf)
@@ -47,21 +48,17 @@ namespace KANO.Api.Common.Controllers
         [HttpGet("{employeeID}")]
         public IActionResult Get(string employeeID)
         {
-            try { 
-                return ApiResult<List<WorkFlowAssignment>>.Ok(
-                    (new WorkFlowAssignment(DB, Configuration).GetS(employeeID)).OrderByDescending(x => x.SubmitDateTime).ToList());
-            }
-            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
+            try { return ApiResult<List<WorkFlowAssignment>>.Ok((new WorkFlowAssignment(DB, Configuration).GetS(employeeID)).OrderByDescending(x => x.SubmitDateTime).ToList()); }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message ); }
         }
 
         [HttpPost("range/{employeeID}")]
         public IActionResult GetRange(string employeeID, [FromBody] ParamTaskFilter p)
         {
-            List<WorkFlowAssignment> result = new List<WorkFlowAssignment>();
-            try
-            {
+            List<WorkFlowAssignment> res = new List<WorkFlowAssignment>();
+            try {
                 if (p.Range == null)
-                    result = new WorkFlowAssignment(DB, Configuration).GetS(employeeID);
+                    res = new WorkFlowAssignment(DB, Configuration).GetS(employeeID);
                 else
                 {
                     var defaultStart = new DateTime(1992, 12, 07);
@@ -84,34 +81,29 @@ namespace KANO.Api.Common.Controllers
                             return TaskRequest<List<WorkFlowAssignment>>.Create("DB", surveys);
                         })
                     };
-
                     var t = Task.WhenAll(tasks);
                     try { t.Wait(); }
                     catch (Exception e) { throw e; }
-
                     if (t.Status == TaskStatus.RanToCompletion)
                         foreach (var r in t.Result)
-                            result.AddRange(r.Result);
+                            res.AddRange(r.Result);
                 }
-                return ApiResult<List<WorkFlowAssignment>>.Ok(result.OrderByDescending(x => x.SubmitDateTime).ToList());
+                return ApiResult<List<WorkFlowAssignment>>.Ok(res.OrderByDescending(x => x.SubmitDateTime).ToList());
             }
-            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }            
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }            
         }
 
         [HttpGet("assignee/{axid}")]
         public IActionResult GetAssignee(string axid)
         {
-            try {
-                return ApiResult<List<Employee>>.Ok(
-                    new WorkFlowTrackingAdapter(Configuration).GetAssignee(Convert.ToInt64(axid)));
-            }
-            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
+            try { return ApiResult<List<Employee>>.Ok(new WorkFlowTrackingAdapter(Configuration).GetAssignee(Convert.ToInt64(axid)));}
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
 
         [HttpGet("active/{employeeID}")]
         public IActionResult GetActive(string employeeID)
         {
-            List<WorkFlowAssignment> result = new List<WorkFlowAssignment>();
+            List<WorkFlowAssignment> res = new List<WorkFlowAssignment>();
             try {
                 List<Task<TaskRequest<List<WorkFlowAssignment>>>> tasks = new List<Task<TaskRequest<List<WorkFlowAssignment>>>> {
                     Task.Run(() => {
@@ -131,11 +123,11 @@ namespace KANO.Api.Common.Controllers
 
                 if (t.Status == TaskStatus.RanToCompletion)
                     foreach (var r in t.Result)
-                        result.AddRange(r.Result);
+                        res.AddRange(r.Result);
 
-                return ApiResult<List<WorkFlowAssignment>>.Ok(result.OrderByDescending(x => x.SubmitDateTime).ToList());
+                return ApiResult<List<WorkFlowAssignment>>.Ok(res.OrderByDescending(x => x.SubmitDateTime).ToList());
             }
-            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }            
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }            
         }
 
         private WorkFlowAssignment MapSurveyToAX(SurveySchedule d) {
@@ -183,16 +175,13 @@ namespace KANO.Api.Common.Controllers
                 Title = d.Title,
                 OdooSurveyID = OdooSurveyId
             };
-
         }
 
         [HttpGet("active/count/{employeeID}")]
         public IActionResult CountActive(string employeeID)
         {
-            try {
-                return ApiResult<object>.Ok(null, _assignment.CountActive(employeeID), null);
-            }
-            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
+            try {return ApiResult<object>.Ok(null, _assignment.CountActive(employeeID), null);}
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
 
         [HttpPost("approve")]
@@ -202,9 +191,9 @@ namespace KANO.Api.Common.Controllers
                 new WorkFlowTrackingAdapter(Configuration).Approve(p.AXID);
                 this.UpdateHistory(p, UpdateRequestStatus.Approved);
                 new Notification(Configuration, DB).SendApprovals(p.OriginatorEmployeeID, p.InstanceID);
-                return ApiResult<bool>.Ok("Request has been approved");
+                return ApiResult<bool>.Ok(success);
             }
-            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
 
         [HttpPost("approve/invert")]
@@ -213,9 +202,9 @@ namespace KANO.Api.Common.Controllers
             try {
                 new WorkFlowTrackingAdapter(Configuration).Reject(p.AXID);
                 this.UpdateHistory(p, UpdateRequestStatus.Approved);
-                return ApiResult<bool>.Ok("Request has been approved");
+                return ApiResult<bool>.Ok(success);
             }
-            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
 
         [HttpPost("reject")]
@@ -224,9 +213,9 @@ namespace KANO.Api.Common.Controllers
             try {
                 new WorkFlowTrackingAdapter(Configuration).Reject(p.AXID, p.Notes);
                 this.UpdateHistory(p, UpdateRequestStatus.Rejected);
-                return ApiResult<bool>.Ok("Request has been rejected");
+                return ApiResult<bool>.Ok(success);
             }
-            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
 
         [HttpPost("reject/invert")]
@@ -235,9 +224,9 @@ namespace KANO.Api.Common.Controllers
             try {
                 new WorkFlowTrackingAdapter(Configuration).Approve(p.AXID, p.Notes);
                 this.UpdateHistory(p, UpdateRequestStatus.Rejected);
-                return ApiResult<bool>.Ok("Request has been rejected");
+                return ApiResult<bool>.Ok(success);
             }
-            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
 
         [HttpPost("delegate")]
@@ -245,9 +234,9 @@ namespace KANO.Api.Common.Controllers
         {
             try {
                 new WorkFlowTrackingAdapter(Configuration).Delegate(p.DelegateToEmployeeID, p.AXID);
-                return ApiResult<bool>.Ok("Request has been delegated");
+                return ApiResult<bool>.Ok(success);
             }
-            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
 
         [HttpPost("cancel")]
@@ -256,9 +245,9 @@ namespace KANO.Api.Common.Controllers
             try {
                 new WorkFlowTrackingAdapter(Configuration).Cancel(p.AXID);
                 this.UpdateHistory(p, UpdateRequestStatus.Cancelled);
-                return ApiResult<bool>.Ok("Request has been canceled");
+                return ApiResult<bool>.Ok(success);
             }
-            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
 
         private void UpdateHistory(ParamTask t, UpdateRequestStatus s)
@@ -276,11 +265,8 @@ namespace KANO.Api.Common.Controllers
         [HttpGet("agenda/{employeeID}")]
         public IActionResult GetAgenda(string employeeID)
         {
-            try {
-                return ApiResult<List<WorkFlowAssignment>>.Ok(
-                    (new WorkFlowAssignment(DB, Configuration).GetS(employeeID)).OrderByDescending(x => x.SubmitDateTime).ToList());
-            }
-            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, $"{e.Message}"); }
+            try { return ApiResult<List<WorkFlowAssignment>>.Ok((new WorkFlowAssignment(DB, Configuration).GetS(employeeID)).OrderByDescending(x => x.SubmitDateTime).ToList());}
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
 
         /**
@@ -293,47 +279,34 @@ namespace KANO.Api.Common.Controllers
         [HttpGet("m/{employeeID}")]
         public IActionResult MGet(string employeeID)
         {
-            try
-            {
-                return ApiResult<List<WorkFlowAssignment>>.Ok(
-              new WorkFlowAssignment(DB, Configuration).GetS(employeeID).OrderByDescending(x => x.SubmitDateTime).ToList());
-            }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(
-HttpStatusCode.BadRequest, $"{ErrMessage} {employeeID} : {Format.ExceptionString(e)}");
-            }
+            try { return ApiResult<List<WorkFlowAssignment>>.Ok(new WorkFlowAssignment(DB, Configuration).GetS(employeeID).OrderByDescending(x => x.SubmitDateTime).ToList()); }
+            catch (Exception e){return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message);}
         }
 
         [Authorize]
         [HttpPost("mrange/{employeeID}")]
-        public IActionResult MRange(string employeeID, [FromBody] ParamTaskFilter param)
+        public IActionResult MRange(string employeeID, [FromBody] ParamTaskFilter p)
         {
             List<WorkFlowAssignment> result = new List<WorkFlowAssignment>();
             try
             {
-                if (param.Range == null)
-                {
-                    return ApiResult<List<WorkFlowAssignment>>.Ok(
-                        new WorkFlowAssignment(DB, Configuration).GetS(employeeID).OrderByDescending(x => x.SubmitDateTime).ToList());
-                }
+                if (p.Range == null)
+                    return ApiResult<List<WorkFlowAssignment>>.Ok(new WorkFlowAssignment(DB, Configuration).GetS(employeeID).OrderByDescending(x => x.SubmitDateTime).ToList());
                 else
                 {
                     var defaultStart = new DateTime(1992, 12, 07);
                     var defaultFinish = DateTime.Now;
-                    if (param.Range.Start.Year == 1 && param.Range.Finish.Year == 1) param.Range = new DateRange(defaultStart, defaultFinish);
-                    else if (param.Range.Start.Year == 1 && param.Range.Finish.Year != 1) param.Range = new DateRange(defaultStart, param.Range.Finish);
-                    else if (param.Range.Start.Year != 1 && param.Range.Finish.Year == 1) param.Range = new DateRange(param.Range.Start, defaultFinish);
-
+                    if (p.Range.Start.Year == 1 && p.Range.Finish.Year == 1) p.Range = new DateRange(defaultStart, defaultFinish);
+                    else if (p.Range.Start.Year == 1 && p.Range.Finish.Year != 1) p.Range = new DateRange(defaultStart, p.Range.Finish);
+                    else if (p.Range.Start.Year != 1 && p.Range.Finish.Year == 1) p.Range = new DateRange(p.Range.Start, defaultFinish);
                     List<Task<TaskRequest<List<WorkFlowAssignment>>>> tasks = new List<Task<TaskRequest<List<WorkFlowAssignment>>>> {
                         Task.Run(() => {
-                            return TaskRequest<List<WorkFlowAssignment>>.Create("AX", new WorkFlowAssignment(DB, Configuration).GetSRange(employeeID, param.Range));
+                            return TaskRequest<List<WorkFlowAssignment>>.Create("AX", new WorkFlowAssignment(DB, Configuration).GetSRange(employeeID, p.Range));
                         }),
                         Task.Run(() => {
                             List<WorkFlowAssignment> workflowdb = new List<WorkFlowAssignment>();
-                            foreach (var data in new Survey(DB, Configuration).GetRange(employeeID, param.Range)){
-                                workflowdb.Add(new WorkFlowAssignment
-                                {
+                            foreach (var data in new Survey(DB, Configuration).GetRange(employeeID, p.Range)){
+                                workflowdb.Add(new WorkFlowAssignment {
                                     ActionApprove = NoYes.Yes == NoYes.No,
                                     ActionCancel = NoYes.Yes == NoYes.No,
                                     Comment = data.Title,
@@ -385,16 +358,12 @@ HttpStatusCode.BadRequest, $"{ErrMessage} {employeeID} : {Format.ExceptionString
                     return ApiResult<List<WorkFlowAssignment>>.Ok(result.OrderByDescending(x => x.SubmitDateTime).ToList());
                 }
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(
-                    HttpStatusCode.BadRequest, $"{ErrMessage} {employeeID} :\n{Format.ExceptionString(e)}");
-            }
+            catch (Exception e){return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message);}
         }
 
         [Authorize]
         [HttpPost("mactive/{employeeID}")]
-        public IActionResult MGetActive(string employeeID, [FromBody] ParamTaskFilter param)
+        public IActionResult MGetActive(string employeeID, [FromBody] ParamTaskFilter p)
         {
             List<WorkFlowAssignment> res = new List<WorkFlowAssignment>();
             DateTime end = DateTime.Now;
@@ -405,11 +374,11 @@ HttpStatusCode.BadRequest, $"{ErrMessage} {employeeID} : {Format.ExceptionString
             {
                 List<Task<TaskRequest<List<WorkFlowAssignment>>>> tasks = new List<Task<TaskRequest<List<WorkFlowAssignment>>>> {
                     Task.Run(() => {
-                        return TaskRequest<List<WorkFlowAssignment>>.Create("AX", new WorkFlowAssignment(DB, Configuration).GetSRange(param.Username, drange, true));
+                        return TaskRequest<List<WorkFlowAssignment>>.Create("AX", new WorkFlowAssignment(DB, Configuration).GetSRange(p.Username, drange, true));
                     }),
                     Task.Run(() => {
                         List<WorkFlowAssignment> workflowdb = new List<WorkFlowAssignment>();
-                        foreach (var data in new Survey(DB, Configuration).Get(param.Username)) {
+                        foreach (var data in new Survey(DB, Configuration).Get(p.Username)) {
                             workflowdb.Add(new WorkFlowAssignment
                             {
                                 ActionApprove = NoYes.Yes == NoYes.No,
@@ -462,11 +431,7 @@ HttpStatusCode.BadRequest, $"{ErrMessage} {employeeID} : {Format.ExceptionString
                 return ApiResult<List<WorkFlowAssignment>>.Ok(
                     res.OrderByDescending(x => x.SubmitDateTime).ToList(), res.Count);
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(
-                    HttpStatusCode.BadRequest, $"Unable to get active tasks for {param.Username} :\n{Format.ExceptionString(e)}");
-            }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
 
         [Authorize]
@@ -474,98 +439,66 @@ HttpStatusCode.BadRequest, $"{ErrMessage} {employeeID} : {Format.ExceptionString
         public IActionResult MCountActive(string employeeID)
         {
             try { return ApiResult<object>.Ok(null, _assignment.MCountActive(employeeID), null); }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(
-HttpStatusCode.BadRequest, $"Unable to get active task  :\n{Format.ExceptionString(e)}");
-            }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
 
         [Authorize]
         [HttpGet("massignee/{axid}")]
         public IActionResult MAssignee(string axid)
         {
-            try
-            {
-                return ApiResult<List<Employee>>.Ok(
-              new WorkFlowTrackingAdapter(Configuration).GetAssignee(Convert.ToInt64(axid)));
-            }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(
-HttpStatusCode.BadRequest, $"Unable to get delegation assignee :\n{Format.ExceptionString(e)}");
-            }
+            try { return ApiResult<List<Employee>>.Ok(new WorkFlowTrackingAdapter(Configuration).GetAssignee(Convert.ToInt64(axid)));}
+            catch (Exception e){return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message);}
         }
 
         [Authorize]
         [HttpPost("mapprove")]
-        public IActionResult MApprove([FromBody] ParamTask param)
+        public IActionResult MApprove([FromBody] ParamTask p)
         {
-            try
-            {
-                Console.WriteLine($"step 1 [MApprove] param.AXID = {param.AXID} ");
-                new WorkFlowTrackingAdapter(Configuration).Approve(param.AXID);
-                UpdateHistory(param, UpdateRequestStatus.Approved);
-                new Notification(Configuration, DB).SendNotification(param.ActionEmployeeID, param.InstanceID, "approved");
-                return ApiResult<bool>.Ok("Request has been approved");
+            try {
+                new WorkFlowTrackingAdapter(Configuration).Approve(p.AXID);
+                UpdateHistory(p, UpdateRequestStatus.Approved);
+                new Notification(Configuration, DB).SendNotification(p.ActionEmployeeID, p.InstanceID, "approved");
+                return ApiResult<bool>.Ok(success);
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(
-HttpStatusCode.BadRequest, $"Unable to get approve :\n{Format.ExceptionString(e)}");
-            }
+            catch (Exception e) {return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message);}
         }
 
         [Authorize]
         [HttpPost("mreject")]
-        public IActionResult MReject([FromBody] ParamTask param)
+        public IActionResult MReject([FromBody] ParamTask p)
         {
             try
             {
-                new WorkFlowTrackingAdapter(Configuration).Reject(param.AXID, param.Notes);
-                UpdateHistory(param, UpdateRequestStatus.Rejected);
-                new Notification(Configuration, DB).SendNotification(param.ActionEmployeeID, param.InstanceID, "rejected");
-                return ApiResult<bool>.Ok("Request has been rejected");
+                new WorkFlowTrackingAdapter(Configuration).Reject(p.AXID, p.Notes);
+                UpdateHistory(p, UpdateRequestStatus.Rejected);
+                new Notification(Configuration, DB).SendNotification(p.ActionEmployeeID, p.InstanceID, "rejected");
+                return ApiResult<bool>.Ok(success);
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(
-HttpStatusCode.BadRequest, $"Unable to get reject :\n{Format.ExceptionString(e)}");
-            }
+            catch (Exception e){return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message);}
         }
 
         [Authorize]
         [HttpPost("mdelegate")]
-        public IActionResult MDelegate([FromBody] ParamTask param)
+        public IActionResult MDelegate([FromBody] ParamTask p)
         {
-            try
-            {
-                new WorkFlowTrackingAdapter(Configuration).Delegate(param.DelegateToEmployeeID, param.AXID);
-                return ApiResult<bool>.Ok("Request has been delegated");
+            try {
+                new WorkFlowTrackingAdapter(Configuration).Delegate(p.DelegateToEmployeeID, p.AXID);
+                return ApiResult<bool>.Ok(success);
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(
-HttpStatusCode.BadRequest, $"Unable to get delegate :\n{Format.ExceptionString(e)}");
-            }
+            catch (Exception e){return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message);}
         }
 
         [Authorize]
         [HttpPost("mcancel")]
-        public IActionResult MCancel([FromBody] ParamTask param)
+        public IActionResult MCancel([FromBody] ParamTask p)
         {
-            try
-            {
-                new WorkFlowTrackingAdapter(Configuration).Cancel(param.AXID);
-                UpdateHistory(param, UpdateRequestStatus.Cancelled);
-                new Notification(Configuration, DB).SendNotification(param.ActionEmployeeID, param.InstanceID, "canceled");
-                return ApiResult<bool>.Ok("Request has been canceled");
+            try {
+                new WorkFlowTrackingAdapter(Configuration).Cancel(p.AXID);
+                UpdateHistory(p, UpdateRequestStatus.Cancelled);
+                new Notification(Configuration, DB).SendNotification(p.ActionEmployeeID, p.InstanceID, "canceled");
+                return ApiResult<bool>.Ok(success);
             }
-            catch (Exception e)
-            {
-                return ApiResult<object>.Error(
-HttpStatusCode.BadRequest, $"Unable to get cancel :\n{Format.ExceptionString(e)}");
-            }
+            catch (Exception e){return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message);}
         }
     }
 }

@@ -42,31 +42,40 @@
                     <div class="card-header clearfix pb-xs-0">
                         <div class="float-left mb-md-xs-2 no-display">                            
                             <h3 class="page-title">
-                                <span data-bind="text:Title" class="display-4">Survey Covid 19</span> <br>
-                                <span class="text-muted text-center text-sm-left d-block d-sm-inline-block text-small">03 Jul 2020</span>
+                                <span data-bind="text:Title" class="display-4">@ViewBag.Data.Title</span> <br>
+                                @*<span class="text-muted text-center text-sm-left d-block d-sm-inline-block text-small">03 Jul 2020</span>
                                 <span class="text-muted text-center text-sm-left d-block d-sm-inline-block text-small"> - </span>
-                                <span class="text-muted text-center text-sm-left d-block d-sm-inline-block text-small">15 Sep 2020</span> .
+                                <span class="text-muted text-center text-sm-left d-block d-sm-inline-block text-small">15 Sep 2020</span> .*@
                                 <span class="text-muted text-small">Daily</span>
                             </h3>
                         </div>
-                        <div class="float-right">                            
-                            <button type="button" class="btn btn-md btn-info float-right w-md-xs-50" data-bind="click:model.action.saveSurvey">
+                        <div class="float-right">
+                            @* click:model.action.saveSurvey *@
+                            <!--<button type="button" class="btn btn-md btn-info float-right w-md-xs-50" data-bind="visible:false, click:model.action.saveSurvey">-->
                                 <!-- ko if :model.is.buttonLoading() -->
-                                <div class="spinner-border spinner-border-sm text-light" role="status">
+                                <!--<div class="spinner-border spinner-border-sm text-light" role="status">
                                     <span class="sr-only">Loading...</span>
-                                </div>
+                                </div>-->
                                 <!-- /ko -->
                                 <!-- ko ifnot:model.is.buttonLoading() -->
-                                Save
+                                <!--Save-->
                                 <!-- /ko -->
-                            </button>
+                            <!--</button>-->
                         </div>
                     </div>
                     <div class="card-body">
                         <form data-bind="with:data.survey, afterRender:model.on.renderForm">
                             <div class="form-group">
                                 <div class="form-group">
-                                    <iframe id="survey-form-container" class="w-100" src="/survey/start/@ViewBag.ID?employee_id=@UserSession.Id()" title="Survey"></iframe>
+                                    <iframe style="width: 100%; height: 500px" id="survey-form-container" class="w-100" src="/odoo/survey/start/@ViewBag.ID?employee_id=@UserSession.Id()" title="Survey"></iframe>
+                                    <script>
+                                        var frame = document.getElementById("survey-form-container");
+                                        frame.onload = function ()
+                                        {
+                                            frame.style.height = frame.contentWindow.document.body.scrollHeight + 'px';
+                                            frame.style.width = frame.contentWindow.document.body.scrollWidth + 'px';
+                                        }
+                                    </script>
                                 </div>
                             </div>
                         </form>

@@ -54,8 +54,8 @@ namespace KANO.Api.Absence.Controllers
         [HttpPost("docheckinout")]
         public IActionResult CheckInOut([FromBody] AbsenceForm absence)
         {
-            return Ok(new { data = (object)null, message = "Please use up-to-date mobile apps", success = false });
-            /*
+            //return ApiResult<object>.Error(HttpStatusCode.BadRequest, "Please use up-to-date mobile apps");
+            
             User user = _user.GetEmployeeUser(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             AbsenceInOut inout = new AbsenceInOut() {
                 EmplIdField = user.Id,
@@ -84,7 +84,7 @@ namespace KANO.Api.Absence.Controllers
                     UserID = user.Id,
                     Latitude = absence.Latitude,
                     Longitude = absence.Longitude,
-                    DateTime = DateTime.UtcNow,
+                    DateTime = Core.Lib.Helper.Configuration.GetStageApp(Configuration).Equals("development") ? DateTime.UtcNow.AddHours(7) : DateTime.UtcNow.AddHours(7),
                     CreatedBy = user.Id,
                     UpdateBy = user.Id,
                     SubmittedBy = user.Id,
@@ -96,7 +96,6 @@ namespace KANO.Api.Absence.Controllers
                 return Ok(new { data = result, message = String.Empty, success = true });
             }
             catch (Exception e) { return Ok(new { data = (object)null, message = Format.ExceptionString(e), success = false }); }
-            */
         }
         
         [HttpPost("doinout")]
