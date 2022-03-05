@@ -368,19 +368,16 @@ namespace KANO.Api.Common.Controllers
             List<WorkFlowAssignment> res = new List<WorkFlowAssignment>();
             DateTime end = DateTime.Now;
             DateTime start = end.AddDays(-30);
-            //DateTime start = param.Range.Start;
             DateRange drange = new DateRange(start, end);
-            try
-            {
+            try {
                 List<Task<TaskRequest<List<WorkFlowAssignment>>>> tasks = new List<Task<TaskRequest<List<WorkFlowAssignment>>>> {
                     Task.Run(() => {
                         return TaskRequest<List<WorkFlowAssignment>>.Create("AX", new WorkFlowAssignment(DB, Configuration).GetSRange(p.Username, drange, true));
                     }),
                     Task.Run(() => {
                         List<WorkFlowAssignment> workflowdb = new List<WorkFlowAssignment>();
-                        foreach (var data in new Survey(DB, Configuration).Get(p.Username)) {
-                            workflowdb.Add(new WorkFlowAssignment
-                            {
+                        foreach (var data in new Survey(DB, Configuration).Get(p.Username))
+                            workflowdb.Add(new WorkFlowAssignment {
                                 ActionApprove = NoYes.Yes == NoYes.No,
                                 ActionCancel = NoYes.Yes == NoYes.No,
                                 Comment = data.Title,
@@ -394,13 +391,13 @@ namespace KANO.Api.Common.Controllers
                                 AssignDelegate = NoYes.Yes == NoYes.No,
                                 AssignReject = NoYes.Yes == NoYes.No,
                                 AssignType = KESSWFServices.KESSWorkflowAssignType.Originator,
-                                AssignTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowAssignType), (KESSWFServices.KESSWorkflowAssignType)KESSWFServices.KESSWorkflowAssignType.Originator),
+                                AssignTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowAssignType), KESSWFServices.KESSWorkflowAssignType.Originator),
                                 AssignToEmployeeID = data.ParticipantID,
                                 AssignToEmployeeName = data.ParticipantID,
                                 RequestType = KESSWFServices.KESSWorkerRequestType.CNTickets,
-                                RequestTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkerRequestType), (KESSWFServices.KESSWorkerRequestType)KESSWFServices.KESSWorkerRequestType.CNTickets),
+                                RequestTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkerRequestType), KESSWFServices.KESSWorkerRequestType.CNTickets),
                                 StepTrackingType = KESSWFServices.KESSWorkflowTrackingType.Creation,
-                                StepTrackingTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowTrackingType), (KESSWFServices.KESSWorkflowTrackingType)KESSWFServices.KESSWorkflowTrackingType.Creation),
+                                StepTrackingTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowTrackingType), KESSWFServices.KESSWorkflowTrackingType.Creation),
                                 Sequence = 0,
                                 InstanceId = data.OdooID,
                                 AXID = long.Parse(data.OdooID) ,
@@ -412,13 +409,13 @@ namespace KANO.Api.Common.Controllers
                                 WorkflowId = data.OdooID,
                                 WorkflowType = KESSWFServices.KESSWorkflowType.HRM,
                                 TaskType = TaskType.Fill,
-                                WorkflowTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowType), (KESSWFServices.KESSWorkflowType)KESSWFServices.KESSWorkflowType.HRM),
+                                WorkflowTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowType), KESSWFServices.KESSWorkflowType.HRM),
                                 Title = data.Title,
                             });
-                        }
                         return TaskRequest<List<WorkFlowAssignment>>.Create("DB", workflowdb);
                     })
                 };
+
                 var t = Task.WhenAll(tasks);
                 try { t.Wait(); }
                 catch (Exception e) { throw e; }
