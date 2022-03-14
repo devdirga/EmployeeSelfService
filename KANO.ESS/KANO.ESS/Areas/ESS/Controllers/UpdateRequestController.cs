@@ -8,6 +8,7 @@ using KANO.Core.Lib;
 using KANO.Core.Lib.Extension;
 using KANO.Core.Model;
 using KANO.Core.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -95,5 +96,17 @@ namespace KANO.ESS.Areas.ESS.Controllers
         //    var result = JsonConvert.DeserializeObject<ApiResult<TrackingRequest>.Result>(response.Content);
         //    return new ApiResult<TrackingRequest>(result);
         //}
+
+        [AllowAnonymous]
+        public IActionResult MGetByInstanceID(string source, string id)
+        {
+            var employeeID = source;
+            var client = new Client(Configuration);
+            var request = new Request($"api/common/updateRequest/{employeeID}/{id}", Method.GET);
+            var response = client.Execute(request);
+            if (response.StatusCode != HttpStatusCode.OK && string.IsNullOrWhiteSpace(response.Content)) return ApiResult<object>.Error(response.StatusCode, response.StatusDescription);
+            var result = JsonConvert.DeserializeObject<ApiResult<TrackingRequest>.Result>(response.Content);
+            return new ApiResult<TrackingRequest>(result);
+        }
     }
 }

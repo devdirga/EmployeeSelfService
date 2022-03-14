@@ -63,7 +63,7 @@ namespace KANO.Core.Model
             }
         }
 
-        public string IsSelfieAuth { get; set; }
+        public string IsSelfieAuth { get; set; } = "no";
 
         public AdditionalUserInfo AdditionalInfo { get; set; }
         public bool Enable { get; set; } = false;

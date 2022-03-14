@@ -345,7 +345,10 @@ model.render.gridTimeAttendance = function () {
                     template: function (data) {
                         var edit = ``                        
                         var loggedDate = new Date(data.TimeAttendance.LoggedDate);
-                        if ((loggedDate >= firstDayLastMonth && loggedDate <= lastDayLastMonth) || (lastDayLastMonth <= loggedDate)) {
+                        if (
+                            // (loggedDate >= firstDayLastMonth && loggedDate <= lastDayLastMonth) || (lastDayLastMonth <= loggedDate)
+                            (loggedDate >= days30ago)
+                           ) {
 
                             var tmAbsenceCodes = data.TimeAttendance.AbsenceCode.split(",") || [];
                             var isEditable = false;
