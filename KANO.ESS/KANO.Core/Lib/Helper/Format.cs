@@ -170,5 +170,11 @@ namespace KANO.Core.Lib.Helper
         {
             return configuration["Stage"];
         }
+
+        public static Double GetUpdateAbsenceTimeLimit(IConfiguration configuration)
+        {
+            return Convert.ToDouble(configuration["UpdateAbsenceTimeLimit"]);
+        }
+
     }
 }

@@ -1,5 +1,6 @@
 {
   "Stage": "development",
+  "UpdateAbsenceTimeLimit": "4.0",
   "Path": {
     "UploadDirectory": "D:\\Workspace\\.net\\ess\\files",
     "MobileEmployeeImage": "D:\\Workspace\\.net\\ess\\files",

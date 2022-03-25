@@ -14,6 +14,7 @@ using System.Globalization;
 using Newtonsoft.Json;
 using KANO.Core.Lib;
 using System.Net;
+using System.Collections.Generic;
 
 namespace KANO.Api.Absence.Controllers
 {
@@ -124,8 +125,10 @@ namespace KANO.Api.Absence.Controllers
             User user = _user.GetEmployeeUser(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var activitylogs = DB.GetCollection<ActivityLog>().Find(a => a.Temporary == true && a.UserID == user.Username).ToList();
             try {
+                Double absenceTimeLimit = Core.Lib.Helper.Configuration.GetUpdateAbsenceTimeLimit(Configuration);
+                Console.WriteLine($"AbsenceTimeLimit = {absenceTimeLimit}");
                 foreach (var activitylog in activitylogs)
-                    if ((DateTime.Now - activitylog.DateTime).TotalHours < 4.0) {
+                    if ((DateTime.Now - activitylog.DateTime).TotalHours < absenceTimeLimit) {
                         activitylog.Temporary = false;
                         DB.Save(activitylog);
                         var activitytype = DB.GetCollection<ActivityType>().Find(a => a.Id == activitylog.ActivityTypeID).FirstOrDefault();
@@ -198,6 +201,36 @@ namespace KANO.Api.Absence.Controllers
             }
         }
 
+        [HttpGet("getabsencetemporary")]
+        public IActionResult GetAbsenceTemporary()
+        {
+            try {
+                User user = _user.GetEmployeeUser(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                var activitylogs = DB.GetCollection<ActivityLog>().Find(a => a.Temporary == true && a.UserID == user.Username).ToList();
+                Double absenceTimeLimit = Core.Lib.Helper.Configuration.GetUpdateAbsenceTimeLimit(Configuration);
+                Console.WriteLine($"AbsenceTimeLimit = {absenceTimeLimit}");
+                List<ActivityLog> res = new List<ActivityLog>();
+                foreach (var activitylog in activitylogs)
+                {
+                    if((DateTime.Now - activitylog.DateTime).TotalHours < absenceTimeLimit)
+                    {
+                        res.Add(activitylog);
+                    }
+                }
+                return Ok(new
+                {
+                    data = res,
+                    message = "",
+                    success = true
+                });
+                //return ApiResult<object>.Ok("success");
+            }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
+            
+
+
+            //return ApiResult<object>.Ok("success");
+        }
         /*
         [HttpPost("doinout")]
         public IActionResult DoInOut([FromForm] TicketForm p)

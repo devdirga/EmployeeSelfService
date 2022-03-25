@@ -1090,5 +1090,35 @@ namespace KANO.ESS.Areas.ESS.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpGet("api/absence/getabsencetemporary")]
+        public IActionResult Getabsencetemporary()
+        {
+            var client = new Client(Configuration);
+            var request = new Request($"{Api}getabsencetemporary", Method.GET);
+            var bearerAuth = "Bearer ";
+            if (Request.Headers.TryGetValue("Authorization", out StringValues authToken))
+            {
+                bearerAuth = authToken;
+            }
+            request.Self.AddHeader("Authorization", bearerAuth);
+            var response = client.Execute(request);
+            if (!response.IsSuccessful)
+            {
+                return Ok(new
+                {
+                    Data = (object)null,
+                    Message = response.StatusDescription,
+                    Success = response.IsSuccessful
+                });
+            }
+            var res = JsonConvert.DeserializeObject<ApiResult<List<ActivityLog>>.Result>(response.Content);
+            return Ok(new
+            {
+                Data = res.Data,
+                Message = res.Message,
+                Success = string.IsNullOrEmpty(res.Message)
+            });
+        }
     }
 }
