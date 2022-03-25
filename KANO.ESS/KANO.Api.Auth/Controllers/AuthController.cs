@@ -22,100 +22,71 @@ namespace KANO.Api.Auth.Controllers
     [ApiController]
     public class AuthController : Controller
     {
-
-        private IMongoManager Mongo;
-        private IMongoDatabase Db;
-        private IConfiguration Configuration;
+        private readonly IMongoManager Mongo;
+        private readonly IMongoDatabase Db;
+        private readonly IConfiguration Configuration;
 
         public AuthController(IMongoManager mongo, IConfiguration config)
         {
             Mongo = mongo;
             Db = Mongo.Database();
             Configuration = config;
-
             ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
         }
 
-        // POST api/auth
         [HttpPost]
-        public async Task<IActionResult> Login([FromBody] LoginParam param)
+        public IActionResult Login([FromBody] LoginParam p)
         {
-            try
-            {
-                var authService = new AuthService(Mongo, Configuration);
-                var authResult = authService.Auth(param.EmployeeID, param.Email, param.Password);
-
+            try {
+                var authResult = new AuthService(Mongo, Configuration).Auth(p.EmployeeID, p.Email, p.Password);
                 return ApiResult<AuthResult>.Ok(authResult);
             }
-            catch (Exception e)
-            {
-
-                return ApiResult<AuthResult>.Error(e);
-            }
-            
+            catch (Exception e) { return ApiResult<AuthResult>.Error(e); }
         }
 
-        // POST api/auth/activate
         [HttpPost]
         [Route("activate")]
-        public async Task<IActionResult> Activate([FromBody] ActivationParam param)
+        public IActionResult Activate([FromBody] ActivationParam p)
         {
-            var authService = new AuthService(Mongo, Configuration);
-            var activationResult = authService.Activate(param.Token, param.Password);
-
+            var activationResult = new AuthService(Mongo, Configuration).Activate(p.Token, p.Password);
             return ApiResult<AuthResult>.Ok(activationResult);
         }
 
         [HttpPost]
         [Route("activation/request")]
-        public async Task<IActionResult> SendMailActivation([FromBody] SendActivationEmailParam param)
+        public IActionResult SendMailActivation([FromBody] SendActivationEmailParam p)
         {
-            var authService = new AuthService(Mongo, Configuration);
-            var sendEmailResult = authService.SendMailActivationUser(param.EmployeeID, param.Email, param.BaseURL);
+            var sendEmailResult = new AuthService(Mongo, Configuration).SendMailActivationUser(p.EmployeeID, p.Email, p.BaseURL);
             return ApiResult<AuthResult>.Ok(sendEmailResult);
         }
 
-        /*[HttpPost]
-        [Route("activation/request")]
-        public async Task<IActionResult> SendMailActivation([FromBody] SendActivationEmailParam param)
-        {
-            var authService = new AuthService(Mongo, Configuration);
-            var sendEmailResult = authService.SendMailActivationUser(param.EmployeeID, param.Email);
-            return ApiResult<AuthResult>.Ok();
-        }*/
-
         [Route("resetPassword/request")]
-        public async Task<IActionResult> SendResetPasswordEmail([FromBody] SendResetPasswordEmailParam param)
+        public IActionResult SendResetPasswordEmail([FromBody] SendResetPasswordEmailParam p)
         {
-            var authService = new AuthService(Mongo, Configuration);
-            var result = authService.SendResetPassword(param.Email);
+            var result = new AuthService(Mongo, Configuration).SendResetPassword(p.Email);
             return ApiResult<AuthResult>.Ok(result);
         }
 
         [HttpGet("resetPassword/verifyToken/{token}")]
-        public async Task<IActionResult> VerifyResetPasswordToken(string token)
+        public IActionResult VerifyResetPasswordToken(string token)
         {
-            var authService = new AuthService(Mongo, Configuration);
-            // var result = authService.VerifyResetPasswordToken(token);
-            var result = authService.VerifyResetPasswordKey(token);
+            var result = new AuthService(Mongo, Configuration).VerifyResetPasswordKey(token);
             return ApiResult<AuthResult>.Ok(result);
         }
 
         [HttpPost]
         [Route("resetPassword")]
-        public async Task<IActionResult> ResetPassword([FromBody] SendResetPasswordEmailParam param)
+        public IActionResult ResetPassword([FromBody] SendResetPasswordEmailParam p)
         {
-            var authService = new AuthService(Mongo, Configuration);
-            var result = authService.ResetPassword(param.Token, param.Password);
+            var result = new AuthService(Mongo, Configuration).ResetPassword(p.Token, p.Password);
             return ApiResult<AuthResult>.Ok(result);
         }
 
         [HttpPost]
         [Route("changePassword")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordParam param)
+        public IActionResult ChangePassword([FromBody] ChangePasswordParam p)
         {
-            var authService = new AuthService(Mongo, Configuration);
-            var result = authService.ChangePassword(param.EmployeeID,param.Password, param.NewPassword);
+            var result = new AuthService(Mongo, Configuration).ChangePassword(p.EmployeeID, p.Password, p.NewPassword);
             return ApiResult<AuthResult>.Ok(result);
         }
 

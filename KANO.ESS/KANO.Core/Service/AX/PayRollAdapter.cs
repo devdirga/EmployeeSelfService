@@ -66,6 +66,7 @@ namespace KANO.Core.Service.AX
                         EmployeeName = d.EmplName,
                         Filepath = d.PayslipReportPath,
                         AmountNetto=(double)d.NettoSalary,
+                        YearMonth = $"{d.PeriodYear}{d.PeriodMonth}"
                         //PaySlipMonth =DateTime.Now,
                     });
                 }
@@ -79,7 +80,7 @@ namespace KANO.Core.Service.AX
                 if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait();
             }                                   
            
-            return result;
+            return result.OrderByDescending(a => a.YearMonth).ToList();
         }
 
         public PaySlip GetLatestPayslip(string employeeID)

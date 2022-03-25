@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -241,18 +242,20 @@ namespace KANO.Core.Service.AX
             return workflowAssignment;
         }
 
-        public List<WorkFlowAssignment> GetAssignmentRange(string employeeID, DateRange dateRange, bool activeOnly = false)
-        {
+        public List<WorkFlowAssignment> GetAssignmentRange(string employeeID, DateRange dateRange, bool activeOnly = false) {
             var range = Tools.normalizeFilter(dateRange);
             var workflowAssignment = new List<WorkFlowAssignment>();
             var Client = this.GetClient();
             var Context = this.GetContext();
-            try
-            {
-                //Client.OpenAsync().GetAwaiter();
+            try {
+                Console.WriteLine($"Start (GetAssignmentRange)={DateTime.Now.ToString("HHmmss", CultureInfo.InvariantCulture)}");
+                Console.WriteLine($"Start={dateRange.Start.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)} {dateRange.Finish.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)}");
+                
                 var data = Client.getWFTrackingAssignFilterDateAsync(Context, employeeID, range.Start, range.Finish, activeOnly);
-                foreach (var d in data.Result.response)
-                {
+                var res = data.Result.response;
+                
+                Console.WriteLine($"Enddd (GetAssignmentRange)={DateTime.Now.ToString("HHmmss", CultureInfo.InvariantCulture)}");
+                foreach (var d in res) {
                     if (d.AssignToEmplId == d.SubmitByEmplId && (d.AssignApprove == KESSWFServices.NoYes.Yes || d.AssignReject == KESSWFServices.NoYes.Yes)) continue;
                     workflowAssignment.Add(this.mapFromAX(d));
                 }

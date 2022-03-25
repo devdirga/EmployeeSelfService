@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -367,66 +368,77 @@ namespace KANO.Api.Common.Controllers
         {
             List<WorkFlowAssignment> res = new List<WorkFlowAssignment>();
             DateTime end = DateTime.Now;
-            DateTime start = end.AddDays(-30);
+            DateTime start = end.AddDays(-7);
             DateRange drange = new DateRange(start, end);
             try {
-                List<Task<TaskRequest<List<WorkFlowAssignment>>>> tasks = new List<Task<TaskRequest<List<WorkFlowAssignment>>>> {
-                    Task.Run(() => {
-                        return TaskRequest<List<WorkFlowAssignment>>.Create("AX", new WorkFlowAssignment(DB, Configuration).GetSRange(p.Username, drange, true));
-                    }),
-                    Task.Run(() => {
-                        List<WorkFlowAssignment> workflowdb = new List<WorkFlowAssignment>();
-                        foreach (var data in new Survey(DB, Configuration).Get(p.Username))
-                            workflowdb.Add(new WorkFlowAssignment {
-                                ActionApprove = NoYes.Yes == NoYes.No,
-                                ActionCancel = NoYes.Yes == NoYes.No,
-                                Comment = data.Title,
-                                ActionDateTime = data.CreatedDate,
-                                ActionDelegate = NoYes.Yes == NoYes.No,
-                                ActionDelegateToEmployeeID = data.ParticipantID,
-                                ActionDelegateToEmployeeName = data.ParticipantID,
-                                ActionReject = NoYes.Yes == NoYes.No,
-                                AssignApprove = NoYes.Yes == NoYes.No,
-                                AssignCancel = NoYes.Yes == NoYes.No,
-                                AssignDelegate = NoYes.Yes == NoYes.No,
-                                AssignReject = NoYes.Yes == NoYes.No,
-                                AssignType = KESSWFServices.KESSWorkflowAssignType.Originator,
-                                AssignTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowAssignType), KESSWFServices.KESSWorkflowAssignType.Originator),
-                                AssignToEmployeeID = data.ParticipantID,
-                                AssignToEmployeeName = data.ParticipantID,
-                                RequestType = KESSWFServices.KESSWorkerRequestType.CNTickets,
-                                RequestTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkerRequestType), KESSWFServices.KESSWorkerRequestType.CNTickets),
-                                StepTrackingType = KESSWFServices.KESSWorkflowTrackingType.Creation,
-                                StepTrackingTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowTrackingType), KESSWFServices.KESSWorkflowTrackingType.Creation),
-                                Sequence = 0,
-                                InstanceId = data.OdooID,
-                                AXID = long.Parse(data.OdooID) ,
-                                SubmitEmployeeID = data.ParticipantID,
-                                SubmitEmployeeName = data.ParticipantID,
-                                SubmitDateTime = data.CreatedDate,
-                                TrackingStatus = KESSWFServices.KESSWorkflowTrackingStatus.InReview,
-                                TrackingStatusDescription = KESSWFServices.KESSWorkflowTrackingStatus.InReview.ToString(),
-                                WorkflowId = data.OdooID,
-                                WorkflowType = KESSWFServices.KESSWorkflowType.HRM,
-                                TaskType = TaskType.Fill,
-                                WorkflowTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowType), KESSWFServices.KESSWorkflowType.HRM),
-                                Title = data.Title,
-                            });
-                        return TaskRequest<List<WorkFlowAssignment>>.Create("DB", workflowdb);
-                    })
-                };
-
-                var t = Task.WhenAll(tasks);
-                try { t.Wait(); }
-                catch (Exception e) { throw e; }
-
-                if (t.Status == TaskStatus.RanToCompletion)
-                    foreach (var r in t.Result)
-                        if (r.Label == "AX")
+                if (p.Range == null) {
+                    var ret = new WorkFlowAssignment(DB, Configuration).GetS(employeeID).OrderByDescending(x => x.SubmitDateTime).ToList();
+                    //Console.WriteLine($"End mActive (null) ... {DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)}");
+                    return ApiResult<List<WorkFlowAssignment>>.Ok(ret);
+                } else {
+                    var defaultFinish = DateTime.Now;
+                    var defaultStart = defaultFinish.AddDays(-7); //new DateTime(1992, 12, 07);
+                    //if (p.Range.Start.Year == 1 && p.Range.Finish.Year == 1) p.Range = new DateRange(defaultStart, defaultFinish);
+                    //else if (p.Range.Start.Year == 1 && p.Range.Finish.Year != 1) p.Range = new DateRange(defaultStart, p.Range.Finish);
+                    //else if (p.Range.Start.Year != 1 && p.Range.Finish.Year == 1) p.Range = new DateRange(p.Range.Start, defaultFinish);
+                    p.Range = new DateRange(defaultStart, defaultFinish);
+                    List<Task<TaskRequest<List<WorkFlowAssignment>>>> tasks = new List<Task<TaskRequest<List<WorkFlowAssignment>>>> {
+                        Task.Run(() => {
+                            return TaskRequest<List<WorkFlowAssignment>>.Create("AX", new WorkFlowAssignment(DB, Configuration).GetS(p.Username, true));
+                            //return TaskRequest<List<WorkFlowAssignment>>.Create("AX", new WorkFlowAssignment(DB, Configuration).GetSRange(p.Username, p.Range, true));
+                        }),
+                        /*
+                        Task.Run(() => {
+                            List<WorkFlowAssignment> workflowdb = new List<WorkFlowAssignment>();
+                            foreach (var data in new Survey(DB, Configuration).Get(p.Username))
+                                workflowdb.Add(new WorkFlowAssignment {
+                                    ActionApprove = NoYes.Yes == NoYes.No,
+                                    ActionCancel = NoYes.Yes == NoYes.No,
+                                    Comment = data.Title,
+                                    ActionDateTime = data.CreatedDate,
+                                    ActionDelegate = NoYes.Yes == NoYes.No,
+                                    ActionDelegateToEmployeeID = data.ParticipantID,
+                                    ActionDelegateToEmployeeName = data.ParticipantID,
+                                    ActionReject = NoYes.Yes == NoYes.No,
+                                    AssignApprove = NoYes.Yes == NoYes.No,
+                                    AssignCancel = NoYes.Yes == NoYes.No,
+                                    AssignDelegate = NoYes.Yes == NoYes.No,
+                                    AssignReject = NoYes.Yes == NoYes.No,
+                                    AssignType = KESSWFServices.KESSWorkflowAssignType.Originator,
+                                    AssignTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowAssignType), KESSWFServices.KESSWorkflowAssignType.Originator),
+                                    AssignToEmployeeID = data.ParticipantID,
+                                    AssignToEmployeeName = data.ParticipantID,
+                                    RequestType = KESSWFServices.KESSWorkerRequestType.CNTickets,
+                                    RequestTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkerRequestType), KESSWFServices.KESSWorkerRequestType.CNTickets),
+                                    StepTrackingType = KESSWFServices.KESSWorkflowTrackingType.Creation,
+                                    StepTrackingTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowTrackingType), KESSWFServices.KESSWorkflowTrackingType.Creation),
+                                    Sequence = 0,
+                                    InstanceId = data.OdooID,
+                                    AXID = long.Parse(data.OdooID) ,
+                                    SubmitEmployeeID = data.ParticipantID,
+                                    SubmitEmployeeName = data.ParticipantID,
+                                    SubmitDateTime = data.CreatedDate,
+                                    TrackingStatus = KESSWFServices.KESSWorkflowTrackingStatus.InReview,
+                                    TrackingStatusDescription = KESSWFServices.KESSWorkflowTrackingStatus.InReview.ToString(),
+                                    WorkflowId = data.OdooID,
+                                    WorkflowType = KESSWFServices.KESSWorkflowType.HRM,
+                                    TaskType = TaskType.Fill,
+                                    WorkflowTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowType), KESSWFServices.KESSWorkflowType.HRM),
+                                    Title = data.Title,
+                                });
+                            return TaskRequest<List<WorkFlowAssignment>>.Create("DB", workflowdb);
+                        })
+                        */
+                    };
+                    var t = Task.WhenAll(tasks);
+                    try { t.Wait(); }
+                    catch (Exception e) { throw e; }
+                    if (t.Status == TaskStatus.RanToCompletion)
+                        foreach (var r in t.Result)
                             res.AddRange(r.Result);
-
-                return ApiResult<List<WorkFlowAssignment>>.Ok(
-                    res.OrderByDescending(x => x.SubmitDateTime).ToList(), res.Count);
+                    //Console.WriteLine($"End mActive (not null) ... {DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)}");
+                    return ApiResult<List<WorkFlowAssignment>>.Ok(res.OrderByDescending(x => x.SubmitDateTime).ToList(), res.Count);
+                }                
             }
             catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }

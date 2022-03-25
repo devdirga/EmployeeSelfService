@@ -40,6 +40,7 @@ namespace KANO.Core.Model
         public Nullable<DateTime> LastUpdatedDate { get; set; }
         public string Status { get; set; }
         public bool Temporary { get; set; } = false;
+        public bool IsOldApps { get; set; } = true;
         public ActivityLog() { }
 
         public ActivityLog(IMongoDatabase mongoDB, IConfiguration configuration)  {
@@ -59,21 +60,18 @@ namespace KANO.Core.Model
         {
         }
 
+        // For old mobile apps
         public List<ActivityLog> Get(ObjectId entityID, int skip, int limit, string userID, ObjectId activityTypeID, ObjectId locationID, DateTime startDate, DateTime endDate, string keyword)
         {
             String code = String.Empty;
-            if (locationID != ObjectId.Empty)
-            {
+            if (locationID != ObjectId.Empty) {
                 Location Location = this.MongoDB.GetCollection<Location>().Find(x => x.Id == locationID).FirstOrDefault();
                 if (Location != null)
-                {
                     code = Location.Code;
-                }
             }
             var ActivityLog = new List<ActivityLog>();
             var filter = new BsonDocument();
             if (!string.IsNullOrEmpty(keyword))
-            {
                 filter = new BsonDocument {
                     { "$and", new BsonArray {
                         new BsonDocument {{ "EntityID", entityID } },
@@ -83,62 +81,86 @@ namespace KANO.Core.Model
                         new BsonDocument{{ "$or", new BsonArray {
                             new BsonDocument {{ "Status", new BsonDocument { { "$regex", keyword }, { "$options", "i" } } } }
                         }}}
-                        }   
+                        }
                     }
                 };
-            }
             else
             {
                 if(entityID != ObjectId.Empty)
-                {
                     filter.Add("EntityID", entityID);
-                }
                 if (!string.IsNullOrEmpty(userID))
-                {
-                    filter.Add("UserID", userID);
-                }
+                    filter.Add("UserID", userID);                
                 if (activityTypeID != ObjectId.Empty)
-                {
-                    filter.Add("ActivityTypeID", activityTypeID);
-                }
+                    filter.Add("ActivityTypeID", activityTypeID);                
                 if (locationID != ObjectId.Empty)
-                {
-                    filter.Add("LocationID", code);
-                }
+                    filter.Add("LocationID", code);                
             }
-
             ActivityLog = this.MongoDB.GetCollection<ActivityLog>().Find(filter).Skip(skip).Limit(limit).SortByDescending(x => x.DateTime).ToList();
             var result = new List<ActivityLog>();
-
-            foreach (var al in ActivityLog)
-            {
-                //al.DateTime >= startDate && al.DateTime <= endDate
-                if (true) 
-                {
-                    result.Add(al);
-                }
+            foreach (var al in ActivityLog) {
+                if (!al.IsOldApps)
+                    al.DateTime = al.DateTime.AddHours(-7);
+                result.Add(al);
             }
-
             if (result == null)
-            {
                 throw new Exception($"ActivityLog for {userID} is not found");
-            }
-
             return result;
         }
 
-        public ActivityLog GetByID(string ActivityLogID) 
+        // For new mobile apps
+        public List<ActivityLog> MGet(ObjectId entityID, int skip, int limit, string userID, ObjectId activityTypeID, ObjectId locationID, DateTime startDate, DateTime endDate, string keyword)
         {
-            var ActivityLog = this.MongoDB.GetCollection<ActivityLog>().Find(x => x.Id == ObjectId.Parse(ActivityLogID)).FirstOrDefault();
-
-            if (ActivityLog == null)
-            {
-                throw new Exception($"ActivityLog {ActivityLogID} is not found");
+            String code = String.Empty;
+            if (locationID != ObjectId.Empty) {
+                Location Location = this.MongoDB.GetCollection<Location>().Find(x => x.Id == locationID).FirstOrDefault();
+                if (Location != null)
+                    code = Location.Code;
             }
-
-            return ActivityLog;
+            var ActivityLog = new List<ActivityLog>();
+            var filter = new BsonDocument();
+            if (!string.IsNullOrEmpty(keyword))
+                filter = new BsonDocument {
+                    { "$and", new BsonArray {
+                        new BsonDocument {{ "EntityID", entityID } },
+                        new BsonDocument {{ "UserID", userID } },
+                        new BsonDocument {{ "ActivityTypeID", activityTypeID } },
+                        new BsonDocument {{ "LocationID", code } },
+                        new BsonDocument{{ "$or", new BsonArray {
+                            new BsonDocument {{ "Status", new BsonDocument { { "$regex", keyword }, { "$options", "i" } } } }
+                        }}}
+                        }
+                    }
+                };
+            else
+            {
+                if (entityID != ObjectId.Empty)
+                    filter.Add("EntityID", entityID);
+                if (!string.IsNullOrEmpty(userID))
+                    filter.Add("UserID", userID);
+                if (activityTypeID != ObjectId.Empty)
+                    filter.Add("ActivityTypeID", activityTypeID);
+                if (locationID != ObjectId.Empty)
+                    filter.Add("LocationID", code);                
+            }
+            ActivityLog = this.MongoDB.GetCollection<ActivityLog>().Find(filter).Skip(skip).Limit(limit).SortByDescending(x => x.DateTime).ToList();
+            var result = new List<ActivityLog>();
+            foreach (var al in ActivityLog) {
+                if (al.IsOldApps)
+                    al.DateTime = al.DateTime.AddHours(7);
+                result.Add(al);
+            }
+            if (result == null)
+                throw new Exception($"ActivityLog for {userID} is not found");
+            return result;
         }
 
+        public ActivityLog GetByID(string id)
+        {
+            var ActivityLog = this.MongoDB.GetCollection<ActivityLog>().Find(x => x.Id == ObjectId.Parse(id)).FirstOrDefault();
+            if (ActivityLog == null)
+                throw new Exception($"ActivityLog {id} is not found");
+            return ActivityLog;
+        }
     }
 
     public class ParamMbuh

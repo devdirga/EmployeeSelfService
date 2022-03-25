@@ -24,6 +24,7 @@ namespace KANO.ESS.Areas.ESS.Controllers
 
         private IConfiguration Configuration;
         private IUserSession Session;
+        private readonly String ApiCommon = "api/common/";
 
         public UpdateRequestController(IConfiguration config, IUserSession session)
         {
@@ -102,7 +103,7 @@ namespace KANO.ESS.Areas.ESS.Controllers
         {
             var employeeID = source;
             var client = new Client(Configuration);
-            var request = new Request($"api/common/updateRequest/{employeeID}/{id}", Method.GET);
+            var request = new Request($"{ApiCommon}updaterequest/{employeeID}/{id}", Method.GET);
             var response = client.Execute(request);
             if (response.StatusCode != HttpStatusCode.OK && string.IsNullOrWhiteSpace(response.Content)) return ApiResult<object>.Error(response.StatusCode, response.StatusDescription);
             var result = JsonConvert.DeserializeObject<ApiResult<TrackingRequest>.Result>(response.Content);

@@ -973,22 +973,13 @@ namespace KANO.ESS.Areas.ESS.Controllers
             }
         }
 
-
-
         [AllowAnonymous]
         [HttpGet("api/activity/log/lists")]
         public IActionResult GetActivityLogLists()
         {
-            //ObjectId entityID = String.IsNullOrEmpty(Request.Query["entityID"]) ? ObjectId.Empty : ObjectId.Parse(Request.Query["entityID"].ToString());
             int skip = String.IsNullOrEmpty(Request.Query["skip"]) ? 0 : Int32.Parse(Request.Query["skip"]);
             int limit = String.IsNullOrEmpty(Request.Query["limit"]) ? 0 : Int32.Parse(Request.Query["limit"]);
-            string userID = Request.Query["userID"];
-            //ObjectId activityTypeID = String.IsNullOrEmpty(Request.Query["activityTypeID"]) ? ObjectId.Empty : ObjectId.Parse(Request.Query["activityTypeID"].ToString());
-            //ObjectId locationID = String.IsNullOrEmpty(Request.Query["locationID"]) ? ObjectId.Empty : ObjectId.Parse(Request.Query["locationID"].ToString());
-            //string startDate = String.IsNullOrEmpty(Request.Query["startDate"]) ? DateTime.Now.ToString("dd MMMM yyyy HH:mm:ss") : Convert.ToDateTime(Request.Query["startDate"].ToString()).ToString("dd MMMM yyyy HH:mm:ss");
-            //string endDate = String.IsNullOrEmpty(Request.Query["endDate"]) ? DateTime.Now.ToString("dd MMMM yyyy HH:mm:ss") : Convert.ToDateTime(Request.Query["endDate"].ToString()).ToString("dd MMMM yyyy HH:mm:ss");
-            //string search = Request.Query["search"].ToString();
-
+            string userID = String.Empty;
             //GetUserFromToken
             var c = new Client(Configuration);
             var req = new Request("api/absence/user/me", Method.GET);
@@ -1010,7 +1001,7 @@ namespace KANO.ESS.Areas.ESS.Controllers
             }
 
             var client = new Client(Configuration);
-            var request = new Request($"api/absence/activity/log/list?skip={skip}&limit={limit}&userID={userID}", Method.GET);
+            var request = new Request($"api/absence/activity/log/mlist?skip={skip}&limit={limit}&userID={userID}", Method.GET);
             var bearerAuth = "Bearer ";
             if (Request.Headers.TryGetValue("Authorization", out StringValues authToken))
             {

@@ -72,92 +72,69 @@ namespace KANO.ESS.Areas.ESS.Controllers
 
         public IActionResult GetTicketType()
         {
-            var client = new Client(Configuration);
-            var request = new Request($"api/complaint/list/ticketType", Method.GET);
-            var response = client.Execute(request);
-
-            var result = JsonConvert.DeserializeObject<ApiResult<List<string>>.Result>(response.Content);
-            return new ApiResult<List<string>>(result);
+            return new ApiResult<List<string>>
+                (JsonConvert.DeserializeObject<ApiResult<List<string>>.Result>
+                (new Client(Configuration).Execute(new Request($"{Api}list/ticketType", Method.GET)).Content));
         }
 
         public IActionResult GetTicketStatus()
         {
-            var client = new Client(Configuration);
-            var request = new Request($"api/complaint/list/ticketStatus", Method.GET);
-            var response = client.Execute(request);
-
-            var result = JsonConvert.DeserializeObject<ApiResult<List<string>>.Result>(response.Content);
-            return new ApiResult<List<string>>(result);
+            return new ApiResult<List<string>>
+                (JsonConvert.DeserializeObject<ApiResult<List<string>>.Result>
+                (new Client(Configuration).Execute(new Request($"{Api}list/ticketStatus", Method.GET)).Content));
         }
 
         public IActionResult GetTicketMedia()
         {
-            var client = new Client(Configuration);
-            var request = new Request($"api/complaint/list/ticketMedia", Method.GET);
-            var response = client.Execute(request);
-
-            var result = JsonConvert.DeserializeObject<ApiResult<List<string>>.Result>(response.Content);
-            return new ApiResult<List<string>>(result);
+            return new ApiResult<List<string>>
+                (JsonConvert.DeserializeObject<ApiResult<List<string>>.Result>
+                (new Client(Configuration).Execute(new Request($"{Api}list/ticketMedia", Method.GET)).Content));
         }
 
-        public IActionResult Get([FromBody] KendoGrid param)
+        public IActionResult Get([FromBody] KendoGrid p)
         {
             var employeeID = Session.Id();
-            if(param.Filter == null){
-                param.Filter = new KendoFilters();  
-                param.Filter.Logic = "and";
-                param.Filter.Filters = new List<KendoFilter>();
+            if(p.Filter == null){
+                p.Filter = new KendoFilters {
+                    Logic = "and",
+                    Filters = new List<KendoFilter>()
+                };
             }
-
-            param.Filter.Filters.Add(new KendoFilter{
+            p.Filter.Filters.Add(new KendoFilter{
                 Field = "EmployeeID",
                 Operator="eq",
                 Value=employeeID,
             });
-
-            var cl = new Client(Configuration);            
-                var req = new Request($"api/complaint/get", Method.POST);
-            req.AddJsonParameter(param);
-            var resp = cl.Execute(req);
-
-            var result = JsonConvert.DeserializeObject<ApiResult<List<TicketRequest>>.Result>(resp.Content);
-            return new ApiResult<List<TicketRequest>>(result);
+            return new ApiResult<List<TicketRequest>>
+                (JsonConvert.DeserializeObject<ApiResult<List<TicketRequest>>.Result>
+                (new Client(Configuration).Execute(new Request($"{Api}get", Method.POST, p)).Content));
         }
 
-        public IActionResult GetResolution([FromBody] KendoGrid param)
+        public IActionResult GetResolution([FromBody] KendoGrid p)
         {
-            var cl = new Client(Configuration);
-            var req = new Request($"api/complaint/get", Method.POST);
-            req.AddJsonParameter(param);
-            var resp = cl.Execute(req);
-
-            var result = JsonConvert.DeserializeObject<ApiResult<List<TicketRequest>>.Result>(resp.Content);
-            return new ApiResult<List<TicketRequest>>(result);
+            return new ApiResult<List<TicketRequest>>
+                (JsonConvert.DeserializeObject<ApiResult<List<TicketRequest>>.Result>
+                (new Client(Configuration).Execute(new Request($"{Api}get", Method.POST, p)).Content));
         }
 
         [HttpPost]
         public async Task<IActionResult> Complaint([FromForm] TicketForm p)
         {
-            try
-            {
+            try {
                 TicketRequest t = JsonConvert.DeserializeObject<TicketRequest>(p.JsonData);
                 t.EmployeeID = Session.Id();
                 t.EmployeeName = Session.DisplayName();
                 var req = new Request($"{Api}complaint", Method.POST);
                 req.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(t));
-                if (p.FileUpload != null) {
+                if (p.FileUpload != null)
                     req.AddFormDataFile("FileUpload", p.FileUpload.FirstOrDefault());
-                }
                 var res = JsonConvert.DeserializeObject<ApiResult<object>.Result>((await (new Client(Configuration)).Upload(req)).Content);
                 if (res.StatusCode == HttpStatusCode.OK) {
                     var response = SendUseTemplate(t);
-                    if (response.Equals("success"))
-                    {
+                    if (response.Equals("success")){
                         res.StatusCode = HttpStatusCode.OK;
                         res.Message = response;
-                    } 
-                    else
-                    {
+                    } else {
                         res.StatusCode = HttpStatusCode.BadRequest;
                         res.Message = response;
                     }
@@ -170,19 +147,15 @@ namespace KANO.ESS.Areas.ESS.Controllers
         [HttpPost]
         public async Task<IActionResult> Resolution([FromForm] TicketForm p)
         {
-            try
-            {
+            try {
                 TicketRequest t = JsonConvert.DeserializeObject<TicketRequest>(p.JsonData);
                 t.EmployeeID = Session.Id();
                 var req = new Request($"{Api}resolution", Method.POST);
                 req.AddFormDataParameter("JsonData", JsonConvert.SerializeObject(t));
                 if (p.FileUpload != null)
-                {
                     req.AddFormDataFile("FileUpload", p.FileUpload.FirstOrDefault());
-                }
                 var result = JsonConvert.DeserializeObject<ApiResult<object>.Result>((await (new Client(Configuration)).Upload(req)).Content);
-                if (result.StatusCode == HttpStatusCode.OK)
-                {
+                if (result.StatusCode == HttpStatusCode.OK) {
                     //SendUseTemplate(t);
                 }
                 return new ApiResult<object>(result);
@@ -193,50 +166,36 @@ namespace KANO.ESS.Areas.ESS.Controllers
         [HttpGet]
         public IActionResult GetTicketCategories()
         {
-            var client = new Client(Configuration);
-            var request = new Request($"api/complaint/ticketcategory/getdata", Method.GET);
-            var response = client.Execute(request);
-            var result = JsonConvert.DeserializeObject<ApiResult<List<TicketCategory>>.Result>(response.Content);
-            return new ApiResult<List<TicketCategory>>(result);
+            return new ApiResult<List<TicketCategory>>
+                (JsonConvert.DeserializeObject<ApiResult<List<TicketCategory>>.Result>
+                (new Client(Configuration).Execute(new Request($"{Api}ticketcategory/getdata", Method.GET)).Content));
         }
 
         [HttpPost]
-        public IActionResult SaveTicketCategory([FromBody] TicketCategory param)
+        public IActionResult SaveTicketCategory([FromBody] TicketCategory p)
         {
-            var client = new Client(Configuration);
-            var request = new Request($"api/complaint/ticketcategory/save", Method.POST);
-            param.EmployeeID = Session.Id();
-            request.AddJsonParameter(param);
-            var response = client.Execute(request);
-            var result = JsonConvert.DeserializeObject<ApiResult<TicketCategory>.Result>(response.Content);
-            return new ApiResult<TicketCategory>(result);
+            p.EmployeeID = Session.Id();
+            return new ApiResult<TicketCategory>
+                (JsonConvert.DeserializeObject<ApiResult<TicketCategory>.Result>
+                (new Client(Configuration).Execute(new Request($"{Api}ticketcategory/save", Method.POST, p)).Content));
         }
 
-        public async Task<IActionResult> GetByInstanceID(string source, string id)
+        public IActionResult GetByInstanceID(string source, string id)
         {
-            string employeeID = Session.Id();
-            var cl = new Client(Configuration);
-            var req = new Request($"api/complaint/getbyinstance/{source}/{id}", Method.GET);
-
-            var resp = cl.Execute(req);
-
-            var result = JsonConvert.DeserializeObject<ApiResult<TicketRequest>.Result>(resp.Content);
-            return new ApiResult<TicketRequest>(result);
+            return new ApiResult<TicketRequest>
+                (JsonConvert.DeserializeObject<ApiResult<TicketRequest>.Result>
+                (new Client(Configuration).Execute(new Request($"{Api}getbyinstance/{source}/{id}", Method.GET)).Content));
         }
 
-        public async Task<IActionResult> Download(string source, string id, string x)
+        public IActionResult Download(string source, string id, string x)
         {
             try
             {
                 var baseUrl = Configuration["Request:GatewayUrl"];
                 if (string.IsNullOrWhiteSpace(baseUrl))
                     return ApiResult<object>.Error(HttpStatusCode.InternalServerError, "Unable to find gateway url configuration");
-
-                // Fetching file info
-
                 WebClient wc = new WebClient();
-                using (MemoryStream stream = new MemoryStream(wc.DownloadData($"{baseUrl}api/complaint/download/{source}/{id}")))
-                {
+                using (MemoryStream stream = new MemoryStream(wc.DownloadData($"{baseUrl}api/complaint/download/{source}/{id}"))) {
                     return File(stream.ToArray(), "application/force-download", x);
                 }
             }
@@ -252,8 +211,8 @@ namespace KANO.ESS.Areas.ESS.Controllers
         private string SendUseTemplate(TicketRequest param)
         {
             try {
-                ComplaintMailTemplate mailTemplate = JsonConvert.DeserializeObject<ApiResult<ComplaintMailTemplate>.Result>(
-                    new Client(Configuration).Execute(new Request($"{Api}gettemplate", Method.GET)).Content).Data;
+                ComplaintMailTemplate mailTemplate = JsonConvert.DeserializeObject<ApiResult<ComplaintMailTemplate>.Result>
+                    (new Client(Configuration).Execute(new Request($"{Api}gettemplate", Method.GET)).Content).Data;
                 string bodyTemplate = mailTemplate.Body;
                 bodyTemplate = bodyTemplate.Replace("#NIPP#", param.EmployeeID);
                 bodyTemplate = bodyTemplate.Replace("#NAMA#", param.EmployeeName);

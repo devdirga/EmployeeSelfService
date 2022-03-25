@@ -20,6 +20,7 @@ namespace KANO.Core.Model.Payroll
         public string CycleTimeDescription { get; set; }
         public double Amount { get; set; }
         public double AmountNetto { get; set; }
+        public string YearMonth { get; set; }
 
     }
 }
