@@ -115,7 +115,7 @@ namespace KANO.Api.Auth.Controllers
                     var expire_minutes = Convert.ToDouble(Configuration["Tokens:ExpireMinutes"]);
                     var token = new JwtSecurityToken(Configuration["Tokens:Issuer"], Configuration["Tokens:Audience"],
                                 claims,
-                                expires: DateTime.Now.AddMinutes(expire_minutes),
+                                //expires: DateTime.Now.AddMinutes(expire_minutes),                                
                                 signingCredentials: creds);
                     authResult.Data = new JwtSecurityTokenHandler().WriteToken(token);
                     return ApiResult<AuthResult>.Ok(authResult);
