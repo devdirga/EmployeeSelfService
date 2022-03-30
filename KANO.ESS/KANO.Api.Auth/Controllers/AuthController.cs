@@ -98,11 +98,10 @@ namespace KANO.Api.Auth.Controllers
 
         [HttpPost]
         [Route("signin")]
-        public IActionResult SignIn([FromBody] LoginParam param)
+        public IActionResult SignIn([FromBody] LoginParam p)
         {
-            try
-            {
-                AuthResult authResult = new AuthService(Mongo, Configuration).Auth(param.EmployeeID, param.Email, param.Password);
+            try {
+                AuthResult authResult = new AuthService(Mongo, Configuration).Auth(p.EmployeeID, p.Email, p.Password);
                 if (authResult.AuthState == AuthState.Authenticated)
                 {
                     var claims = new[]{
@@ -115,60 +114,45 @@ namespace KANO.Api.Auth.Controllers
                     var expire_minutes = Convert.ToDouble(Configuration["Tokens:ExpireMinutes"]);
                     var token = new JwtSecurityToken(Configuration["Tokens:Issuer"], Configuration["Tokens:Audience"],
                                 claims,
-                                //expires: DateTime.Now.AddMinutes(expire_minutes),                                
+                                //expires: DateTime.Now.AddMinutes(expire_minutes),
                                 signingCredentials: creds);
                     authResult.Data = new JwtSecurityTokenHandler().WriteToken(token);
                     return ApiResult<AuthResult>.Ok(authResult);
                 }
                 else
-                {
                     return ApiResult<AuthResult>.Error(HttpStatusCode.Unauthorized, authResult.Message);
-                }
-
-            }
-            catch (Exception e) { return ApiResult<AuthResult>.Error(e); }
+            } catch (Exception e) { return ApiResult<AuthResult>.Error(e); }
         }
 
         [Authorize]
         [HttpPost("mchangepassword")]
-        public IActionResult MChangePassword([FromBody] ChangePasswordParam param)
+        public IActionResult MChangePassword([FromBody] ChangePasswordParam p)
         {
-            AuthResult auth = new AuthService
-                (Mongo, Configuration).ChangePassword(param.EmployeeID, param.Password, param.NewPassword);
+            AuthResult auth = new AuthService(Mongo, Configuration).ChangePassword(p.EmployeeID, p.Password, p.NewPassword);
             if (auth.Success == true)
-            {
                 return ApiResult<AuthResult>.Ok(auth);
-            }
             return ApiResult<AuthResult>.Error(HttpStatusCode.BadRequest, auth.Message);
         }
 
         [Authorize]
         [Route("mresetpassword/request")]
-        public IActionResult MSendResetPasswordEmail([FromBody] SendResetPasswordEmailParam param)
+        public IActionResult MSendResetPasswordEmail([FromBody] SendResetPasswordEmailParam p)
         {
-            return ApiResult<AuthResult>.Ok(new AuthService
-                (Mongo, Configuration).SendResetPassword(param.Email));
+            return ApiResult<AuthResult>.Ok(new AuthService(Mongo, Configuration).SendResetPassword(p.Email));
         }
 
         [Authorize]
         [HttpGet("mismustchangepassword/{token}")]
         public IActionResult MIsMustChangePassword(string token)
         {
-            try
-            {
+            try {
                 DateTime nw = DateTime.Now;
                 DateTime lastChangePassword = Db.GetCollection<User>().Find(a => a.Username == token).FirstOrDefault().LastPasswordChangedDate;
                 int tracehold = Db.GetCollection<Core.Model.Auth.ConfigPassword>().Find(a => a.Published == 1).FirstOrDefault().MustChangeDays;
                 Double diffdays = (nw - lastChangePassword).TotalDays;
                 return ApiResult<AuthResult>.Ok((diffdays >= tracehold) ? "true" : "false");
-            }
-            catch (Exception e) { return ApiResult<AuthResult>.Error(e); }
+            } catch (Exception e) { return ApiResult<AuthResult>.Error(e); }
         }
 
-        [HttpGet("ping")]
-        public IActionResult Ping()
-        {
-            return ApiResult.Ok(Tools.ConfigChecksum(Configuration), "success");
-        }
     }
 }

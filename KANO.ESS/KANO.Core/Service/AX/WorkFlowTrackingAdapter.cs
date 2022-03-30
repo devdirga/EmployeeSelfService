@@ -248,13 +248,8 @@ namespace KANO.Core.Service.AX
             var Client = this.GetClient();
             var Context = this.GetContext();
             try {
-                Console.WriteLine($"Start (GetAssignmentRange)={DateTime.Now.ToString("HHmmss", CultureInfo.InvariantCulture)}");
-                Console.WriteLine($"Start={dateRange.Start.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)} {dateRange.Finish.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)}");
-                
                 var data = Client.getWFTrackingAssignFilterDateAsync(Context, employeeID, range.Start, range.Finish, activeOnly);
                 var res = data.Result.response;
-                
-                Console.WriteLine($"Enddd (GetAssignmentRange)={DateTime.Now.ToString("HHmmss", CultureInfo.InvariantCulture)}");
                 foreach (var d in res) {
                     if (d.AssignToEmplId == d.SubmitByEmplId && (d.AssignApprove == KESSWFServices.NoYes.Yes || d.AssignReject == KESSWFServices.NoYes.Yes)) continue;
                     workflowAssignment.Add(this.mapFromAX(d));
@@ -270,6 +265,31 @@ namespace KANO.Core.Service.AX
             }
 
 
+            return workflowAssignment;
+        }
+
+        public List<WorkFlowAssignment> GetMAssignmentRange(string employeeID, DateRange dateRange, bool activeOnly = false)
+        {
+            var range = Tools.normalizeFilter(dateRange);
+            var workflowAssignment = new List<WorkFlowAssignment>();
+            var Client = this.GetClient();
+            var Context = this.GetContext();
+            try
+            {
+                var data = Client.getWFTrackingAssignFilterDateAsync(Context, employeeID, range.Start, range.Finish, activeOnly);
+                foreach (var d in data.Result.response)
+                    if (d.AssignToEmplId == employeeID && d.AssignCancel == KESSWFServices.NoYes.Yes && d.AssignReject == KESSWFServices.NoYes.Yes && d.AssignDelegate == KESSWFServices.NoYes.Yes && d.AssignType != KESSWFServices.KESSWorkflowAssignType.Originator)
+                        workflowAssignment.Add(this.mapFromAX(d));
+
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait();
+            }
             return workflowAssignment;
         }
 
@@ -346,6 +366,7 @@ namespace KANO.Core.Service.AX
 
         private WorkFlowAssignment mapFromAX(KESSWFServices.WFTrackingAssign data)
         {
+            
             return new WorkFlowAssignment
             {
                 ActionApprove = NoYes.Yes == (NoYes)data.ActionApprove,

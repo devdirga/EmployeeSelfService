@@ -26,6 +26,8 @@ namespace KANO.Api.Absence.Controllers
         private readonly IMongoDatabase DB;
         private readonly IConfiguration Configuration;
         private readonly User _user;
+        private readonly ActivityType _activityType;
+        private readonly Location _location;
 
         // Required, this make sure we use Dependency Injection provided by ASP.Core
         public AbsenceController(IMongoManager mongo, IConfiguration conf)
@@ -34,6 +36,8 @@ namespace KANO.Api.Absence.Controllers
             DB = Mongo.Database();
             Configuration = conf;
             _user = new User(DB, Configuration);
+            _activityType = new ActivityType(DB, Configuration);
+            _location = new Location(DB, Configuration);
         }
 
         [HttpPost("docheckinout")]
@@ -208,29 +212,29 @@ namespace KANO.Api.Absence.Controllers
                 User user = _user.GetEmployeeUser(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
                 var activitylogs = DB.GetCollection<ActivityLog>().Find(a => a.Temporary == true && a.UserID == user.Username).ToList();
                 Double absenceTimeLimit = Core.Lib.Helper.Configuration.GetUpdateAbsenceTimeLimit(Configuration);
-                Console.WriteLine($"AbsenceTimeLimit = {absenceTimeLimit}");
-                List<ActivityLog> res = new List<ActivityLog>();
+                List<ActivityLogMap> activityLogResult = new List<ActivityLogMap>();
                 foreach (var activitylog in activitylogs)
-                {
-                    if((DateTime.Now - activitylog.DateTime).TotalHours < absenceTimeLimit)
-                    {
-                        res.Add(activitylog);
-                    }
-                }
-                return Ok(new
-                {
-                    data = res,
-                    message = "",
-                    success = true
-                });
-                //return ApiResult<object>.Ok("success");
+                    if ((DateTime.Now - activitylog.DateTime).TotalHours < absenceTimeLimit)
+                        activityLogResult.Add(MapFromLog(activitylog));
+                //List<ActivityLog> res = new List<ActivityLog>();
+                //int i = 0;
+                //foreach (var activitylog in activitylogs)
+                //{
+                //    if (i == 0)
+                //    {
+                //        if ((DateTime.Now - activitylog.DateTime).TotalHours < absenceTimeLimit)
+                //        {
+                //            res.Add(activitylog);
+                //            i++;
+                //        }
+                //    }
+                //}
+                return Ok(new{data = activityLogResult,message = "",success = true});
             }
             catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
             
-
-
-            //return ApiResult<object>.Ok("success");
         }
+
         /*
         [HttpPost("doinout")]
         public IActionResult DoInOut([FromForm] TicketForm p)
@@ -261,6 +265,41 @@ namespace KANO.Api.Absence.Controllers
             catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
         */
+
+        public ActivityLogMap MapFromLog(ActivityLog activityLog)
+        {
+            User user = _user.GetEmployeeUser(activityLog.UserID);
+            Location location = _location.GetByCode(activityLog.LocationID);
+            ActivityType activityType = _activityType.GetByID(activityLog.ActivityTypeID.ToString());
+            return new ActivityLogMap
+            {
+                Id = activityLog.Id.ToString(),
+                EntityID = activityLog.EntityID.ToString(),
+                ActivityType = new ActivityTypeMap
+                {
+                    ActivityTypeId = activityType.Id.ToString(),
+                    ActivityTypeName = activityType.Name
+                },
+                Location = new LocationMap
+                {
+                    LocationID = location.Id.ToString(),
+                    LocationName = location.Name
+                },
+                User = new UserMap
+                {
+                    Email = user.Email,
+                    FirstName = user.FullName,
+                    LastName = user.FullName,
+                    UserId = user.Username,
+                    Username = user.Username
+                },
+                CreatedBy = activityLog.CreatedBy.ToString(),
+                CreatedDate = (DateTime)activityLog.CreatedDate,
+                DateTime = (DateTime)activityLog.DateTime,
+                Latitude = activityLog.Latitude,
+                Longitude = activityLog.Longitude
+            };
+        }
 
     }
 }

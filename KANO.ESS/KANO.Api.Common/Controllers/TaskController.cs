@@ -280,7 +280,10 @@ namespace KANO.Api.Common.Controllers
         [HttpGet("m/{employeeID}")]
         public IActionResult MGet(string employeeID)
         {
-            try { return ApiResult<List<WorkFlowAssignment>>.Ok(new WorkFlowAssignment(DB, Configuration).GetS(employeeID).OrderByDescending(x => x.SubmitDateTime).ToList()); }
+            var defaultFinish = DateTime.Now;
+            var defaultStart = defaultFinish.AddDays(-7);
+            DateRange range = new DateRange(defaultStart, defaultFinish);
+            try { return ApiResult<List<WorkFlowAssignment>>.Ok(new WorkFlowAssignment(DB, Configuration).GetMActiveRange(employeeID, range).OrderByDescending(x => x.SubmitDateTime).ToList()); }
             catch (Exception e){return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message);}
         }
 
@@ -436,7 +439,6 @@ namespace KANO.Api.Common.Controllers
                     if (t.Status == TaskStatus.RanToCompletion)
                         foreach (var r in t.Result)
                             res.AddRange(r.Result);
-                    //Console.WriteLine($"End mActive (not null) ... {DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)}");
                     return ApiResult<List<WorkFlowAssignment>>.Ok(res.OrderByDescending(x => x.SubmitDateTime).ToList(), res.Count);
                 }                
             }

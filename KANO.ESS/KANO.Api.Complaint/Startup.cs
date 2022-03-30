@@ -57,7 +57,7 @@ namespace KANO.Api.Complaint
                     ValidIssuer = Configuration["Tokens:Issuer"],
                     ValidAudience = Configuration["Tokens:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration["Tokens:Key"])),
-                    RequireExpirationTime = true,
+                    RequireExpirationTime = false,
                     ClockSkew = TimeSpan.Zero
                 };
             });
