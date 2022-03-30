@@ -31,11 +31,13 @@
                             <span data-bind="html:FormattedClockOut"></span>
                         </div>
                     </div>
-
-
                     <div class="form-group">
                         <label for="Reason">Reason</label>
                         <pre data-bind="html:Reason"></pre>
+                    </div>
+                    <div class="form-group">
+                        <label for="input">Status</label>
+                        <div class="form-control-plaintext" data-bind="html:`${StatusDescription}`"></div>
                     </div>
                     <!-- ko if:Accessible -->
                     <div class="form-group" data-bind="">

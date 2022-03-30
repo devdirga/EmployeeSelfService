@@ -1,26 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Net;
-using System.Net.Http.Headers;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using KANO.Core.Lib;
 using KANO.Core.Lib.Extension;
-using KANO.Core.Lib.Helper;
 using KANO.Core.Model;
 using KANO.Core.Service;
 using KANO.Core.Service.AX;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using MongoDB.Bson;
 using MongoDB.Driver;
-using Newtonsoft.Json;
 
 namespace KANO.Api.Common.Controllers
 {
@@ -31,13 +22,9 @@ namespace KANO.Api.Common.Controllers
         private readonly IMongoManager Mongo;
         private readonly IMongoDatabase DB;
         private readonly IConfiguration Configuration;
-        //private readonly Leave _leave;
-        //private readonly TimeAttendance _timeAttendance;
         private readonly WorkFlowAssignment _assignment;
-        //private readonly String ErrMessage = "Unable to get tasks for";
         private readonly String success = "success";
 
-        // Required, this make sure we use Dependency Injection provided by ASP.Core
         public TaskController(IMongoManager mongo, IConfiguration conf)
         {
             Mongo = mongo;
@@ -280,10 +267,10 @@ namespace KANO.Api.Common.Controllers
         [HttpGet("m/{employeeID}")]
         public IActionResult MGet(string employeeID)
         {
-            var defaultFinish = DateTime.Now;
-            var defaultStart = defaultFinish.AddDays(-7);
-            DateRange range = new DateRange(defaultStart, defaultFinish);
-            try { return ApiResult<List<WorkFlowAssignment>>.Ok(new WorkFlowAssignment(DB, Configuration).GetMActiveRange(employeeID, range).OrderByDescending(x => x.SubmitDateTime).ToList()); }
+            DateTime f = DateTime.Now;
+            DateTime s = f.AddDays(-7);
+            DateRange r = new DateRange(s, f);
+            try { return ApiResult<List<WorkFlowAssignment>>.Ok(new WorkFlowAssignment(DB, Configuration).GetMActiveRange(employeeID, r).OrderByDescending(x => x.SubmitDateTime).ToList()); }
             catch (Exception e){return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message);}
         }
 
@@ -292,14 +279,12 @@ namespace KANO.Api.Common.Controllers
         public IActionResult MRange(string employeeID, [FromBody] ParamTaskFilter p)
         {
             List<WorkFlowAssignment> result = new List<WorkFlowAssignment>();
-            try
-            {
+            try {
                 if (p.Range == null)
                     return ApiResult<List<WorkFlowAssignment>>.Ok(new WorkFlowAssignment(DB, Configuration).GetS(employeeID).OrderByDescending(x => x.SubmitDateTime).ToList());
-                else
-                {
-                    var defaultStart = new DateTime(1992, 12, 07);
-                    var defaultFinish = DateTime.Now;
+                else {
+                    DateTime defaultStart = new DateTime(1992, 12, 07);
+                    DateTime defaultFinish = DateTime.Now;
                     if (p.Range.Start.Year == 1 && p.Range.Finish.Year == 1) p.Range = new DateRange(defaultStart, defaultFinish);
                     else if (p.Range.Start.Year == 1 && p.Range.Finish.Year != 1) p.Range = new DateRange(defaultStart, p.Range.Finish);
                     else if (p.Range.Start.Year != 1 && p.Range.Finish.Year == 1) p.Range = new DateRange(p.Range.Start, defaultFinish);
@@ -310,90 +295,6 @@ namespace KANO.Api.Common.Controllers
                         Task.Run(() => {
                             List<WorkFlowAssignment> workflowdb = new List<WorkFlowAssignment>();
                             foreach (var data in new Survey(DB, Configuration).GetRange(employeeID, p.Range)){
-                                workflowdb.Add(new WorkFlowAssignment {
-                                    ActionApprove = NoYes.Yes == NoYes.No,
-                                    ActionCancel = NoYes.Yes == NoYes.No,
-                                    Comment = data.Title,
-                                    ActionDateTime = data.CreatedDate,
-                                    ActionDelegate = NoYes.Yes == NoYes.No,
-                                    ActionDelegateToEmployeeID = data.ParticipantID,
-                                    ActionDelegateToEmployeeName = data.ParticipantID,
-                                    ActionReject = NoYes.Yes == NoYes.No,
-                                    AssignApprove = NoYes.Yes == NoYes.No,
-                                    AssignCancel = NoYes.Yes == NoYes.No,
-                                    AssignDelegate = NoYes.Yes == NoYes.No,
-                                    AssignReject = NoYes.Yes == NoYes.No,
-                                    AssignType = KESSWFServices.KESSWorkflowAssignType.Originator,
-                                    AssignTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowAssignType), (KESSWFServices.KESSWorkflowAssignType)KESSWFServices.KESSWorkflowAssignType.Originator),
-                                    AssignToEmployeeID = data.ParticipantID,
-                                    AssignToEmployeeName = data.ParticipantID,
-                                    RequestType = KESSWFServices.KESSWorkerRequestType.CNTickets,
-                                    RequestTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkerRequestType), (KESSWFServices.KESSWorkerRequestType)KESSWFServices.KESSWorkerRequestType.CNTickets),
-                                    StepTrackingType = KESSWFServices.KESSWorkflowTrackingType.Creation,
-                                    StepTrackingTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowTrackingType), (KESSWFServices.KESSWorkflowTrackingType)KESSWFServices.KESSWorkflowTrackingType.Creation),
-                                    Sequence = 0,
-                                    InstanceId = data.OdooID,
-                                    AXID = long.Parse(data.OdooID) ,
-                                    SubmitEmployeeID = data.ParticipantID,
-                                    SubmitEmployeeName = data.ParticipantID,
-                                    SubmitDateTime = data.CreatedDate,
-                                    TrackingStatus = KESSWFServices.KESSWorkflowTrackingStatus.InReview,
-                                    TrackingStatusDescription = KESSWFServices.KESSWorkflowTrackingStatus.InReview.ToString(),
-                                    WorkflowId = data.OdooID,
-                                    WorkflowType = KESSWFServices.KESSWorkflowType.HRM,
-                                    TaskType = TaskType.Fill,
-                                    WorkflowTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowType), (KESSWFServices.KESSWorkflowType)KESSWFServices.KESSWorkflowType.HRM),
-                                    Title = data.Title,
-                                });
-                            }
-                            return TaskRequest<List<WorkFlowAssignment>>.Create("DB", workflowdb);
-                        })
-                    };
-                    var t = Task.WhenAll(tasks);
-                    try { t.Wait(); }
-                    catch (Exception e) { throw e; }
-                    if (t.Status == TaskStatus.RanToCompletion)
-                    {
-                        foreach (var r in t.Result)
-                        {
-                            result.AddRange(r.Result);
-                        }
-                    }
-                    return ApiResult<List<WorkFlowAssignment>>.Ok(result.OrderByDescending(x => x.SubmitDateTime).ToList());
-                }
-            }
-            catch (Exception e){return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message);}
-        }
-
-        [Authorize]
-        [HttpPost("mactive/{employeeID}")]
-        public IActionResult MGetActive(string employeeID, [FromBody] ParamTaskFilter p)
-        {
-            List<WorkFlowAssignment> res = new List<WorkFlowAssignment>();
-            DateTime end = DateTime.Now;
-            DateTime start = end.AddDays(-7);
-            DateRange drange = new DateRange(start, end);
-            try {
-                if (p.Range == null) {
-                    var ret = new WorkFlowAssignment(DB, Configuration).GetS(employeeID).OrderByDescending(x => x.SubmitDateTime).ToList();
-                    //Console.WriteLine($"End mActive (null) ... {DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)}");
-                    return ApiResult<List<WorkFlowAssignment>>.Ok(ret);
-                } else {
-                    var defaultFinish = DateTime.Now;
-                    var defaultStart = defaultFinish.AddDays(-7); //new DateTime(1992, 12, 07);
-                    //if (p.Range.Start.Year == 1 && p.Range.Finish.Year == 1) p.Range = new DateRange(defaultStart, defaultFinish);
-                    //else if (p.Range.Start.Year == 1 && p.Range.Finish.Year != 1) p.Range = new DateRange(defaultStart, p.Range.Finish);
-                    //else if (p.Range.Start.Year != 1 && p.Range.Finish.Year == 1) p.Range = new DateRange(p.Range.Start, defaultFinish);
-                    p.Range = new DateRange(defaultStart, defaultFinish);
-                    List<Task<TaskRequest<List<WorkFlowAssignment>>>> tasks = new List<Task<TaskRequest<List<WorkFlowAssignment>>>> {
-                        Task.Run(() => {
-                            return TaskRequest<List<WorkFlowAssignment>>.Create("AX", new WorkFlowAssignment(DB, Configuration).GetS(p.Username, true));
-                            //return TaskRequest<List<WorkFlowAssignment>>.Create("AX", new WorkFlowAssignment(DB, Configuration).GetSRange(p.Username, p.Range, true));
-                        }),
-                        /*
-                        Task.Run(() => {
-                            List<WorkFlowAssignment> workflowdb = new List<WorkFlowAssignment>();
-                            foreach (var data in new Survey(DB, Configuration).Get(p.Username))
                                 workflowdb.Add(new WorkFlowAssignment {
                                     ActionApprove = NoYes.Yes == NoYes.No,
                                     ActionCancel = NoYes.Yes == NoYes.No,
@@ -429,11 +330,39 @@ namespace KANO.Api.Common.Controllers
                                     WorkflowTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowType), KESSWFServices.KESSWorkflowType.HRM),
                                     Title = data.Title,
                                 });
+                            }
                             return TaskRequest<List<WorkFlowAssignment>>.Create("DB", workflowdb);
                         })
-                        */
                     };
-                    var t = Task.WhenAll(tasks);
+                    Task<TaskRequest<List<WorkFlowAssignment>>[]> t = Task.WhenAll(tasks);
+                    try { t.Wait(); }
+                    catch (Exception e) { throw e; }
+                    if (t.Status == TaskStatus.RanToCompletion)
+                        foreach (var r in t.Result)
+                            result.AddRange(r.Result);
+                    return ApiResult<List<WorkFlowAssignment>>.Ok(result.OrderByDescending(x => x.SubmitDateTime).ToList());
+                }
+            }
+            catch (Exception e){return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message);}
+        }
+
+        [Authorize]
+        [HttpPost("mactive/{employeeID}")]
+        public IActionResult MGetActive(string employeeID, [FromBody] ParamTaskFilter p)
+        {
+            List<WorkFlowAssignment> res = new List<WorkFlowAssignment>();
+            p.Range.Finish = DateTime.Now;
+            p.Range.Start = p.Range.Finish.AddDays(-7);
+            try {
+                if (p.Range == null) {
+                    return ApiResult<List<WorkFlowAssignment>>.Ok(new WorkFlowAssignment(DB, Configuration).GetMActiveRange(employeeID, p.Range).ToList());
+                } else {
+                    List<Task<TaskRequest<List<WorkFlowAssignment>>>> tasks = new List<Task<TaskRequest<List<WorkFlowAssignment>>>> {
+                        Task.Run(() => {
+                            return TaskRequest<List<WorkFlowAssignment>>.Create("AX", new WorkFlowAssignment(DB, Configuration).GetMActiveRange(p.Username, p.Range));
+                        })                        
+                    };
+                    Task<TaskRequest<List<WorkFlowAssignment>>[]> t = Task.WhenAll(tasks);
                     try { t.Wait(); }
                     catch (Exception e) { throw e; }
                     if (t.Status == TaskStatus.RanToCompletion)
