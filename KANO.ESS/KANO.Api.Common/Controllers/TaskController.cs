@@ -118,6 +118,37 @@ namespace KANO.Api.Common.Controllers
             catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }            
         }
 
+        [HttpGet("activex/{employeeID}")]
+        public IActionResult GetActivex(string employeeID, [FromBody] ParamTaskFilter p)
+        {
+            List<WorkFlowAssignment> res = new List<WorkFlowAssignment>();
+            try
+            {
+                List<Task<TaskRequest<List<WorkFlowAssignment>>>> tasks = new List<Task<TaskRequest<List<WorkFlowAssignment>>>> {
+                    Task.Run(() => {
+                        return TaskRequest<List<WorkFlowAssignment>>.Create("AX", new WorkFlowAssignment(DB, Configuration).GetMActiveRange(employeeID, p.Range));
+                    }),
+                    Task.Run(() => {
+                        List<WorkFlowAssignment> surveys = new List<WorkFlowAssignment>();
+                        foreach (var survey in (new Survey(DB, Configuration).GetOne(employeeID)))
+                            surveys.Add(MapSurveyToAX(survey));
+                        return TaskRequest<List<WorkFlowAssignment>>.Create("DB", surveys);
+                    })
+                };
+
+                var t = Task.WhenAll(tasks);
+                try { t.Wait(); }
+                catch (Exception e) { throw e; }
+
+                if (t.Status == TaskStatus.RanToCompletion)
+                    foreach (var r in t.Result)
+                        res.AddRange(r.Result);
+
+                return ApiResult<List<WorkFlowAssignment>>.Ok(res.OrderByDescending(x => x.SubmitDateTime).ToList());
+            }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
+        }
+
         private WorkFlowAssignment MapSurveyToAX(SurveySchedule d) {
             String OdooSurveyId = String.Empty;
             try {

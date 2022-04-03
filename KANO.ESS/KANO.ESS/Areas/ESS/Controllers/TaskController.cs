@@ -77,6 +77,7 @@ namespace KANO.ESS.Areas.ESS.Controllers
             return new ApiResult<List<WorkFlowAssignment>>(result);
         }
 
+        /*
         public async Task<IActionResult> GetActive()
         {
             var param = new FetchParam();
@@ -86,6 +87,22 @@ namespace KANO.ESS.Areas.ESS.Controllers
             var employeeID = Session.Id();
             var client = new Client(Configuration);
             var request = new Request($"api/common/task/active/{employeeID}", Method.GET);
+            var response = client.Execute(request);
+
+            var result = JsonConvert.DeserializeObject<ApiResult<List<WorkFlowAssignment>>.Result>(response.Content);
+            return new ApiResult<List<WorkFlowAssignment>>(result);
+        }
+        */
+
+        [HttpPost]
+        public IActionResult GetActive([FromBody] ParamTaskFilter param)
+        {
+            param.Limit = (param.Limit <= 0) ? 10 : param.Limit;
+            param.Offset = (param.Offset < 0) ? 0 : param.Offset;
+
+            var employeeID = Session.Id();
+            var client = new Client(Configuration);
+            var request = new Request($"api/common/task/activex/{employeeID}", Method.POST, param);
             var response = client.Execute(request);
 
             var result = JsonConvert.DeserializeObject<ApiResult<List<WorkFlowAssignment>>.Result>(response.Content);

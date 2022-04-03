@@ -17,12 +17,12 @@
                 </div>
             </a>
         </li>
-        <li class="nav-item kara-link">
+        @*<li class="nav-item kara-link">
             <a class="nav-link" data-bind="click:model.app.action.launchkara" href="#">
                 <span class="menu-title" style="font-size: 13px;">Download ESS Attendance</span>
                 <i class="kara-icon"></i>
             </a>
-        </li>
+        </li>*@
         @{ bool hasSubordinate = @UserSession.HasSubordinate(); }
         @foreach (var menu in UserSession.GetMenu())
         {
