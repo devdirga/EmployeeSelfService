@@ -56,8 +56,7 @@ namespace KANO.Api.Absence.Controllers
         [HttpGet("log/list")]
         public IActionResult GetActivityLogList()
         {
-            try
-            {
+            try {
                 ObjectId entityID = String.IsNullOrEmpty(Request.Query["entityID"]) ? ObjectId.Empty : ObjectId.Parse(Request.Query["entityID"].ToString());
                 int skip = String.IsNullOrEmpty(Request.Query["skip"]) ? 0 : Int32.Parse(Request.Query["skip"]);
                 int limit = String.IsNullOrEmpty(Request.Query["limit"]) ? 0 : Int32.Parse(Request.Query["limit"]);
@@ -67,29 +66,13 @@ namespace KANO.Api.Absence.Controllers
                 DateTime startDate = String.IsNullOrEmpty(Request.Query["startDate"]) ? DateTime.Now : Convert.ToDateTime(Request.Query["startDate"].ToString());
                 DateTime endDate = String.IsNullOrEmpty(Request.Query["endDate"]) ? DateTime.Now : Convert.ToDateTime(Request.Query["endDate"].ToString());
                 string keyword = Request.Query["search"].ToString();
-
                 var result = _activityLog.Get(entityID, skip, limit, userID, activityTypeID, locationID, startDate, endDate, keyword);
                 List<ActivityLogMap> activityLogResult = new List<ActivityLogMap>();
                 foreach (ActivityLog log in result)
-                {
                     activityLogResult.Add(MapFromLog(log));
-                }
-                return Ok(new
-                {
-                    data = activityLogResult,
-                    message = "",
-                    success = true
-                });
+                return Ok(new { data = activityLogResult, message = String.Empty, success = true });
             }
-            catch (Exception e)
-            {
-                return Ok(new
-                {
-                    data = new ActivityLog(),
-                    message = Format.ExceptionString(e),
-                    success = false
-                });
-            }
+            catch (Exception e) { return Ok(new { data = new ActivityLog(), message = Format.ExceptionString(e), success = false }); }
         }
 
         [Authorize]

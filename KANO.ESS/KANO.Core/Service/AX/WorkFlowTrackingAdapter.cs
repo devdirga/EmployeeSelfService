@@ -278,7 +278,11 @@ namespace KANO.Core.Service.AX
             {
                 var data = Client.getWFTrackingAssignFilterDateAsync(Context, employeeID, range.Start, range.Finish, activeOnly);
                 foreach (var d in data.Result.response)
-                    if (d.AssignToEmplId == employeeID && d.AssignCancel == KESSWFServices.NoYes.Yes && d.AssignReject == KESSWFServices.NoYes.Yes && d.AssignDelegate == KESSWFServices.NoYes.Yes && d.AssignType != KESSWFServices.KESSWorkflowAssignType.Originator)
+                    if (d.AssignToEmplId == employeeID 
+                        && d.AssignCancel == KESSWFServices.NoYes.No 
+                        && d.AssignReject == KESSWFServices.NoYes.Yes 
+                        && d.AssignDelegate == KESSWFServices.NoYes.No  
+                        && d.AssignType != KESSWFServices.KESSWorkflowAssignType.Originator)
                         workflowAssignment.Add(this.mapFromAX(d));
 
             }
