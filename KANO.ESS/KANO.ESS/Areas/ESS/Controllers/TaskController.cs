@@ -60,6 +60,7 @@ namespace KANO.ESS.Areas.ESS.Controllers
             return new ApiResult<List<WorkFlowAssignment>>(result);
         }
 
+        /*
         public async Task<IActionResult> GetRange([FromBody] ParamTaskFilter param)
         {
             param.Limit = (param.Limit <= 0) ? 10 : param.Limit;
@@ -73,6 +74,17 @@ namespace KANO.ESS.Areas.ESS.Controllers
             var response = client.Execute(request);
             if (response.StatusCode != HttpStatusCode.OK &&  string.IsNullOrWhiteSpace(response.Content)) return ApiResult<object>.Error(response.StatusCode, response.StatusDescription);
 
+            var result = JsonConvert.DeserializeObject<ApiResult<List<WorkFlowAssignment>>.Result>(response.Content);
+            return new ApiResult<List<WorkFlowAssignment>>(result);
+        }
+        */
+
+        public IActionResult GetRange([FromBody] ParamTaskFilter p)
+        {
+            p.Limit = (p.Limit <= 0) ? 10 : p.Limit;
+            p.Offset = (p.Offset < 0) ? 0 : p.Offset;
+            var response = new Client(Configuration).Execute(new Request($"{ApiCommon}task/rangex/{Session.Id()}", Method.POST, p));
+            if (response.StatusCode != HttpStatusCode.OK && string.IsNullOrWhiteSpace(response.Content)) return ApiResult<object>.Error(response.StatusCode, response.StatusDescription);
             var result = JsonConvert.DeserializeObject<ApiResult<List<WorkFlowAssignment>>.Result>(response.Content);
             return new ApiResult<List<WorkFlowAssignment>>(result);
         }

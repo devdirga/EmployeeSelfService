@@ -191,12 +191,13 @@ model.app.get.notification = async function (limit = model.app.config.maxNotific
 };
 
 model.app.get.task = async function (limit = model.app.config.maxNotification, offset = 0, range = null, activeOnly=false) {
-    let self = model;
-    if (!range) range = { Start: _DEFAULT_DATE, Finish: _DEFAULT_DATE };
-    if (!range.Start) range.Start = _DEFAULT_DATE;
-    if (!range.Finish) range.Finish = _DEFAULT_DATE;
+  let self = model;
+  if (!range) range = { Start: _DEFAULT_DATE, Finish: _DEFAULT_DATE };
+  if (!range.Start) range.Start = _DEFAULT_DATE;
+  if (!range.Finish) range.Finish = _DEFAULT_DATE;
+  
 
-    let response = await ajaxPost("/ESS/Task/GetRange", { Limit: limit, Offset: offset, Range: range, ActiveOnly:activeOnly });
+  let response = await ajaxPost("/ESS/Task/GetRange", { Limit: limit, Offset: offset, Range: range, ActiveOnly: activeOnly});
     if (response.StatusCode == 200) {
         let data = response.Data || [];
         let total = response.Total || 0;

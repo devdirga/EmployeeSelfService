@@ -124,9 +124,7 @@ namespace KANO.Core.Model
 
         public List<WorkFlowAssignment> GetMActiveRange(string employeeID, DateRange range, bool activeOnly = false)
         {
-            var adapter = new WorkFlowTrackingAdapter(Configuration);
-            var result = adapter.GetMAssignmentRange(employeeID, range, activeOnly);
-            return GroupWorkflowAssignment(result);
+            return GroupWorkflowAssignment(new WorkFlowTrackingAdapter(Configuration).GetMAssignmentRange(employeeID, range, activeOnly));
         }
 
     }

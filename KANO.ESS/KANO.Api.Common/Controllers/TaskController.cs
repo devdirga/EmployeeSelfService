@@ -81,6 +81,41 @@ namespace KANO.Api.Common.Controllers
             catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }            
         }
 
+        [HttpPost("rangex/{employeeID}")]
+        public IActionResult GetRangex(string employeeID, [FromBody] ParamTaskFilter p)
+        {
+            List<WorkFlowAssignment> res = new List<WorkFlowAssignment>();
+            try {
+                DateTime defaultStart = new DateTime(1992, 12, 07);
+                DateTime defaultFinish = DateTime.Now;
+                if (p.Range.Start.Year == 1 && p.Range.Finish.Year == 1)
+                    p.Range = new DateRange(defaultStart, defaultFinish);
+                else if (p.Range.Start.Year == 1 && p.Range.Finish.Year != 1)
+                    p.Range = new DateRange(defaultStart, p.Range.Finish);
+                else if (p.Range.Start.Year != 1 && p.Range.Finish.Year == 1)
+                    p.Range = new DateRange(p.Range.Start, defaultFinish);
+                List<Task<TaskRequest<List<WorkFlowAssignment>>>> tasks = new List<Task<TaskRequest<List<WorkFlowAssignment>>>> {
+                        Task.Run(() => {
+                            return TaskRequest<List<WorkFlowAssignment>>.Create("AX",new WorkFlowAssignment(DB, Configuration).GetMActiveRange(employeeID, p.Range, p.ActiveOnly));
+                        }),
+                        Task.Run(() => {
+                            List<WorkFlowAssignment> sur = new List<WorkFlowAssignment>();
+                            foreach (var s in (new Survey(DB, Configuration).GetRange(employeeID, p.Range)))
+                                sur.Add(MapSurveyToAX(s));
+                            return TaskRequest<List<WorkFlowAssignment>>.Create("DB", sur);
+                        })
+                    };
+                var t = Task.WhenAll(tasks);
+                try { t.Wait(); }
+                catch (Exception e) { throw e; }
+                if (t.Status == TaskStatus.RanToCompletion)
+                    foreach (var r in t.Result)
+                        res.AddRange(r.Result);
+                return ApiResult<List<WorkFlowAssignment>>.Ok(res.OrderByDescending(x => x.SubmitDateTime).ToList());
+            }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
+        }
+
         [HttpGet("assignee/{axid}")]
         public IActionResult GetAssignee(string axid)
         {
@@ -121,6 +156,7 @@ namespace KANO.Api.Common.Controllers
         [HttpGet("activex/{employeeID}")]
         public IActionResult GetActivex(string employeeID, [FromBody] ParamTaskFilter p)
         {
+            Console.WriteLine($"Employee {employeeID} GetActivex...");
             List<WorkFlowAssignment> res = new List<WorkFlowAssignment>();
             try
             {
