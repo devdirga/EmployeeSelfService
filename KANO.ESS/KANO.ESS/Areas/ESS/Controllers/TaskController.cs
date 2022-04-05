@@ -284,13 +284,13 @@ namespace KANO.ESS.Areas.ESS.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult MGetRange([FromBody] ParamTaskFilter param)
+        public IActionResult MGetRange([FromBody] ParamTaskFilter p)
         {
             string bearerAuth = BearerAuth;
             if (Request.Headers.TryGetValue("Authorization", out StringValues authToken)) { bearerAuth = authToken; }
-            param.Limit = (param.Limit <= 0) ? 10 : param.Limit;
-            param.Offset = (param.Offset < 0) ? 0 : param.Offset;
-            var response = new Client(Configuration).Execute(new Request($"{ApiCommon}task/mrange/{param.Username}", Method.POST, param, "Authorization", bearerAuth));
+            p.Limit = (p.Limit <= 0) ? 10 : p.Limit;
+            p.Offset = (p.Offset < 0) ? 0 : p.Offset;
+            var response = new Client(Configuration).Execute(new Request($"{ApiCommon}task/mrangex/{p.Username}", Method.POST, p, "Authorization", bearerAuth));
             if (response.StatusCode != HttpStatusCode.OK && string.IsNullOrWhiteSpace(response.Content))
                 return ApiResult<object>.Error(response.StatusCode, response.StatusDescription);
             return new ApiResult<List<WorkFlowAssignment>>(

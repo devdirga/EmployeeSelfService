@@ -414,6 +414,33 @@ namespace KANO.Api.Common.Controllers
         }
 
         [Authorize]
+        [HttpPost("mrangex/{employeeID}")]
+        public IActionResult MRangex(string employeeID, [FromBody] ParamTaskFilter p)
+        {
+            List<WorkFlowAssignment> result = new List<WorkFlowAssignment>();
+            try {
+                DateTime defaultStart = new DateTime(1992, 12, 07);
+                DateTime defaultFinish = DateTime.Now;
+                if (p.Range.Start.Year == 1 && p.Range.Finish.Year == 1) p.Range = new DateRange(defaultStart, defaultFinish);
+                else if (p.Range.Start.Year == 1 && p.Range.Finish.Year != 1) p.Range = new DateRange(defaultStart, p.Range.Finish);
+                else if (p.Range.Start.Year != 1 && p.Range.Finish.Year == 1) p.Range = new DateRange(p.Range.Start, defaultFinish);
+                List<Task<TaskRequest<List<WorkFlowAssignment>>>> tasks = new List<Task<TaskRequest<List<WorkFlowAssignment>>>> {
+                    Task.Run(() => {
+                        return TaskRequest<List<WorkFlowAssignment>>.Create("AX", new WorkFlowAssignment(DB, Configuration).GetMActiveRange(employeeID, p.Range, p.ActiveOnly));
+                    })
+                };
+                Task<TaskRequest<List<WorkFlowAssignment>>[]> t = Task.WhenAll(tasks);
+                try { t.Wait(); }
+                catch (Exception e) { throw e; }
+                if (t.Status == TaskStatus.RanToCompletion)
+                    foreach (var r in t.Result)
+                        result.AddRange(r.Result);
+                return ApiResult<List<WorkFlowAssignment>>.Ok(result.OrderByDescending(x => x.SubmitDateTime).ToList());
+            }
+            catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
+        }
+
+        [Authorize]
         [HttpPost("mactive/{employeeID}")]
         public IActionResult MGetActive(string employeeID, [FromBody] ParamTaskFilter p)
         {
