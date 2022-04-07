@@ -215,8 +215,7 @@ namespace KANO.Api.Complaint.Controllers
                     if (fil.Operator.Equals("gte")) start = DateTime.Parse(fil.Value);
                     if (fil.Operator.Equals("lte")) end = DateTime.Parse(fil.Value);
                 }
-            try
-            {
+            try {
                 List<Task<TaskRequest<List<TicketRequest>>>> tasks = new List<Task<TaskRequest<List<TicketRequest>>>> {
                     Task.Run(() => {
                         return TaskRequest<List<TicketRequest>>.Create("DB", DB.GetCollection<TicketRequest>()
@@ -228,15 +227,12 @@ namespace KANO.Api.Complaint.Controllers
                 try { t.Wait(); }
                 catch (Exception) { throw; }
                 List<TicketRequest> result = new List<TicketRequest>();
-                if (t.Status == TaskStatus.RanToCompletion)
-                {
+                if (t.Status == TaskStatus.RanToCompletion) {
                     List<TicketRequest> TicketUpdateRequest = new List<TicketRequest>();
                     foreach (var r in t.Result)
                         if (r.Label == "DB")
-                        {
                             if (!isFilterDate) TicketUpdateRequest = r.Result;
                             else TicketUpdateRequest = r.Result.FindAll(a => a.CreatedDate >= start && a.CreatedDate <= end).ToList();
-                        }
                     foreach (var fur in TicketUpdateRequest)
                         result.Add(fur);
                 }
@@ -421,8 +417,7 @@ namespace KANO.Api.Complaint.Controllers
         [HttpGet("rdownload/{employeeID}")]
         public IActionResult MRDownload(string employeeID)
         {
-            try
-            {
+            try {
                 TicketRequest t = _ticket.GetByID(employeeID);
                 return File(t.Attachments.Download(), "application/force-download", Path.GetFileName(t.Attachments.Filepath));
             }

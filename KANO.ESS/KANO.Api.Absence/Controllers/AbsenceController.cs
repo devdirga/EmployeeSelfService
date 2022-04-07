@@ -118,7 +118,9 @@ namespace KANO.Api.Absence.Controllers
                 if (!abs.Temporary) {
                     CreateAbsenceFile(abs.InOut, inout);
                 }
-                return ApiResult<object>.Ok("success");
+                String clock = inout.PresenceDateField.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                String act = abs.InOut == "IN" ? "ChekIn at" : "CheckOut at";
+                return ApiResult<object>.Ok($"You {act} {clock}");
             }
             catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
         }
