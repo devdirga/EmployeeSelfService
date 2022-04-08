@@ -275,18 +275,24 @@ namespace KANO.Core.Service.AX
             var Context = this.GetContext();
             try {
                 var data = Client.getWFTrackingAssignFilterDateAsync(Context, employeeID, range.Start, range.Finish, activeOnly);
-                foreach (var d in data.Result.response)
-                    if(!activeOnly)
-                        workflowAssignment.Add(this.mapFromAX(d));
-                    else
-                        if (d.AssignToEmplId == employeeID 
-                                && d.AssignCancel == KESSWFServices.NoYes.No 
-                                && d.AssignReject == KESSWFServices.NoYes.Yes 
-                                && d.AssignDelegate == KESSWFServices.NoYes.No  
-                                && d.AssignType != KESSWFServices.KESSWorkflowAssignType.Originator
-                                && d.TrackingStatus == KESSWFServices.KESSWorkflowTrackingStatus.InReview)
-                                workflowAssignment.Add(this.mapFromAX(d));
-            } catch (Exception e) { throw e; }
+                //foreach (var d in data.Result.response)
+                //    if(!activeOnly)
+                //        workflowAssignment.Add(this.mapFromAX(d));
+                //    else
+                //        if (d.AssignToEmplId == employeeID && d.AssignCancel == KESSWFServices.NoYes.No 
+                //                && d.AssignReject == KESSWFServices.NoYes.Yes && d.AssignDelegate == KESSWFServices.NoYes.No  
+                //                && d.AssignType != KESSWFServices.KESSWorkflowAssignType.Originator
+                //                && d.TrackingStatus == KESSWFServices.KESSWorkflowTrackingStatus.InReview)
+                //                workflowAssignment.Add(this.mapFromAX(d));
+                foreach (var r in data.Result.response)
+                    if (r.AssignToEmplId == employeeID && r.AssignCancel == KESSWFServices.NoYes.No && r.AssignReject == KESSWFServices.NoYes.Yes && r.AssignDelegate == KESSWFServices.NoYes.No && r.AssignType != KESSWFServices.KESSWorkflowAssignType.Originator && r.TrackingStatus == KESSWFServices.KESSWorkflowTrackingStatus.InReview){
+                        if (activeOnly)
+                            workflowAssignment.Add(this.mapFromAX(r));
+                    } else {
+                        if (!activeOnly)
+                            workflowAssignment.Add(this.mapFromAX(r));
+                    }
+            } catch (Exception) { throw; }
             finally { if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait(); }
             return workflowAssignment;
         }
