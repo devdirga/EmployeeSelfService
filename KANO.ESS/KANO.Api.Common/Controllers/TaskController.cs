@@ -96,12 +96,57 @@ namespace KANO.Api.Common.Controllers
                     p.Range = new DateRange(p.Range.Start, defaultFinish);
                 List<Task<TaskRequest<List<WorkFlowAssignment>>>> tasks = new List<Task<TaskRequest<List<WorkFlowAssignment>>>> {
                         Task.Run(() => {
-                            return TaskRequest<List<WorkFlowAssignment>>.Create("AX",new WorkFlowAssignment(DB, Configuration).GetMActiveRange(employeeID, p.Range, p.ActiveOnly));
+                            return TaskRequest<List<WorkFlowAssignment>>.Create("AX",new WorkFlowAssignment(DB, Configuration).GetAll(employeeID, p.Range, p.ActiveOnly));
                         }),
                         Task.Run(() => {
                             List<WorkFlowAssignment> sur = new List<WorkFlowAssignment>();
-                            foreach (var s in (new Survey(DB, Configuration).GetRange(employeeID, p.Range)))
-                                sur.Add(MapSurveyToAX(s));
+                            foreach (var s in (new Survey(DB, Configuration).GetRange(employeeID, p.Range))) {
+                                String OdooSurveyId = String.Empty;
+                                try {
+                                    Survey survey = this.DB.GetCollection<Survey>().Find(x => x.Id == s.SurveyID).FirstOrDefault();
+                                    if(survey.AlreadyFilled == false) {
+                                        string[] url1 = survey.SurveyUrl.ToString().Split("start/");
+                                        string[] url2 = url1[1].Split("?");
+                                        OdooSurveyId = url2[0];
+                                        sur.Add(new WorkFlowAssignment {
+                                            ActionApprove = NoYes.Yes == NoYes.No,
+                                            ActionCancel = NoYes.Yes == NoYes.No,
+                                            Comment = s.Title,
+                                            ActionDateTime = s.CreatedDate,
+                                            ActionDelegate = NoYes.Yes == NoYes.No,
+                                            ActionDelegateToEmployeeID = s.ParticipantID,
+                                            ActionDelegateToEmployeeName = s.ParticipantID,
+                                            ActionReject = NoYes.Yes == NoYes.No,
+                                            AssignApprove = NoYes.Yes == NoYes.No,
+                                            AssignCancel = NoYes.Yes == NoYes.No,
+                                            AssignDelegate = NoYes.Yes == NoYes.No,
+                                            AssignReject = NoYes.Yes == NoYes.No,
+                                            AssignType = KESSWFServices.KESSWorkflowAssignType.Originator,
+                                            AssignTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowAssignType), KESSWFServices.KESSWorkflowAssignType.Originator),
+                                            AssignToEmployeeID = s.ParticipantID,
+                                            AssignToEmployeeName = s.ParticipantID,
+                                            RequestType = KESSWFServices.KESSWorkerRequestType.CNTickets,
+                                            RequestTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkerRequestType), KESSWFServices.KESSWorkerRequestType.CNTickets),
+                                            StepTrackingType = KESSWFServices.KESSWorkflowTrackingType.Creation,
+                                            StepTrackingTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowTrackingType), KESSWFServices.KESSWorkflowTrackingType.Creation),
+                                            Sequence = 0,
+                                            InstanceId = s.OdooID,
+                                            AXID = long.Parse(s.OdooID) ,
+                                            SubmitEmployeeID = s.ParticipantID,
+                                            SubmitEmployeeName = s.ParticipantID,
+                                            SubmitDateTime = s.CreatedDate,
+                                            TrackingStatus = KESSWFServices.KESSWorkflowTrackingStatus.InReview,
+                                            TrackingStatusDescription = KESSWFServices.KESSWorkflowTrackingStatus.InReview.ToString(),
+                                            WorkflowId = s.OdooID,
+                                            WorkflowType = KESSWFServices.KESSWorkflowType.HRM,
+                                            TaskType = TaskType.Fill,
+                                            WorkflowTypeDescription = Enum.GetName(typeof(KESSWFServices.KESSWorkflowType), KESSWFServices.KESSWorkflowType.HRM),
+                                            Title = s.Title,
+                                            OdooSurveyID = OdooSurveyId
+                                        });
+                                    }                                    
+                                } catch (Exception){}
+                            }                                
                             return TaskRequest<List<WorkFlowAssignment>>.Create("DB", sur);
                         })
                     };

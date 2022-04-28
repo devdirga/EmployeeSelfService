@@ -76,6 +76,17 @@ namespace KANO.Core.Model
             Configuration = configuration;
         }
 
+        public List<WorkFlowAssignment> GetAll(string employeeID, DateRange range, bool activeOnly = false) {
+            var adapter = new WorkFlowTrackingAdapter(Configuration);
+            if  (activeOnly) {
+                var result = adapter.GetAssignment(employeeID, activeOnly);
+                return GroupWorkflowAssignment(result);
+            } else {
+                var result = adapter.GetMAssignmentRange(employeeID, range, activeOnly);
+                return GroupWorkflowAssignment(result);
+            }
+        }
+
         public List<WorkFlowAssignment> GetS(string employeeID, bool activeOnly = false) {                        
             var adapter = new WorkFlowTrackingAdapter(Configuration);
             var result = adapter.GetAssignment(employeeID, activeOnly);
@@ -120,6 +131,11 @@ namespace KANO.Core.Model
         public int MCountActive(String emp) 
         {
             return new WorkFlowTrackingAdapter(Configuration).MGetAssignmentCount(emp, true);
+        }
+
+        public List<WorkFlowAssignment> GetActiveRange(string employeeID, DateRange range, bool activeOnly = false)
+        {
+            return GroupWorkflowAssignment(new WorkFlowTrackingAdapter(Configuration).GetMAssignmentRange(employeeID, range, activeOnly));
         }
 
         public List<WorkFlowAssignment> GetMActiveRange(string employeeID, DateRange range, bool activeOnly = false)

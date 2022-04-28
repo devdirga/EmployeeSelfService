@@ -2,16 +2,14 @@
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace KANO.Core.Service.AX
 {
     public class WorkFlowTrackingAdapter
     {
-        private IConfiguration Configuration;
-        private Credential credential;
+        private readonly IConfiguration Configuration;
+        private readonly Credential credential;
 
         public WorkFlowTrackingAdapter(IConfiguration config)
         {
@@ -22,12 +20,8 @@ namespace KANO.Core.Service.AX
         public KESSWFServices.KESSWFServiceClient GetClient()
         {
             var Client = new KESSWFServices.KESSWFServiceClient();
-            var uri = new UriBuilder(Client.Endpoint.Address.Uri);
-            uri.Host = credential.Host;
-            uri.Port = credential.Port;
-            Client.Endpoint.Address = new System.ServiceModel.EndpointAddress(
-                uri.Uri,
-                new System.ServiceModel.UpnEndpointIdentity(credential.UserPrincipalName));
+            var uri = new UriBuilder(Client.Endpoint.Address.Uri) { Host = credential.Host, Port = credential.Port };
+            Client.Endpoint.Address = new System.ServiceModel.EndpointAddress( uri.Uri, new System.ServiceModel.UpnEndpointIdentity(credential.UserPrincipalName));
             Client.ClientCredentials.Windows.ClientCredential.Domain = credential.Domain;
             Client.ClientCredentials.Windows.ClientCredential.UserName = credential.Username;
             Client.ClientCredentials.Windows.ClientCredential.Password = credential.Password;
@@ -36,9 +30,7 @@ namespace KANO.Core.Service.AX
 
         public KESSWFServices.CallContext GetContext()
         {
-            var Context = new KESSWFServices.CallContext();
-            Context.Company = credential.Company;
-            return Context;
+            return new KESSWFServices.CallContext { Company = credential.Company };
         }
 
         public List<WorkFlow> GetUpdateRequests(string employeeID)
@@ -46,27 +38,13 @@ namespace KANO.Core.Service.AX
             var workflows = new List<WorkFlow>();
             var Client = this.GetClient();
             var Context = this.GetContext();
-            try
-
-            {
-                //Client.OpenAsync().GetAwaiter();
+            try {
                 var data = Client.getWFTrackingAsync(Context, employeeID, "");
                 foreach (var d in data.Result.response)
-                {
                     workflows.Add(this.mapFromAX(d));
-
-                }
             }
-            catch (Exception)
-            {
-                throw;
-            }
-            finally {
-                if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait();
-            }
-
-            // Console.WriteLine($"{workflows.Count} request found(s)");
-            
+            catch (Exception) { throw; }
+            finally { if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait(); }            
             return workflows;
         }
 
@@ -76,26 +54,13 @@ namespace KANO.Core.Service.AX
             var workflows = new List<WorkFlow>();
             var Client = this.GetClient();
             var Context = this.GetContext();
-            try
-            {                
-                //Client.OpenAsync().GetAwaiter();
+            try {
                 var data = Client.getWFTrackingFilterDateAsync(Context, employeeID, range.Start, range.Finish);
                 foreach (var d in data.Result.response)
-                {
                     workflows.Add(this.mapFromAX(d));
-
-                }
             }
-            catch (Exception)
-            {
-                throw;
-            }
-            finally {
-                if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait();
-            }
-
-            // Console.WriteLine($"{workflows.Count} request found(s)");
-            
+            catch (Exception) { throw; }
+            finally { if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait(); }            
             return workflows;
         }
 
@@ -104,14 +69,10 @@ namespace KANO.Core.Service.AX
             var workflows = new List<WorkFlow>();
             var Client = this.GetClient();
             var Context = this.GetContext();
-            try
-            {
-                //Client.OpenAsync().GetAwaiter();
+            try {
                 var data = Client.getWFTrackingAsync(Context, employeeID, instanceID).GetAwaiter().GetResult().response;
                 foreach (var d in data)
-                {
-                    workflows.Add(new WorkFlow
-                    {
+                    workflows.Add(new WorkFlow {
                         ActionApprove = NoYes.Yes == (NoYes)d.ActionApprove,
                         ActionCancel = NoYes.Yes == (NoYes)d.ActionCancel,
                         Comment = d.ActionComment,
@@ -144,45 +105,24 @@ namespace KANO.Core.Service.AX
                         WorkflowId = d.WorkflowId,
                     });
 
-                }
             }
-            catch (Exception)
-            {
-                throw;
-            }
-            finally
-            {
-                if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait();
-            }
-
+            catch (Exception) { throw; }
+            finally { if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait(); }
             return workflows;
         }
 
         public UpdateRequestStatus GetCurrentSatus(string employeeID, string instanceID)
         {
             KESSWFServices.KESSWFServiceGetWFTrackingResponse data;
-            var workflows = new List<WorkFlow>();
             var Client = this.GetClient();
             var Context = this.GetContext();
-            try
-            {
-                //Client.OpenAsync().GetAwaiter();
+            try {
                 data = Client.getWFTrackingAsync(Context, employeeID, instanceID).GetAwaiter().GetResult();                
             }
-            catch (Exception)
-            {
-
-                throw;
-            }
-            finally 
-            {
-                if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait();
-            }
-
-            if (data.response.Length > 0) {
+            catch (Exception) { throw; }
+            finally { if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait(); }
+            if (data.response.Length > 0)
                 return (UpdateRequestStatus)data.response[0].TrackingStatus;
-            }
-
             return UpdateRequestStatus.InReview;
         }
 
@@ -191,26 +131,13 @@ namespace KANO.Core.Service.AX
             var workflows = new List<WorkFlow>();
             var Client = this.GetClient();
             var Context = this.GetContext();
-            try
-            {
-                //Client.OpenAsync().GetAwaiter();
+            try {
                 var data = Client.getWFTrackingAsync(Context, employeeID, instanceID).GetAwaiter().GetResult().response;
                 foreach (var d in data)
-                {
                     workflows.Add(this.mapFromAX(d));
-
-                }
             }
-            catch (Exception)
-            {
-
-                throw;
-            }
-            finally
-            {
-                if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait();
-            }            
-
+            catch (Exception) { throw; }
+            finally { if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait(); }
             return workflows;
         }
 
@@ -219,26 +146,15 @@ namespace KANO.Core.Service.AX
             var workflowAssignment = new List<WorkFlowAssignment>();
             var Client = this.GetClient();
             var Context = this.GetContext();
-            try
-            {
-                //Client.OpenAsync().GetAwaiter();
+            try {
                 var data = Client.getWFTrackingAssignAsync(Context, employeeID, activeOnly);
-                foreach (var d in data.Result.response)
-                {
+                foreach (var d in data.Result.response) {
                     if (d.AssignToEmplId == d.SubmitByEmplId) continue;
                     workflowAssignment.Add(this.mapFromAX(d));
                 }
             }
-            catch (Exception e)
-            {
-                throw e;
-            }
-            finally
-            {
-                if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait();
-            }
-            
-
+            catch (Exception) { throw; }
+            finally { if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait(); }
             return workflowAssignment;
         }
 
@@ -255,16 +171,8 @@ namespace KANO.Core.Service.AX
                     workflowAssignment.Add(this.mapFromAX(d));
                 }
             }
-            catch (Exception e)
-            {
-                throw e;
-            }
-            finally
-            {
-                if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait();
-            }
-
-
+            catch (Exception) { throw; }
+            finally { if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait(); }
             return workflowAssignment;
         }
 
@@ -275,15 +183,6 @@ namespace KANO.Core.Service.AX
             var Context = this.GetContext();
             try {
                 var data = Client.getWFTrackingAssignFilterDateAsync(Context, employeeID, range.Start, range.Finish, activeOnly);
-                //foreach (var d in data.Result.response)
-                //    if(!activeOnly)
-                //        workflowAssignment.Add(this.mapFromAX(d));
-                //    else
-                //        if (d.AssignToEmplId == employeeID && d.AssignCancel == KESSWFServices.NoYes.No 
-                //                && d.AssignReject == KESSWFServices.NoYes.Yes && d.AssignDelegate == KESSWFServices.NoYes.No  
-                //                && d.AssignType != KESSWFServices.KESSWorkflowAssignType.Originator
-                //                && d.TrackingStatus == KESSWFServices.KESSWorkflowTrackingStatus.InReview)
-                //                workflowAssignment.Add(this.mapFromAX(d));
                 foreach (var r in data.Result.response)
                     if (r.AssignToEmplId == employeeID && r.AssignCancel == KESSWFServices.NoYes.No && r.AssignReject == KESSWFServices.NoYes.Yes && r.AssignDelegate == KESSWFServices.NoYes.No && r.AssignType != KESSWFServices.KESSWorkflowAssignType.Originator && r.TrackingStatus == KESSWFServices.KESSWorkflowTrackingStatus.InReview){
                         if (activeOnly)
@@ -302,32 +201,13 @@ namespace KANO.Core.Service.AX
             var employements = new List<Employee>();
             var Client = this.GetClient();
             var Context = this.GetContext();
-            try
-            {
-                //Client.OpenAsync().GetAwaiter();
+            try {
                 var data = Client.getWFTrackingAssignDelegateEmplAsync(Context, AXID);
                 foreach (var d in data.Result.response)
-                {
-
-                    employements.Add(new Employee
-                    {
-                        AXID = d.RecId,
-                        EmployeeName = d.EmplName,
-                        EmployeeID = d.EmplId,
-                    });
-                }
+                    employements.Add(new Employee { AXID = d.RecId, EmployeeName = d.EmplName, EmployeeID = d.EmplId });
             }
-            catch (Exception)
-            {
-
-                throw;
-            }
-            finally 
-            {
-                if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait();
-            }
-            
-
+            catch (Exception) { throw; }
+            finally { if (Client.InnerChannel.State != System.ServiceModel.CommunicationState.Faulted) Client.CloseAsync().Wait(); }
             return employements;
         }
 

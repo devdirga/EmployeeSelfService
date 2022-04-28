@@ -119,7 +119,7 @@ namespace KANO.Api.Absence.Controllers
                     CreateAbsenceFile(abs.InOut, inout);
                 }
                 String clock = inout.PresenceDateField.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
-                String act = abs.InOut == "IN" ? "ChekIn at" : "CheckOut at";
+                String act = abs.InOut == "IN" ? "CHECK IN at" : "CHECK OUT at";
                 return ApiResult<object>.Ok($"You {act} {clock}");
             }
             catch (Exception e) { return ApiResult<object>.Error(HttpStatusCode.BadRequest, e.Message); }
